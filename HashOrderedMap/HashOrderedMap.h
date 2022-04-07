@@ -168,6 +168,7 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
     }
 
     data[index_clean].hash = 0;
+    delete data[index_clean].value;
     data[index_clean].value = nullptr;
     --ele_count;
 

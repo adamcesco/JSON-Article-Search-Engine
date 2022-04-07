@@ -121,4 +121,26 @@ TEST_CASE("Testing HashOrderedMap clearing methods", "[HashOrderedMap]") {
         }
         REQUIRE(error);
     }
+
+    SECTION("Testing \"HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear()\""){
+        for (int i = 0; i < 26; ++i) {
+            char key = i + 'A';
+            int randNum = rand();
+            testDummy.emplace_pair(key, randNum);
+        }
+        REQUIRE(testDummy.size() == 26);
+
+        testDummy.clear();
+        REQUIRE(testDummy.size() == 0);
+        REQUIRE(testDummy.is_empty() == true);
+
+        bool error = false;
+        try{
+            testDummy.clear_value_at('A');
+        }
+        catch (const std::invalid_argument& e){
+            error = true;
+        }
+        REQUIRE(error);
+    }
 }

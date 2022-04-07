@@ -7,6 +7,7 @@
 #include "include/rapidjson/document.h"
 #include <chrono>
 #include <sstream>
+#include "catch_setup.h"
 
 std::mutex queue_mutex;
 std::queue<std::string> filenames;
@@ -25,7 +26,6 @@ void processFiles() {
         }
         rapidjson::Document document;
         try {
-
             std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             document.Parse(content.c_str());
         } catch (std::exception& e) {
@@ -33,7 +33,6 @@ void processFiles() {
             continue;
         }
         file.close();
-
 
         assert(document.IsObject());
         assert(document.HasMember("title"));
@@ -61,7 +60,12 @@ void processFiles() {
     }
 }
 
-int main() {
+
+int main(int argc, char** argv) {
+    if(argc == 1) {
+        runCatchTests();
+        return 0;
+    }
     std::string path = "../data/articles/2018_01_112b52537b67659ad3609a234388c50a/";
 
     if (auto dir = opendir(path.c_str())) {

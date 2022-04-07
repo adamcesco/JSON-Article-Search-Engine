@@ -25,6 +25,7 @@ public:
     ~HashOrderedMap() { delete[] data; }    //destructor
 
 private:
+    explicit HashOrderedMap(int capReq);             //creates an HashOrderedMap that has an initial "max_cap" equal to "capReq" (capacity-requirement)
     int increase_max_cap(unsigned int hashIndex);     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
 
     struct HashPair{
@@ -51,6 +52,12 @@ template<class T, class U>
 HashOrderedMap<T, U>::HashOrderedMap() {
     data = new HashPair[20];
     max_cap = 20;
+}
+
+template<class T, class U>
+HashOrderedMap<T, U>::HashOrderedMap(int capReq) {
+    data = new HashPair[capReq];
+    max_cap = capReq;
 }
 
 template<class T, class U>

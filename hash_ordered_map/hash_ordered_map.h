@@ -228,10 +228,8 @@ bool hash_ordered_map<T, U>::contains(const T &key) const {
 
 template<class T, class U>
 hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap) {
-    std::hash<T> hashObj;
-
     for (int i = 0; i < passedMap.max_cap; ++i) {
-        const unsigned int index = hashObj(*passedMap.data[i].value);
+        const unsigned int index = passedMap.data[i].hash;
         int index_clean = index % max_cap;
         while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
             ++index_clean;
@@ -256,10 +254,8 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_ma
 
 template<class T, class U>
 hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_map<T, U> &passedMap) {
-    std::hash<T> hashObj;
-
     for (int i = 0; i < passedMap.max_cap; ++i) {
-        const unsigned int index = hashObj(*passedMap.data[i].value);
+        const unsigned int index = passedMap.data[i].hash;
         int index_clean = index % max_cap;
         while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
             ++index_clean;

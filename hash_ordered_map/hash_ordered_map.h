@@ -243,10 +243,11 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_ma
 
         if(data[index_clean].value == nullptr) {
             data[index_clean].value = new U();
+            *data[index_clean].value = *passedMap.data[i].value;
             ++ele_count;
         }
-
-        *data[index_clean].value += *passedMap.data[i].value;   //adds the two "value"s together
+        else
+            *data[index_clean].value += *passedMap.data[i].value;   //adds the two "value"s together
     }
 
     return *this;

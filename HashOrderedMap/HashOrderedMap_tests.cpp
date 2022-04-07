@@ -5,6 +5,8 @@
 #include "../catch.hpp"
 #include "HashOrderedMap.h"
 #include <iostream>
+#include <fstream>
+#include <unordered_map>
 
 TEST_CASE("Testing basic constructors and destructor", "[HashOrderedMap]"){
     SECTION("Testing default constructor"){
@@ -92,6 +94,28 @@ TEST_CASE("Testing HashOrderedMap filling and reading methods", "[HashOrderedMap
             REQUIRE(testDummy[key] == counter[key & 31]);
             REQUIRE(testDummy.read_at(key) == counter[key & 31]);
         }
+    }
+
+    SECTION("Testing large file reading via \"HashOrderedMap/test_Oedipus-King-of-Thebes.txt\" and comparing STL unordered_maps to HashOrderedMaps"){
+        std::ifstream inFile;
+        inFile.open("../HashOrderedMap/test_Oedipus-King-of-Thebes.txt");
+        if(!inFile.is_open()) {
+            std::cout << "Error in Testing large file reading via \"../HashOrderedMap/test_Oedipus-King-of-Thebes.txt\" | file could not open" << std::endl;
+            REQUIRE(false);
+            return;
+        }
+
+        HashOrderedMap<std::string, int> wordFreqCounterCUSTOM;
+        std::unordered_map<std::string, int> wordFreqCounterSTL;
+        while(inFile.good()){
+            std::string word;
+            inFile >> word;
+            wordFreqCounterCUSTOM[word]++;
+            wordFreqCounterSTL[word]++;
+        }
+        inFile.close();
+
+        REQUIRE(wordFreqCounterCUSTOM.size() == wordFreqCounterSTL.size());
     }
 }
 

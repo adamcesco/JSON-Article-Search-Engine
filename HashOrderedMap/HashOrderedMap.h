@@ -22,8 +22,8 @@ public:
     U& operator[](const T&);
     U read_at(const T&) const;
     ~HashOrderedMap() { delete[] data; }
+
 private:
-    explicit HashOrderedMap(int);
     int increase_max_cap(unsigned int);
 
     struct HashPair{
@@ -147,12 +147,6 @@ int HashOrderedMap<T, U>::increase_max_cap(unsigned int passedIndex) {
         ++index_clean;
     }
     return index_clean;
-}
-
-template<class T, class U>
-HashOrderedMap<T, U>::HashOrderedMap(int max_req) {
-    data = new HashPair[max_req];
-    max_cap = max_req;
 }
 
 template<class T, class U>

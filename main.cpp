@@ -8,18 +8,23 @@
 #include <chrono>
 #include <sstream>
 #include "catch_setup.h"
+#include <fstream>
+#include <iostream>
+#include <filesystem>
+
+std::filesystem::recursive_directory_iterator end_itr;
 
 std::mutex queue_mutex;
 std::queue<std::string> filenames;
 
 void processFiles() {
-    while(!filenames.empty()) {
+    while (!filenames.empty()) {
         queue_mutex.lock();
         std::string filename = filenames.front();
         filenames.pop();
         queue_mutex.unlock();
 
-        std::ifstream file( filename);
+        std::ifstream file(filename);
         if (!file.is_open()) {
             std::cout << "Could not open file: " << filename << std::endl;
             continue;
@@ -28,7 +33,7 @@ void processFiles() {
         try {
             std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             document.Parse(content.c_str());
-        } catch (std::exception& e) {
+        } catch (std::exception &e) {
             std::cout << "Could not read file: " << filename << std::endl;
             continue;
         }
@@ -60,8 +65,8 @@ void processFiles() {
     }
 }
 
-int main(int argc, char** argv) {
-    if(argc == 1) {
+int main(int argc, char **argv) {
+    if (argc == 1) {
         runCatchTests();
         return 0;
     }

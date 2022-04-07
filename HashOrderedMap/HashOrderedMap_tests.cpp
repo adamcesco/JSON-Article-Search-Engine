@@ -29,13 +29,13 @@ TEST_CASE("Testing HashOrderedMap filling", "[HashOrderedMap]"){
         REQUIRE(homTestString.is_empty() == false);
     }
 
-    SECTION("Testing \"U HashOrderedMap<T, U>::read_at(const T &key) const\""){
+    SECTION("Testing \"HashOrderedMap<T, U>& HashOrderedMap<T, U>::emplace_pair(const T &key, const U &value)\""){
         HashOrderedMap<char, int> testDummy;
-        testDummy['A'] = 123;
+        testDummy.emplace_pair('A', 123);
         REQUIRE(testDummy.read_at('A') == 123);
     }
 
-    SECTION("Testing \"void HashOrderedMap<T, U>::increase_max_cap()\""){
+    SECTION("Testing \"void HashOrderedMap<T, U>::increase_max_cap()\" by building with \"U& HashOrderedMap<T, U>::operator[](const T&)\""){
         HashOrderedMap<char, int> testDummy;
         int counter[27];
         for (int & it : counter) {
@@ -46,6 +46,29 @@ TEST_CASE("Testing HashOrderedMap filling", "[HashOrderedMap]"){
             char key = (i % 26) + 'a';
             testDummy[key] += i;
             counter[key & 31] += i;
+        }
+        REQUIRE(testDummy.size() == 26);
+        REQUIRE(testDummy.is_empty() == false);
+
+        for (int i = 0; i < 26; ++i) {
+            char key = i + 'a';
+            REQUIRE(testDummy[key] == counter[key & 31]);
+            REQUIRE(testDummy.read_at(key) == counter[key & 31]);
+        }
+    }
+
+    SECTION("Testing \"void HashOrderedMap<T, U>::increase_max_cap()\" by building with \"HashOrderedMap<T, U>& HashOrderedMap<T, U>::emplace_pair(const T &key, const U &value)\""){
+        HashOrderedMap<char, int> testDummy;
+        int counter[27];
+        for (int & it : counter) {
+            it = 0;
+        }
+
+        for (int i = 0; i < 100; ++i) {
+            char key = (i % 26) + 'a';
+            int randNum = rand();
+            testDummy[key] = randNum;
+            counter[key & 31] = randNum;
         }
         REQUIRE(testDummy.size() == 26);
         REQUIRE(testDummy.is_empty() == false);

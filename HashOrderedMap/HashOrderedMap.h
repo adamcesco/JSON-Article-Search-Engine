@@ -14,7 +14,7 @@ public:
     HashOrderedMap();
     HashOrderedMap(const HashOrderedMap<T, U>&);
     HashOrderedMap<T, U>& operator=(const HashOrderedMap<T, U>&);
-    HashOrderedMap<T, U>& clear() { delete[] data; data = new HashPair[20]; max_cap = 20; return *this; }
+    HashOrderedMap<T, U>& clear() { delete[] data; data = new HashPair[20]; max_cap = 20; ele_count = 0; return *this; }
     HashOrderedMap<T, U>& clear_value_at(const T&);
     int size() const { return ele_count; }
     bool is_empty() const { return ele_count == 0; }
@@ -155,6 +155,24 @@ template<class T, class U>
 HashOrderedMap<T, U>::HashOrderedMap(int max_req) {
     data = new HashPair[max_req];
     max_cap = max_req;
+}
+
+template<class T, class U>
+HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
+    std::hash<T> hashObj;
+    unsigned int index = hashObj(key);
+    int index_clean = index % max_cap;
+    while((data[index_clean].value == nullptr || data[index_clean].hash != index) && index_clean < max_cap){
+        ++index_clean;
+    }
+    if(index_clean >= max_cap) {
+        throw std::invalid_argument("Error in U HashOrderedMap<T, U>::read_at(const T &key) const | key not found");
+    }
+
+    data[index_clean].hash = 0;
+    data[index_clean].value = nullptr;
+
+    return *this;
 }
 
 #endif //INC_22S_FINAL_PROJ_HASHORDEREDMAP_H

@@ -110,7 +110,7 @@ U HashOrderedMap<T, U>::read_at(const T &key) const {
         ++index_clean;
     }
 
-    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+    if(index_clean >= max_cap || data[index_clean].value == nullptr) {
         throw std::invalid_argument("Error in \"U HashOrderedMap<T, U>::read_at(const T &key) const\" | key not found");
     }
 
@@ -159,7 +159,7 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
         ++index_clean;
     }
 
-    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+    if(index_clean >= max_cap || data[index_clean].value == nullptr) {
         throw std::invalid_argument("Error in \"HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key)\" | key not found");
     }
 
@@ -210,7 +210,7 @@ bool HashOrderedMap<T, U>::contains(const T &key) const {
         ++index_clean;
     }
 
-    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+    if(index_clean >= max_cap || data[index_clean].value == nullptr) {
         return false;
     }
 

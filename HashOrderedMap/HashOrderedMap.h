@@ -12,20 +12,20 @@ template<class T, class U>
 class HashOrderedMap{
 public:
     HashOrderedMap();
-    HashOrderedMap(const HashOrderedMap<T, U>&);
-    HashOrderedMap<T, U>& operator=(const HashOrderedMap<T, U>&);
-    HashOrderedMap<T, U>& clear() { delete[] data; data = new HashPair[20]; max_cap = 20; ele_count = 0; return *this; }
-    HashOrderedMap<T, U>& clear_value_at(const T&);
+    HashOrderedMap(const HashOrderedMap<T, U>&);                    //copy-constructor
+    HashOrderedMap<T, U>& operator=(const HashOrderedMap<T, U>&);   //assignment operator overload
+    HashOrderedMap<T, U>& clear() { delete[] data; data = new HashPair[20]; max_cap = 20; ele_count = 0; return *this; }    //resets all *this contents/data
+    HashOrderedMap<T, U>& clear_value_at(const T& key);             //sets the value at "key" to nullptr
     int size() const { return ele_count; }
     bool is_empty() const { return ele_count == 0; }
-    HashOrderedMap<T, U>& emplace_pair(const T&, const U&);
-    U& operator[](const T&);
-    U read_at(const T&) const;
-    bool contains(const T&) const;
-    ~HashOrderedMap() { delete[] data; }
+    HashOrderedMap<T, U>& emplace_pair(const T& key, const U& value);       //places the key/value pair passed into *this, if the value at "key" is already defined, then the value at "key" is over-written and replaced
+    U& operator[](const T& key);            //returns the values at "key" by reference; if the value at "key" has not been initialized, then the value at "key" will be initialized and "ele_count" will be incremented
+    U read_at(const T& key) const;          //returns a copy of the value at "key", is const because changes to the contents returned are not reflected in *this
+    bool contains(const T& key) const;      //returns true if the "key" is found within *this, else returns false
+    ~HashOrderedMap() { delete[] data; }    //destructor
 
 private:
-    int increase_max_cap(unsigned int);
+    int increase_max_cap(unsigned int hashIndex);     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
 
     struct HashPair{
         HashPair()=default;
@@ -106,19 +106,19 @@ U HashOrderedMap<T, U>::read_at(const T &key) const {
     std::hash<T> hashObj;
     unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while((data[index_clean].value == nullptr || data[index_clean].hash != index) && index_clean < max_cap){
+    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
         ++index_clean;
     }
 
-    if(index_clean >= max_cap) {
-        throw std::invalid_argument("Error in U HashOrderedMap<T, U>::read_at(const T &key) const | key not found");
+    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+        throw std::invalid_argument("Error in \"U HashOrderedMap<T, U>::read_at(const T &key) const\" | key not found");
     }
 
     return *data[index_clean].value;
 }
 
-template<class T, class U>
-int HashOrderedMap<T, U>::increase_max_cap(unsigned int passedIndex) {
+template<class T, class U>      //pass and return index values because all index values are going to be changed due to their dependence on "max_cap"
+int HashOrderedMap<T, U>::increase_max_cap(unsigned int hashIndex) {
     int mcCopy = max_cap;
     max_cap *= 2;
     auto* dataCopy = new HashPair[max_cap];
@@ -140,9 +140,9 @@ int HashOrderedMap<T, U>::increase_max_cap(unsigned int passedIndex) {
     delete[] data;
     data = dataCopy;
 
-    int index_clean = passedIndex % max_cap;
+    int index_clean = hashIndex % max_cap;    //now that "data" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
     while(data[index_clean].value != nullptr && index_clean < max_cap){
-        if(data[index_clean].hash == passedIndex) {
+        if(data[index_clean].hash == hashIndex) {
             break;
         }
         ++index_clean;
@@ -155,11 +155,12 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
     std::hash<T> hashObj;
     unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while((data[index_clean].value == nullptr || data[index_clean].hash != index) && index_clean < max_cap){
+    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
         ++index_clean;
     }
-    if(index_clean >= max_cap) {
-        throw std::invalid_argument("Error in U HashOrderedMap<T, U>::read_at(const T &key) const | key not found");
+
+    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+        throw std::invalid_argument("Error in \"HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key)\" | key not found");
     }
 
     data[index_clean].hash = 0;

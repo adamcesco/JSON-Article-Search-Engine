@@ -242,7 +242,7 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
 
 TEST_CASE("Testing appending-type methods", "[hash_ordered_map]"){
     hash_ordered_map<char, int> testDummy;
-    for (int i = 0; i < 16; ++i) {  //fills until letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
+    for (int i = 0; i < 16; ++i) {  //fills until and including letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
         char key = i + 'A';
         testDummy.emplace_pair(key, 1);
     }

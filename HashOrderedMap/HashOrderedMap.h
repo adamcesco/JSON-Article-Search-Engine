@@ -60,7 +60,7 @@ HashOrderedMap<T, U>& HashOrderedMap<T, U>::emplace_pair(const T &key, const U &
     int index_clean = index % max_cap;
     HashPair toInsert(index, value);
 
-    while(data[index_clean].value != nullptr && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr){
         if(data[index_clean].hash == index) {
             --ele_count;
             break;
@@ -83,7 +83,7 @@ U& HashOrderedMap<T, U>::operator[](const T &key) {
     std::hash<T> hashObj;
     const unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
         ++index_clean;
     }
 
@@ -106,7 +106,7 @@ U HashOrderedMap<T, U>::read_at(const T &key) const {
     std::hash<T> hashObj;
     unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
         ++index_clean;
     }
 
@@ -129,7 +129,7 @@ int HashOrderedMap<T, U>::increase_max_cap(unsigned int hashIndex) {
         int index_clean = index % max_cap;
         HashPair toInsert(index, *data[i].value);
 
-        while(dataCopy[index_clean].value != nullptr && index_clean < max_cap){
+        while(index_clean < max_cap && dataCopy[index_clean].value != nullptr){
             if(dataCopy[index_clean].hash == index) {
                 break;
             }
@@ -141,7 +141,7 @@ int HashOrderedMap<T, U>::increase_max_cap(unsigned int hashIndex) {
     data = dataCopy;
 
     int index_clean = hashIndex % max_cap;    //now that "data" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
-    while(data[index_clean].value != nullptr && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr){
         if(data[index_clean].hash == hashIndex) {
             break;
         }
@@ -155,7 +155,7 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
     std::hash<T> hashObj;
     unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
         ++index_clean;
     }
 
@@ -206,7 +206,7 @@ bool HashOrderedMap<T, U>::contains(const T &key) const {
     std::hash<T> hashObj;
     unsigned int index = hashObj(key);
     int index_clean = index % max_cap;
-    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
+    while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
         ++index_clean;
     }
 

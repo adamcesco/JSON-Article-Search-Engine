@@ -21,6 +21,7 @@ public:
     HashOrderedMap<T, U>& emplace_pair(const T&, const U&);
     U& operator[](const T&);
     U read_at(const T&) const;
+    bool contains(const T&) const;
     ~HashOrderedMap() { delete[] data; }
 
 private:
@@ -197,6 +198,22 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::operator=(const HashOrderedMap<T, U>
     }
 
     return *this;
+}
+
+template<class T, class U>
+bool HashOrderedMap<T, U>::contains(const T &key) const {
+    std::hash<T> hashObj;
+    unsigned int index = hashObj(key);
+    int index_clean = index % max_cap;
+    while(data[index_clean].value != nullptr && data[index_clean].hash != index && index_clean < max_cap){
+        ++index_clean;
+    }
+
+    if(data[index_clean].value == nullptr || index_clean >= max_cap) {
+        return false;
+    }
+
+    return true;
 }
 
 #endif //INC_22S_FINAL_PROJ_HASHORDEREDMAP_H

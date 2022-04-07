@@ -53,6 +53,12 @@ TEST_CASE("Testing HashOrderedMap filling and reading methods", "[HashOrderedMap
         REQUIRE(error);
     }
 
+    SECTION("Testing bool HashOrderedMap<T, U>::contains(const T &key) const\""){
+        testDummy.emplace_pair('A', 123);
+        REQUIRE(testDummy.contains('A') == true);
+        REQUIRE(testDummy.contains('B') == false);
+    }
+
     SECTION("Testing \"void HashOrderedMap<T, U>::increase_max_cap()\" by building with \"U& HashOrderedMap<T, U>::operator[](const T&)\""){
         int counter[27];
         for (int & it : counter) {
@@ -69,6 +75,7 @@ TEST_CASE("Testing HashOrderedMap filling and reading methods", "[HashOrderedMap
 
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
             REQUIRE(testDummy[key] == counter[key & 31]);
             REQUIRE(testDummy.read_at(key) == counter[key & 31]);
         }
@@ -91,6 +98,7 @@ TEST_CASE("Testing HashOrderedMap filling and reading methods", "[HashOrderedMap
 
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
             REQUIRE(testDummy[key] == counter[key & 31]);
             REQUIRE(testDummy.read_at(key) == counter[key & 31]);
         }
@@ -116,6 +124,11 @@ TEST_CASE("Testing HashOrderedMap filling and reading methods", "[HashOrderedMap
         inFile.close();
 
         REQUIRE(wordFreqCounterCUSTOM.size() == wordFreqCounterSTL.size());
+
+        for (const auto & it : wordFreqCounterSTL) {
+            REQUIRE(wordFreqCounterCUSTOM.contains(it.first) == true);
+            REQUIRE(wordFreqCounterCUSTOM.read_at(it.first) == it.second);
+        }
     }
 }
 
@@ -144,6 +157,18 @@ TEST_CASE("Testing HashOrderedMap clearing methods", "[HashOrderedMap]") {
             error = true;
         }
         REQUIRE(error);
+
+        error = false;
+        try{
+            testDummy.read_at('A');
+        }
+        catch (const std::invalid_argument& e){
+            error = true;
+        }
+        REQUIRE(error);
+
+        REQUIRE(testDummy.contains('A') == false);
+        REQUIRE(testDummy.contains('B') == false);
     }
 
     SECTION("Testing \"HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear()\""){
@@ -160,7 +185,7 @@ TEST_CASE("Testing HashOrderedMap clearing methods", "[HashOrderedMap]") {
 
         bool error = false;
         try{
-            testDummy.clear_value_at('A');
+            testDummy.read_at('A');
         }
         catch (const std::invalid_argument& e){
             error = true;
@@ -190,6 +215,8 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[HashOrderedMap]"
 
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
+            REQUIRE(homChar.contains(key) == true);
             REQUIRE(testDummy.read_at(key) == counter[key & 31]);
             REQUIRE(homChar.read_at(key) == counter[key & 31]);
             REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
@@ -204,6 +231,8 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[HashOrderedMap]"
 
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
+            REQUIRE(homChar.contains(key) == true);
             REQUIRE(testDummy.read_at(key) == counter[key & 31]);
             REQUIRE(homChar.read_at(key) == counter[key & 31]);
             REQUIRE(homChar.read_at(key) == testDummy.read_at(key));

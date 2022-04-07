@@ -12,8 +12,6 @@
 #include <iostream>
 #include <filesystem>
 
-std::filesystem::recursive_directory_iterator end_itr;
-
 std::mutex queue_mutex;
 std::queue<std::string> filenames;
 

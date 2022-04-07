@@ -239,3 +239,67 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
         }
     }
 }
+
+TEST_CASE("Testing appending-type methods", "[hash_ordered_map]"){
+    hash_ordered_map<char, int> testDummy;
+    for (int i = 0; i < 16; ++i) {  //fills until and including letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
+        char key = i + 'A';
+        testDummy.emplace_pair(key, 1);
+    }
+
+    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap)\""){
+        hash_ordered_map<char, int> homChar;
+        homChar.emplace_pair('A', -2);
+        homChar.emplace_pair('B', 10);
+        homChar.emplace_pair('Y', -3);
+        homChar.emplace_pair('Z', -4);
+
+        homChar.merge_with(testDummy);
+        REQUIRE(testDummy.contains('A') == true);
+        REQUIRE(homChar.contains('A') == true);
+        REQUIRE(homChar.read_at('A') == -1);
+        REQUIRE(testDummy.contains('B') == true);
+        REQUIRE(homChar.contains('B') == true);
+        REQUIRE(homChar.read_at('B') == 11);
+        for (int i = 2; i < 16; ++i) {
+            char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
+            REQUIRE(homChar.contains(key) == true);
+            REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
+        }
+        REQUIRE(testDummy.contains('Y') == false);
+        REQUIRE(homChar.contains('Y') == true);
+        REQUIRE(homChar.read_at('Y') == -3);
+        REQUIRE(testDummy.contains('Z') == false);
+        REQUIRE(homChar.contains('Z') == true);
+        REQUIRE(homChar.read_at('Z') == -4);
+    }
+
+    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_map<T, U> & passedMap)\""){
+        hash_ordered_map<char, int> homChar;
+        homChar.emplace_pair('A', -2);
+        homChar.emplace_pair('B', 10);
+        homChar.emplace_pair('Y', -3);
+        homChar.emplace_pair('Z', -4);
+
+        homChar.overlap_with(testDummy);
+        REQUIRE(testDummy.contains('A') == true);
+        REQUIRE(homChar.contains('A') == true);
+        REQUIRE(homChar.read_at('A') == 1);
+        REQUIRE(testDummy.contains('B') == true);
+        REQUIRE(homChar.contains('B') == true);
+        REQUIRE(homChar.read_at('B') == 1);
+        for (int i = 2; i < 16; ++i) {
+            char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
+            REQUIRE(homChar.contains(key) == true);
+            REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
+        }
+        REQUIRE(testDummy.contains('Y') == false);
+        REQUIRE(homChar.contains('Y') == true);
+        REQUIRE(homChar.read_at('Y') == -3);
+        REQUIRE(testDummy.contains('Z') == false);
+        REQUIRE(homChar.contains('Z') == true);
+        REQUIRE(homChar.read_at('Z') == -4);
+    }
+}

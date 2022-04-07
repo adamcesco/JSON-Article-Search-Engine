@@ -144,3 +144,45 @@ TEST_CASE("Testing HashOrderedMap clearing methods", "[HashOrderedMap]") {
         REQUIRE(error);
     }
 }
+
+TEST_CASE("Testing copy-constructor and assignment operator", "[HashOrderedMap]"){
+    int counter[27];
+    for (int & it : counter) {
+        it = 0;
+    }
+
+    HashOrderedMap<char, int> testDummy;
+    for (int i = 0; i < 26; ++i) {
+        char key = i + 'A';
+        int randNum = rand();
+        testDummy.emplace_pair(key, randNum);
+        counter[key & 31] = randNum;
+    }
+
+    SECTION("Testing copy-constructor"){
+        HashOrderedMap<char, int> homChar(testDummy);
+        REQUIRE(homChar.size() == 26);
+        REQUIRE(homChar.is_empty() == false);
+
+        for (int i = 0; i < 26; ++i) {
+            char key = i + 'A';
+            REQUIRE(testDummy.read_at(key) == counter[key & 31]);
+            REQUIRE(homChar.read_at(key) == counter[key & 31]);
+            REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
+        }
+    }
+
+    SECTION("Testing assignment operator"){
+        HashOrderedMap<char, int> homChar;
+        homChar = testDummy;
+        REQUIRE(homChar.size() == 26);
+        REQUIRE(homChar.is_empty() == false);
+
+        for (int i = 0; i < 26; ++i) {
+            char key = i + 'A';
+            REQUIRE(testDummy.read_at(key) == counter[key & 31]);
+            REQUIRE(homChar.read_at(key) == counter[key & 31]);
+            REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
+        }
+    }
+}

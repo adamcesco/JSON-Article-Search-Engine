@@ -175,4 +175,34 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
     return *this;
 }
 
+template<class T, class U>
+HashOrderedMap<T, U>::HashOrderedMap(const HashOrderedMap<T, U> &toCopy) {
+    ele_count = toCopy.ele_count;
+    max_cap = toCopy.max_cap;
+    data = new HashPair[max_cap];
+    for (int i = 0; i < max_cap; ++i) {
+        if(toCopy.data[i].value == nullptr)
+            continue;
+        data[i] = toCopy.data[i];
+    }
+}
+
+template<class T, class U>
+HashOrderedMap<T, U> &HashOrderedMap<T, U>::operator=(const HashOrderedMap<T, U> &toAssign) {
+    if(this == &toAssign)
+        return *this;
+
+    ele_count = toAssign.ele_count;
+    max_cap = toAssign.max_cap;
+    delete[] data;
+    data = new HashPair[max_cap];
+    for (int i = 0; i < max_cap; ++i) {
+        if(toAssign.data[i].value == nullptr)
+            continue;
+        data[i] = toAssign.data[i];
+    }
+
+    return *this;
+}
+
 #endif //INC_22S_FINAL_PROJ_HASHORDEREDMAP_H

@@ -22,6 +22,8 @@ public:
     U& operator[](const T& key);            //returns the values at "key" by reference; if the value at "key" has not been initialized, then the value at "key" will be initialized and "ele_count" will be incremented
     U read_at(const T& key) const;          //returns a copy of the value at "key", is const because changes to the contents returned are not reflected in *this
     bool contains(const T& key) const;      //returns true if the "key" is found within *this, else returns false
+    hash_ordered_map<T, U>& merge_with(const hash_ordered_map<T, U>&);
+    hash_ordered_map<T, U>& overlap_with(const hash_ordered_map<T, U>&);
     ~hash_ordered_map() { delete[] data; }  //destructor
 
 private:
@@ -222,6 +224,62 @@ bool hash_ordered_map<T, U>::contains(const T &key) const {
     }
 
     return true;
+}
+
+template<class T, class U>
+hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap) {
+    std::hash<T> hashObj;
+
+    for (int i = 0; i < passedMap.max_cap; ++i) {
+        const unsigned int index = hashObj(*passedMap.data[i].value);
+        int index_clean = index % max_cap;
+        while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
+            ++index_clean;
+        }
+
+        if(index_clean >= max_cap) {
+            index_clean = increase_max_cap(index);
+        }
+
+        data[index_clean].hash = index;
+
+        if(data[index_clean].value == nullptr) {
+            data[index_clean].value = new U();
+            ++ele_count;
+        }
+
+        *data[index_clean].value += *passedMap.data[i].value;   //adds the two "value"s together
+    }
+
+    return *this;
+}
+
+template<class T, class U>
+hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_map<T, U> &passedMap) {
+    std::hash<T> hashObj;
+
+    for (int i = 0; i < passedMap.max_cap; ++i) {
+        const unsigned int index = hashObj(*passedMap.data[i].value);
+        int index_clean = index % max_cap;
+        while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
+            ++index_clean;
+        }
+
+        if(index_clean >= max_cap) {
+            index_clean = increase_max_cap(index);
+        }
+
+        data[index_clean].hash = index;
+
+        if(data[index_clean].value == nullptr) {
+            data[index_clean].value = new U();
+            ++ele_count;
+        }
+
+        *data[index_clean].value = *passedMap.data[i].value;    //overwrites *this' version of "value" with the "passedMap" version of "value"
+    }
+
+    return *this;
 }
 
 #endif //INC_22S_FINAL_PROJ_HASH_ORDERED_MAP_H

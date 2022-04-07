@@ -7,6 +7,7 @@
 #include <thread>
 #include "include/rapidjson/document.h"
 #include <chrono>
+#include <sstream>
 
 std::mutex queue_mutex;
 std::queue<std::string> filenames;
@@ -38,6 +39,26 @@ void processFiles(std::string path) {
         assert(document.IsObject());
         assert(document.HasMember("title"));
         assert(document["title"].IsString());
+        assert(document["text"].IsString());
+
+        // loop through every word in text
+        std::string text = document["text"].GetString();
+        std::istringstream iss(text);
+
+        // Iterate the istringstream
+        // using do-while loop
+        do {
+            std::string subs;
+
+            // Get the word from the istringstream
+            iss >> subs;
+
+            // Print the word fetched
+            // from the istringstream
+            if (subs[0] > 96 && subs[0] < 123) {
+            }
+
+        } while (iss);
     }
 }
 
@@ -57,8 +78,6 @@ int main() {
 
 
     std::thread t1(processFiles, path);
-    std::thread t2(processFiles, path);
-    std::thread t3(processFiles, path);
 
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -67,8 +86,6 @@ int main() {
 
     auto timer1 = high_resolution_clock::now();
     t1.join();
-    t2.join();
-    t3.join();
     auto timer2 = high_resolution_clock::now();
 
     /* Getting number of milliseconds as an integer. */

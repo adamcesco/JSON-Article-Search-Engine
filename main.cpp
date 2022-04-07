@@ -60,7 +60,6 @@ void processFiles() {
     }
 }
 
-
 int main(int argc, char** argv) {
     if(argc == 1) {
         runCatchTests();
@@ -105,8 +104,5 @@ int main(int argc, char** argv) {
 
     std::cout << ms_int.count() << "ms\n";
     std::cout << sec_int.count() << "s\n";
-
-
-
     return 0;
 }

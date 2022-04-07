@@ -24,7 +24,7 @@ public:
     ~HashOrderedMap() { delete[] data; }
 private:
     explicit HashOrderedMap(int);
-    unsigned int increase_max_cap(const T &key);
+    int increase_max_cap(unsigned int);
 
     struct HashPair{
         HashPair()=default;
@@ -68,7 +68,7 @@ HashOrderedMap<T, U>& HashOrderedMap<T, U>::emplace_pair(const T &key, const U &
     }
 
     if(index_clean >= max_cap) {
-        index_clean = increase_max_cap(key);
+        index_clean = increase_max_cap(index);
     }
 
     data[index_clean] = toInsert;
@@ -87,7 +87,7 @@ U& HashOrderedMap<T, U>::operator[](const T &key) {
     }
 
     if(index_clean >= max_cap) {
-        index_clean = increase_max_cap(key);
+        index_clean = increase_max_cap(index);
     }
 
     data[index_clean].hash = index;
@@ -117,7 +117,7 @@ U HashOrderedMap<T, U>::read_at(const T &key) const {
 }
 
 template<class T, class U>
-unsigned int HashOrderedMap<T, U>::increase_max_cap(const T &key) {
+int HashOrderedMap<T, U>::increase_max_cap(unsigned int passedIndex) {
     int mcCopy = max_cap;
     max_cap *= 2;
     auto* dataCopy = new HashPair[max_cap];
@@ -139,11 +139,9 @@ unsigned int HashOrderedMap<T, U>::increase_max_cap(const T &key) {
     delete[] data;
     data = dataCopy;
 
-    std::hash<T> hashObj;
-    const unsigned int index = hashObj(key);
-    int index_clean = index % max_cap;
+    int index_clean = passedIndex % max_cap;
     while(data[index_clean].value != nullptr && index_clean < max_cap){
-        if(data[index_clean].hash == index) {
+        if(data[index_clean].hash == passedIndex) {
             break;
         }
         ++index_clean;
@@ -171,6 +169,7 @@ HashOrderedMap<T, U> &HashOrderedMap<T, U>::clear_value_at(const T &key) {
 
     data[index_clean].hash = 0;
     data[index_clean].value = nullptr;
+    --ele_count;
 
     return *this;
 }

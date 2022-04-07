@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <queue>
-#include <filesystem>
 #include <dirent.h>
 #include <mutex>
 #include <thread>
@@ -12,14 +11,14 @@
 std::mutex queue_mutex;
 std::queue<std::string> filenames;
 
-void processFiles(std::string path) {
+void processFiles() {
     while(!filenames.empty()) {
         queue_mutex.lock();
         std::string filename = filenames.front();
         filenames.pop();
         queue_mutex.unlock();
 
-        std::ifstream file(path + filename);
+        std::ifstream file( filename);
         if (!file.is_open()) {
             std::cout << "Could not open file: " << filename << std::endl;
             continue;
@@ -71,13 +70,14 @@ int main() {
             if (f->d_name[0] == '.') {
                 continue;
             }
-            filenames.push(f->d_name);
+            filenames.push(path + f->d_name);
         }
         closedir(dir);
     }
 
 
-    std::thread t1(processFiles, path);
+    std::thread t1(processFiles);
+    std::thread t2(processFiles);
 
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -86,6 +86,7 @@ int main() {
 
     auto timer1 = high_resolution_clock::now();
     t1.join();
+    t2.join();
     auto timer2 = high_resolution_clock::now();
 
     /* Getting number of milliseconds as an integer. */
@@ -94,7 +95,12 @@ int main() {
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = timer2 - timer1;
 
+    /* Getting number of seconds as an integer. */
+    auto sec_int = duration_cast<std::chrono::seconds>(timer2 - timer1);
+
+
     std::cout << ms_int.count() << "ms\n";
+    std::cout << sec_int.count() << "s\n";
 
 
 

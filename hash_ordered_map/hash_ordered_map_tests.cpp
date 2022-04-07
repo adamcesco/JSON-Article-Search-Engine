@@ -239,3 +239,32 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
         }
     }
 }
+
+TEST_CASE("Testing appending-type methods", "[hash_ordered_map]"){
+    hash_ordered_map<char, int> testDummy;
+    for (int i = 0; i < 16; ++i) {  //fills until letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
+        char key = i + 'A';
+        int randNum = rand();
+        testDummy.emplace_pair(key, randNum);
+    }
+
+    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap)\""){
+        hash_ordered_map<char, int> homChar;
+        homChar.emplace_pair('Y', -1);
+        homChar.emplace_pair('Z', -2);
+
+        homChar.merge_with(testDummy);
+        for (int i = 0; i < 16; ++i) {
+            char key = i + 'A';
+            REQUIRE(testDummy.contains(key) == true);
+            REQUIRE(homChar.contains(key) == true);
+            REQUIRE(homChar.read_at(key) == testDummy.read_at(key));
+        }
+        REQUIRE(testDummy.contains('Y') == false);
+        REQUIRE(homChar.contains('Y') == true);
+        REQUIRE(homChar.read_at('Y') == -1);
+        REQUIRE(testDummy.contains('Z') == false);
+        REQUIRE(homChar.contains('Z') == true);
+        REQUIRE(homChar.read_at('Z') == -2);
+    }
+}

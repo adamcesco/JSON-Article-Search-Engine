@@ -10,8 +10,8 @@
 template<class T, class U>
 struct binary_node{
 
-    void emplace_left(const T& pface, const U& value) { delete left; left = new binary_node<T, U>(); left->face = pface; left->data = value; }
-    void emplace_right(const T& pface, const U& value) { delete right; right = new binary_node<T, U>(); right->face = pface; right->data = value; }
+    void emplace_left(const T& pFace, const U& value) { delete left; left = new binary_node<T, U>(); left->face = pFace; left->data = value; }
+    void emplace_right(const T& pFace, const U& value) { delete right; right = new binary_node<T, U>(); right->face = pFace; right->data = value; }
 
     T face;
     U data;
@@ -44,14 +44,18 @@ private:
 
 template<class T, class U>
 DS_AVL_Tree<T, U>& DS_AVL_Tree<T, U>::insert(const T& face, const U& value) {
-    binary_node<T, U>* curNode = unbalanced_insert(face, value);
-    binary_node<T, U>* balanceRoot = update_maxHeights_via(curNode);
-    if(balanceRoot->parent != nullptr)
-        balanceRoot = balanceRoot->parent;
+    binary_node<T, U>* curNode = unbalanced_insert(face, value);        //O(lg n)
 
-    while(curNode->parent != nullptr && curNode != balanceRoot){
+    binary_node<T, U>* finalAlpha = curNode;
+    while(finalAlpha->parent != nullptr && finalAlpha->parent->maxHeight < finalAlpha->maxHeight + 1){  //O(lg n)
+        ++finalAlpha->parent->maxHeight;
+        finalAlpha = finalAlpha->parent;
+    }
+    finalAlpha = finalAlpha->parent;
+
+    curNode = curNode->parent;
+    while(curNode != finalAlpha){    //O(lg n)
         balance_alpha(curNode);
-
         curNode = curNode->parent;
     }
 
@@ -108,12 +112,45 @@ binary_node<T, U>* DS_AVL_Tree<T, U>::update_maxHeights_via(binary_node<T, U>* n
         ++node->parent->maxHeight;
         node = node->parent;
     }
-    return node;
+    return node->parent;
 }
 
 template<class T, class U>
 void DS_AVL_Tree<T, U>::balance_alpha(binary_node<T, U>* node) {
+    int balance = node->left->maxHeight - node->right->maxHeight;   //needs nullptr checks
+    if(balance > 1){
+        if(node->left->left->maxHeight - node->left->right->maxHeight > 0)  //logic is correct
+            LL_rotate(node);
+        else
+            LR_rotate(node);
 
+        //update heights here
+    }
+    else if (balance < -1){
+        if(node->right->left->maxHeight - node->right->right->maxHeight > 0)    //logic is correct
+            RL_rotate(node);
+        else
+            RR_rotate(node);
+
+        //update heights here
+    }
+}
+
+template<class T, class U>
+bool DS_AVL_Tree<T, U>::contains(const T& passedFace) {
+    binary_node<T, U>* temp = root;
+    while(temp != nullptr){
+        if(passedFace == temp->face){
+            return true;
+        }
+        else if(passedFace < temp->face) {
+            temp = temp->left;
+        }
+        else {
+            temp = temp->right;
+        }
+    }
+    return false;
 }
 
 #endif //INC_22S_FINAL_PROJ_DS_AVL_TREE_H

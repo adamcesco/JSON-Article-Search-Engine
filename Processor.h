@@ -24,6 +24,8 @@ private:
     std::mutex fileQueueMutex;
     std::queue<std::string> fileQueue;
 
+    void fillQueue(std::string folderName);
+
 public:
     explicit Processor(std::unordered_map<std::string, std::vector<std::string>> *authors);
 

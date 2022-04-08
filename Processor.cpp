@@ -30,7 +30,6 @@ void Processor::fillQueue(std::string folderName) {
 }
 
 void Processor::process() {
-    std::cout << this->fileQueueMutex << std::endl;
     while (true) {
         this->fileQueueMutex->lock();
         // double check to make sure its not empty
@@ -91,7 +90,6 @@ std::string Processor::generateIndex(std::string folderName) {
     std::cout << "Total files: " << this->totalFiles << std::endl;
 
     // Actually process the files
-    std::cout << this->fileQueue.front() << std::endl;
     std::thread t1(&Processor::process, this);
     std::thread t2(&Processor::process, this);
     std::thread t3(&Processor::process, this);

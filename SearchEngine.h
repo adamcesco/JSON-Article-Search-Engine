@@ -22,6 +22,8 @@ private:
 public:
     explicit SearchEngine(std::string data_folder);
 
+    void generateIndex();
+
     ~SearchEngine();
 
 

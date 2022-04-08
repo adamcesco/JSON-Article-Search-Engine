@@ -2,6 +2,9 @@
 // Created by drewharris on 4/7/2022.
 //
 
+#include <iostream>
+#include <thread>
+#include <chrono>
 #include "SearchEngine.h"
 #include "Processor.h"
 
@@ -14,4 +17,8 @@ SearchEngine::SearchEngine(std::string data_folder) {
 SearchEngine::~SearchEngine() {
     delete this->processor;
     delete this->authors;
+}
+
+void SearchEngine::generateIndex() {
+    this->processor->generateIndex(this->data_folder);
 }

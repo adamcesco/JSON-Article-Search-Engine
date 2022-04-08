@@ -8,14 +8,26 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <atomic>
+#include <mutex>
+#include <queue>
 
 class Processor {
 
 private:
+    // Passed from SearchEngine
     std::unordered_map<std::string, std::vector<std::string>> *authors = nullptr;
+
+    int totalFiles = 0;
+    std::atomic<int> filesProcessed;
+
+    std::mutex fileQueueMutex;
+    std::queue<std::string> fileQueue;
 
 public:
     explicit Processor(std::unordered_map<std::string, std::vector<std::string>> *authors);
+
+    void generateIndex(std::string folderName);
 };
 
 

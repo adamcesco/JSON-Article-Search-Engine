@@ -29,7 +29,9 @@ private:
 public:
     explicit Processor(std::unordered_map<std::string, std::vector<std::string>> *authors);
 
-    void generateIndex(std::string folderName);
+    std::string generateIndex(std::string folderName);
+
+    double getProgress();
 };
 
 

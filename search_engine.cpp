@@ -4,9 +4,8 @@
 
 #include <iostream>
 #include <thread>
-#include <chrono>
 #include "SearchEngine.h"
-#include "Processor.h"
+#include <future>
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
@@ -20,5 +19,12 @@ SearchEngine::~SearchEngine() {
 }
 
 void SearchEngine::generateIndex() {
-    this->processor->generateIndex(this->data_folder);
+    std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
+                                              this->data_folder);
+    while (fut.wait_for(std::chrono::milliseconds(421)) != std::future_status::ready) {
+        printf("\rAny text done\r%7.2f%%", processor->getProgress() * 100);
+        fflush(stdout); // <- add this call
+    }
+    printf("\rAny text done\r%7.2f%%", processor->getProgress() * 100);
+    std::cout << std::endl;
 }

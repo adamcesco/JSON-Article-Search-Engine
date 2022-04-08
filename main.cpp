@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
         runCatchTests();
         return 0;
     } else {
-        std::cout << "Usage: " << argv[1] << std::endl;
         SearchEngine engine(argv[1]);
         engine.generateIndex();
     }

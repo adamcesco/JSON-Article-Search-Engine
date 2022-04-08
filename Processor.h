@@ -21,13 +21,20 @@ private:
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
 
-    std::mutex fileQueueMutex;
+    std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
 
     void fillQueue(std::string folderName);
 
+    void process();
+
+    bool safeIsEmpty();
+
 public:
     explicit Processor(std::unordered_map<std::string, std::vector<std::string>> *authors);
+
+    ~Processor();
+
 
     std::string generateIndex(std::string folderName);
 

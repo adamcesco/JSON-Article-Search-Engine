@@ -5,12 +5,17 @@
 #include <iostream>
 #include "Processor.h"
 #include <experimental/filesystem>
+#include "./include/rapidjson/document.h"
 #include <thread>
+#include <fstream>
 
 namespace fs = std::experimental::filesystem;
 
+// TODO: ADD DESTRUCTOR
+
 Processor::Processor(std::unordered_map<std::string, std::vector<std::string>> *authors) {
     this->authors = authors;
+    this->fileQueueMutex = new std::mutex();
 }
 
 void Processor::fillQueue(std::string folderName) {
@@ -22,29 +27,101 @@ void Processor::fillQueue(std::string folderName) {
             this->totalFiles++;
         }
     }
-
 }
+
+void Processor::process() {
+    std::cout << this->fileQueueMutex << std::endl;
+    while (true) {
+        this->fileQueueMutex->lock();
+        // double check to make sure its not empty
+        // TODO: DO THIS BETTER
+        if (this->fileQueue.empty()) {
+            this->fileQueueMutex->unlock();
+            break;
+        }
+        std::string filename = this->fileQueue.front();
+        this->fileQueue.pop();
+        this->fileQueueMutex->unlock();
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cout << "Could not open file: " << filename << std::endl;
+            continue;
+        }
+        rapidjson::Document document;
+        try {
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            document.Parse(content.c_str());
+        } catch (std::exception &e) {
+            std::cout << "Could not read file: " << filename << std::endl;
+            continue;
+        }
+        file.close();
+
+        assert(document.IsObject());
+        assert(document.HasMember("title"));
+        assert(document["title"].IsString());
+        assert(document["text"].IsString());
+
+        // loop through every word in text
+        std::string text = document["text"].GetString();
+        std::istringstream iss(text);
+
+        // Iterate the istringstream
+        // using do-while loop
+        do {
+            std::string subs;
+
+            // Get the word from the istringstream
+            iss >> subs;
+
+            // Print the word fetched
+            // from the istringstream
+            if (subs[0] > 96 && subs[0] < 123) {
+            }
+
+        } while (iss);
+        filesProcessed++;
+    }
+}
+
 
 std::string Processor::generateIndex(std::string folderName) {
     std::cout << "Generating index..." << std::endl;
     this->fillQueue(folderName);
-    while (!this->fileQueue.empty()) {
-        std::cout << fileQueue.front() << std::endl;
-        fileQueue.pop();
-    }
-    this->totalFiles = 300;
     std::cout << "Total files: " << this->totalFiles << std::endl;
 
-    // pretend to process stuff
-    for (int i = 0; i < this->totalFiles; i++) {
-        this->filesProcessed++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(13));
-    }
+    // Actually process the files
+    std::cout << this->fileQueue.front() << std::endl;
+    std::thread t1(&Processor::process, this);
+    std::thread t2(&Processor::process, this);
+    std::thread t3(&Processor::process, this);
+    std::thread t4(&Processor::process, this);
+    std::thread t5(&Processor::process, this);
+    std::thread t6(&Processor::process, this);
+
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+    t6.join();
 
 
     return "Indexing complete";
 }
 
 double Processor::getProgress() {
-    return (double) this->filesProcessed / (double) this->totalFiles;
+    return (double) this->filesProcessed.load() / (double) this->totalFiles;
+}
+
+bool Processor::safeIsEmpty() {
+    this->fileQueueMutex->lock();
+    bool empty = this->fileQueue.empty();
+    this->fileQueueMutex->unlock();
+    return empty;
+}
+
+Processor::~Processor() {
+    delete this->fileQueueMutex;
 }

@@ -106,7 +106,6 @@ void Processor::process() {
                 Porter2Stemmer::stem(subs);
                 if (subs.length() > 0) {
                     // Add ato avl tree
-                    std::vector<std::string> dummyVector = {subs};
                     this->wordMapMutex->lock();
                     auto ref = this->wordMap->operator[](subs);
                     if (std::find(ref.begin(), ref.end(), subs) == ref.end()) {

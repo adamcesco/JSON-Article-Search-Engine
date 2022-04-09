@@ -8,10 +8,6 @@
 #include <algorithm>
 #include <iostream>
 
-enum DIRECTION {    //used to determine which directing super-parent stitches
-    LEFT, RIGHT
-};
-
 template<class T, class U>
 struct binary_node {
     void emplace_left(const T &pFace, const U &value) {
@@ -65,13 +61,21 @@ public:
 
     U &operator[](const T &);
 
-    void print_tree() { print_inorder(root); }
+    void print_tree_inorder() { print_inorder(root); }
 
     int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
 
     ~avl_tree();
 
 private:
+    enum INSERT_OPERATION {
+        INSERTED, MASKED
+    };
+
+    enum DIRECTION {    //used to determine which directing super-parent stitches
+        LEFT, RIGHT
+    };
+
     binary_node<T, U> *LL_rotate(binary_node<T, U> *&, DIRECTION);
 
     binary_node<T, U> *RR_rotate(binary_node<T, U> *&, DIRECTION);
@@ -82,17 +86,13 @@ private:
 
     void balance_alpha(binary_node<T, U> *&);
 
-    enum INSERT_OPERATION {
-        INSERTED, MASKED
-    };
+    binary_node<T, U> *unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));
 
-    binary_node<T, U> *
-    unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));           //O(lg n)
     binary_node<T, U> *unbalanced_insert_appending(const T &, const U &, INSERT_OPERATION &);
 
     binary_node<T, U> *unbalanced_insert_overwriting(const T &, const U &, INSERT_OPERATION &);
 
-    int update_height_of_subtree(binary_node<T, U> *);                   //O(lg n)
+    int update_height_of_subtree(binary_node<T, U> *);
 
     void print_inorder(binary_node<T, U> *&);
 
@@ -484,7 +484,7 @@ template<class T, class U>
 void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
     if (node != nullptr) {
         print_inorder(node->left);
-        std::cout << node->face << " " << std::endl;
+        std::cout << node->face << std::endl;
         print_inorder(node->right);
     }
 }

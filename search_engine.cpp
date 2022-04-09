@@ -76,6 +76,6 @@ void SearchEngine::generateIndex() {
     std::cout << std::endl;
 
     std::cout << this->wordTree->size() << std::endl;
-    this->wordTree->print_tree();
+    this->wordTree->print_tree_inorder();
 
 }

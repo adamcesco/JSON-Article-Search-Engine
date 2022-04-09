@@ -60,4 +60,18 @@ void SearchEngine::generateIndex() {
     }
     printProgressBar(1);
     std::cout << std::endl;
+
+    std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
+    std::cout << termcolor::green << "Converting to AVL Tree" << termcolor::reset << std::endl;
+
+    std::future<std::string> conversionFuture = std::async(std::launch::async, &Processor::convertToTree,
+                                                           this->processor);
+    while (conversionFuture.wait_for(std::chrono::milliseconds(400)) != std::future_status::ready) {
+        double progress = this->processor->getConversionProgress();
+        if (progress > 0) {
+            printProgressBar(progress);
+        }
+    }
+    printProgressBar(1);
+    std::cout << std::endl;
 }

@@ -71,7 +71,7 @@ void Processor::process() {
 
         std::vector<std::string> orgs = {};
         // Check if array empty
-        for (auto &org: document["entities"]["organizations"].GetArray()) {
+        for (auto &org: document["organizations"].GetArray()) {
             if (org.IsObject()) {
                 if (org["name"].IsString()) {
                     orgs.push_back(org["name"].GetString());
@@ -108,7 +108,10 @@ void Processor::process() {
                     // Add ato avl tree
                     std::vector<std::string> dummyVector = {subs};
                     this->wordMapMutex->lock();
-                    this->wordMap->operator[](subs).emplace(uuid);
+                    auto ref = this->wordMap->operator[](subs);
+                    if (std::find(ref.begin(), ref.end(), subs) == ref.end()) {
+                        ref.push_back(uuid);
+                    }
                     this->wordMapMutex->unlock();
                 }
             }
@@ -142,6 +145,8 @@ std::string Processor::generateIndex(std::string folderName) {
     t1.join();
     t2.join();
     t3.join();
+
+    this->totalWords = this->wordMap->size();
 
     return "Indexing complete";
 }
@@ -190,8 +195,29 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
     this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
     this->fileQueueMutex = new std::mutex();
-    this->wordMap = new std::unordered_map<std::string, std::unordered_set<std::string>>();
+    this->wordMap = new std::unordered_map<std::string, std::vector<std::string>>();
     this->wordMapMutex = new std::mutex();
+    this->filesProcessed = 0;
+    this->wordsConverted = 0;
 }
 
+void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> &s2) {
+}
+
+std::string Processor::convertToTree() {
+    this->wordTreeMutex->lock();
+    this->wordMapMutex->lock();
+    for (auto &word: *this->wordMap) {
+        // pass first second and empty function
+        this->wordTree->insert(word.first, word.second, dummyFunction);
+        this->wordsConverted++;
+    }
+    this->wordTreeMutex->unlock();
+    this->wordMapMutex->unlock();
+    return "Conversion complete";
+}
+
+double Processor::getConversionProgress() {
+    return (double) this->wordsConverted.load() / (double) this->totalWords;
+}
 

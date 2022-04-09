@@ -91,14 +91,9 @@ void Processor::process() {
                 .author = document["author"].GetString(),
         };
 
-        this->tableBundle->articlesMutex.lock();
-        this->tableBundle->articles->operator[](uuid) = art;
-        this->tableBundle->articlesMutex.unlock();
-
         std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, document["author"].GetString());
         std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
         std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
-
         tableFillAuthorThread.join();
         tableFillOrgsThread.join();
         tableFillArticlesThread.join();
@@ -123,17 +118,7 @@ std::string Processor::generateIndex(std::string folderName) {
 
     // Actually process the files
     std::thread t1(&Processor::process, this);
-    std::thread t2(&Processor::process, this);
-    std::thread t3(&Processor::process, this);
-    std::thread t4(&Processor::process, this);
-    std::thread t5(&Processor::process, this);
-    std::thread t6(&Processor::process, this);
     t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
-    t6.join();
 
 
     return "Indexing complete";

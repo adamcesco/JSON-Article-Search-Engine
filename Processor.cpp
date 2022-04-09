@@ -96,15 +96,12 @@ std::string Processor::generateIndex(std::string folderName) {
     std::thread t4(&Processor::process, this);
     std::thread t5(&Processor::process, this);
     std::thread t6(&Processor::process, this);
-
-
     t1.join();
     t2.join();
     t3.join();
     t4.join();
     t5.join();
     t6.join();
-
 
     return "Indexing complete";
 }

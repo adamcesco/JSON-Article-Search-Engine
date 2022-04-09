@@ -6,9 +6,12 @@
 #include "Processor.h"
 #include <experimental/filesystem>
 #include "./include/rapidjson/document.h"
+#include "./include/termcolor/termcolor.hpp"
 #include <thread>
 #include <fstream>
 #include "./TableBundle.h"
+
+#include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -86,9 +89,14 @@ void Processor::process() {
 
 
 std::string Processor::generateIndex(std::string folderName) {
-    std::cout << "Generating index..." << std::endl;
+
+
+    std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
-    std::cout << "Total files: " << this->totalFiles << std::endl;
+    std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
+
+    std::cout << termcolor::green << getCenteredText(fileDisplay, 80) << std::endl;
+    std::cout << termcolor::reset << std::endl;
 
     // Actually process the files
     std::thread t1(&Processor::process, this);

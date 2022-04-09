@@ -6,7 +6,9 @@
 #include <thread>
 #include "SearchEngine.h"
 #include <future>
+#include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
+
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;

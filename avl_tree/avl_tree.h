@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <iostream>
 
-enum DIRECTION {
+enum DIRECTION {    //used to determine which directing super-parent stitches
     LEFT, RIGHT
 };
 enum INSERT_OPERATION {

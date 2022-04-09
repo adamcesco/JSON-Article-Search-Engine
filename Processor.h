@@ -11,12 +11,13 @@
 #include <atomic>
 #include <mutex>
 #include <queue>
+#include "hash_ordered_map/hash_ordered_map.h"
 
 class Processor {
 
 private:
     // Passed from SearchEngine
-    std::unordered_map<std::string, std::vector<std::string>> *authors = nullptr;
+    hash_ordered_map<std::string, std::vector<std::string>> *authors = nullptr;
 
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
@@ -31,7 +32,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(std::unordered_map<std::string, std::vector<std::string>> *authors);
+    explicit Processor(hash_ordered_map<std::string, std::vector<std::string>> *authors);
 
     ~Processor();
 

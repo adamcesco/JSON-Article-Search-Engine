@@ -10,13 +10,14 @@
 #include <unordered_map>
 #include <vector>
 #include "Processor.h"
+#include "hash_ordered_map/hash_ordered_map.h"
 
 class SearchEngine {
 private:
     std::string data_folder;
 
     // Key: author name,  value: vector of article ids
-    std::unordered_map<std::string, std::vector<std::string>> *authors = nullptr;
+    hash_ordered_map<std::string, std::vector<std::string>> *authors = nullptr;
     Processor *processor = nullptr;
 
 public:

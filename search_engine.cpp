@@ -9,7 +9,7 @@
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
-    this->authors = new std::unordered_map<std::string, std::vector<std::string>>();
+    this->authors = new hash_ordered_map<std::string, std::vector<std::string>>();
     this->processor = new Processor(this->authors);
 }
 

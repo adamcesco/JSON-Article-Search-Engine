@@ -13,7 +13,7 @@ namespace fs = std::experimental::filesystem;
 
 // TODO: ADD DESTRUCTOR
 
-Processor::Processor(std::unordered_map<std::string, std::vector<std::string>> *authors) {
+Processor::Processor(hash_ordered_map<std::string, std::vector<std::string>> *authors) {
     this->authors = authors;
     this->fileQueueMutex = new std::mutex();
 }

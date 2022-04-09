@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <string>
+#include <iostream>
 
 template<class T, class U>
 class hash_table {
@@ -319,6 +320,15 @@ hash_table<T, U> &hash_table<T, U>::overlap_with(const hash_table<T, U> &passedM
         *data[index_clean].value = *passedMap.data[i].value;    //overwrites *this' version of "value" with the "passedMap" version of "value"
     }
 
+    return *this;
+}
+
+template<class T, class U>
+hash_table<T, U> &hash_table<T, U>::print_values() {
+    for (int i = 0; i < max_cap; ++i) {
+        if (data[i].value != nullptr)
+            std::cout << *data[i].value << std::endl;
+    }
     return *this;
 }
 

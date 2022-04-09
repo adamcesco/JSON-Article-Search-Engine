@@ -226,7 +226,9 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
     pivot = parent->left;
 
     parent->left = pivot->right;
+    parent->left->parent = parent;
     pivot->right = parent;
+    parent->parent = pivot;
 
 
     if (parent == root)
@@ -286,8 +288,11 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
 }
 
 template<class T, class U>
-void avl_tree<T, U>::LR_rotate(binary_node<T, U>*& parent) {
+void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
+    std::cout << "- In LR_rotate check" << std::endl;
+    update_height_of_subtree(root);
     parent->right = LL_rotate(parent->right, RIGHT);
+    std::cout << "- Just LL_rotated in LR_rotate" << std::endl;
     update_height_of_subtree(root);
 
     DIRECTION nodeDir = LEFT;
@@ -298,11 +303,13 @@ void avl_tree<T, U>::LR_rotate(binary_node<T, U>*& parent) {
             nodeDir = RIGHT;
     }
     RR_rotate(parent, nodeDir);
+    std::cout << "- Just RR_rotated in LR_rotate" << std::endl;
 }
 
 template<class T, class U>
 void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, pivot = y
     parent->left = RR_rotate(parent->left, LEFT);
+    std::cout << "- Just RR_rotated in RL_rotate" << std::endl;
     update_height_of_subtree(root);
 
     DIRECTION nodeDir = LEFT;
@@ -313,6 +320,7 @@ void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, piv
             nodeDir = RIGHT;
     }
     LL_rotate(parent, nodeDir);
+    std::cout << "- Just LL_rotated in RL_rotate" << std::endl;
 }
 
 template<class T, class U>

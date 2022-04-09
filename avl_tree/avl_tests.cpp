@@ -50,6 +50,5 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
             testDummy.insert(rand(),
                              i);    //step through the creation of this tree, and see where the pointers are misaligned
         }
-
     }
 }

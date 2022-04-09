@@ -29,6 +29,8 @@ private:
 
     avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
+    std::unordered_map<std::string, std::unordered_set<std::string>> *wordMap = nullptr;
+    std::mutex *wordMapMutex;
 
     TableBundle *tableBundle;
 
@@ -46,7 +48,8 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree, std::mutex *treeMut);
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
+                       std::mutex *treeMut);
 
     ~Processor();
 

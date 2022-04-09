@@ -107,9 +107,9 @@ void Processor::process() {
                 if (subs.length() > 0) {
                     // Add ato avl tree
                     std::vector<std::string> dummyVector = {subs};
-                    this->wordTreeMutex->lock();
-                    this->wordTree->insert(subs, dummyVector, &aliasPushBack);
-                    this->wordTreeMutex->unlock();
+                    this->wordMapMutex->lock();
+                    this->wordMap->operator[](subs).emplace(uuid);
+                    this->wordMapMutex->unlock();
                 }
             }
         } while (iss);
@@ -190,6 +190,8 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
     this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
     this->fileQueueMutex = new std::mutex();
+    this->wordMap = new std::unordered_map<std::string, std::unordered_set<std::string>>();
+    this->wordMapMutex = new std::mutex();
 }
 
 

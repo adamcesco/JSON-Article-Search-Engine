@@ -2,47 +2,57 @@
 // Created by Adam Escobedo on 4/7/2022.
 //
 
-#ifndef INC_22S_FINAL_PROJ_HASH_ORDERED_MAP_H
-#define INC_22S_FINAL_PROJ_HASH_ORDERED_MAP_H
+#ifndef INC_22S_FINAL_PROJ_HASH_TABLE_H
+#define INC_22S_FINAL_PROJ_HASH_TABLE_H
 
 #include <functional>
 #include <string>
 
 template<class T, class U>
-class hash_ordered_map {
+class hash_table {
 public:
-    hash_ordered_map();
+    hash_table();
 
-    hash_ordered_map(const hash_ordered_map<T, U> &);                    //copy-constructor
-    hash_ordered_map<T, U> &operator=(const hash_ordered_map<T, U> &);   //assignment operator overload
-    hash_ordered_map<T, U> &clear() {
+    hash_table(const hash_table<T, U> &);                    //copy-constructor
+    hash_table<T, U> &operator=(const hash_table<T, U> &);   //assignment operator overload
+    hash_table<T, U> &clear() {
         delete[] data;
         data = new HashPair[20];
         max_cap = 20;
         ele_count = 0;
         return *this;
     }    //resets all *this contents/data
-    hash_ordered_map<T, U> &clear_value_at(const T &key);               //sets the value at "key" to nullptr
+    hash_table<T, U> &clear_value_at(const T &key);               //sets the value at "key" to nullptr
     int size() const { return ele_count; }
 
     bool is_empty() const { return ele_count == 0; }
 
-    hash_ordered_map<T, U>& emplace_pair(const T& key, const U& value);       //places the key/value pair passed into *this, if the value at "key" is already defined, then the value at "key" is over-written and replaced
-    U& operator[](const T& key);            //returns the values at "key" by reference; if the value at "key" has not been initialized, then the value at "key" will be initialized and "ele_count" will be incremented
-    U read_at(const T& key) const;          //returns a copy of the value at "key", is const because changes to the contents returned are not reflected in *this
-    bool contains(const T& key) const;      //returns true if the "key" is found within *this, else returns false
-    hash_ordered_map<T, U>& merge_with(const hash_ordered_map<T, U>&);
-    hash_ordered_map<T, U>& overlap_with(const hash_ordered_map<T, U>&);
-    hash_ordered_map<T, U>& set_hash_function(unsigned int (*customHashFunc)(const T&)) { hashFunc = customHashFunc; }
+    hash_table<T, U> &emplace_pair(const T &key,
+                                   const U &value);       //places the key/value pair passed into *this, if the value at "key" is already defined, then the value at "key" is over-written and replaced
+    U &operator[](
+            const T &key);            //returns the values at "key" by reference; if the value at "key" has not been initialized, then the value at "key" will be initialized and "ele_count" will be incremented
+    U
+    read_at(const T &key) const;          //returns a copy of the value at "key", is const because changes to the contents returned are not reflected in *this
+    bool contains(const T &key) const;      //returns true if the "key" is found within *this, else returns false
+    hash_table<T, U> &merge_with(const hash_table<T, U> &);
 
-    ~hash_ordered_map() { delete[] data; }  //destructor
+    hash_table<T, U> &overlap_with(const hash_table<T, U> &);
+
+    hash_table<T, U> &set_hash_function(unsigned int (*customHashFunc)(const T &)) { hashFunc = customHashFunc; }
+
+    hash_table<T, U> &print_values();
+
+    ~hash_table() { delete[] data; }  //destructor
 
 private:
-    explicit hash_ordered_map(
-            int capReq);             //creates a hash_ordered_map that has an initial "max_cap" equal to "capReq" (capacity-requirement)
+    explicit hash_table(
+            int capReq);             //creates a hash_table that has an initial "max_cap" equal to "capReq" (capacity-requirement)
     int increase_max_cap(
             unsigned int hashIndex);     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
-    inline static unsigned int hasher(const T& key) { std::hash<T> hashObj; return hashObj(key); }
+    inline static unsigned int hasher(const T &key) {
+        std::hash<T> hashObj;
+        return hashObj(key);
+    }
 
     struct HashPair {    //used to store the hash value of each key, and the value of each key
         HashPair() = default;
@@ -75,23 +85,23 @@ private:
     HashPair *data = nullptr;   //holds data for *this
     int ele_count = 0;          //element counter, used for size metric
     int max_cap;                //used to document the maximum amount of elements "data" can hold, and documents the largest index possible of "data"
-    unsigned int (*hashFunc)(const T&) = &hasher;
+    unsigned int (*hashFunc)(const T &) = &hasher;
 };
 
 template<class T, class U>
-hash_ordered_map<T, U>::hash_ordered_map() {
+hash_table<T, U>::hash_table() {
     data = new HashPair[20];
     max_cap = 20;
 }
 
 template<class T, class U>
-hash_ordered_map<T, U>::hash_ordered_map(int capReq) {
+hash_table<T, U>::hash_table(int capReq) {
     data = new HashPair[capReq];
     max_cap = capReq;
 }
 
 template<class T, class U>
-hash_ordered_map<T, U> &hash_ordered_map<T, U>::emplace_pair(const T &key, const U &value) {
+hash_table<T, U> &hash_table<T, U>::emplace_pair(const T &key, const U &value) {
     const unsigned int index = hashFunc(key);
     int index_clean = index % max_cap;
     HashPair toInsert(index, value);
@@ -115,7 +125,7 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::emplace_pair(const T &key, const
 }
 
 template<class T, class U>
-U &hash_ordered_map<T, U>::operator[](const T &key) {
+U &hash_table<T, U>::operator[](const T &key) {
     const unsigned int index = hashFunc(key);
     int index_clean = index % max_cap;
     while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
@@ -137,7 +147,7 @@ U &hash_ordered_map<T, U>::operator[](const T &key) {
 }
 
 template<class T, class U>
-U hash_ordered_map<T, U>::read_at(const T &key) const {
+U hash_table<T, U>::read_at(const T &key) const {
     unsigned int index = hashFunc(key);
     int index_clean = index % max_cap;
     while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
@@ -146,7 +156,7 @@ U hash_ordered_map<T, U>::read_at(const T &key) const {
 
     if (index_clean >= max_cap || data[index_clean].value == nullptr) {
         throw std::invalid_argument(
-                "Error in \"U hash_ordered_map<T, U>::read_at(const T &key) const\" | key not found");
+                "Error in \"U hash_table<T, U>::read_at(const T &key) const\" | key not found");
     }
 
     return *data[index_clean].value;
@@ -154,7 +164,7 @@ U hash_ordered_map<T, U>::read_at(const T &key) const {
 
 template<class T, class U>
 //pass and return index values because all index values are going to be changed due to their dependence on "max_cap"
-int hash_ordered_map<T, U>::increase_max_cap(unsigned int hashIndex) {
+int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     int mcCopy = max_cap;
     max_cap *= 2;
     auto *dataCopy = new HashPair[max_cap];
@@ -189,7 +199,7 @@ int hash_ordered_map<T, U>::increase_max_cap(unsigned int hashIndex) {
 
 
 template<class T, class U>
-hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear_value_at(const T &key) {
+hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &key) {
     unsigned int index = hashFunc(key);
     int index_clean = index % max_cap;
     while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
@@ -198,7 +208,7 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear_value_at(const T &key) {
 
     if (index_clean >= max_cap || data[index_clean].value == nullptr) {
         throw std::invalid_argument(
-                "Error in \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear_value_at(const T &key)\" | key not found");
+                "Error in \"hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &key)\" | key not found");
     }
 
     data[index_clean].hash = 0;
@@ -210,7 +220,7 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear_value_at(const T &key) {
 }
 
 template<class T, class U>
-hash_ordered_map<T, U>::hash_ordered_map(const hash_ordered_map<T, U> &toCopy) {
+hash_table<T, U>::hash_table(const hash_table<T, U> &toCopy) {
     ele_count = toCopy.ele_count;
     max_cap = toCopy.max_cap;
     data = new HashPair[max_cap];
@@ -222,7 +232,7 @@ hash_ordered_map<T, U>::hash_ordered_map(const hash_ordered_map<T, U> &toCopy) {
 }
 
 template<class T, class U>
-hash_ordered_map<T, U> &hash_ordered_map<T, U>::operator=(const hash_ordered_map<T, U> &toAssign) {
+hash_table<T, U> &hash_table<T, U>::operator=(const hash_table<T, U> &toAssign) {
     if (this == &toAssign)
         return *this;
 
@@ -240,7 +250,7 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::operator=(const hash_ordered_map
 }
 
 template<class T, class U>
-bool hash_ordered_map<T, U>::contains(const T &key) const {
+bool hash_table<T, U>::contains(const T &key) const {
     unsigned int index = hashFunc(key);
     int index_clean = index % max_cap;
     while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
@@ -255,29 +265,28 @@ bool hash_ordered_map<T, U>::contains(const T &key) const {
 }
 
 template<class T, class U>
-hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap) {
+hash_table<T, U> &hash_table<T, U>::merge_with(const hash_table<T, U> &passedMap) {
     for (int i = 0; i < passedMap.max_cap; ++i) {
-        if(passedMap.data[i].value == nullptr)
+        if (passedMap.data[i].value == nullptr)
             continue;
 
         const unsigned int index = passedMap.data[i].hash;
         int index_clean = index % max_cap;
-        while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
+        while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
             ++index_clean;
         }
 
-        if(index_clean >= max_cap) {
+        if (index_clean >= max_cap) {
             index_clean = increase_max_cap(index);
         }
 
         data[index_clean].hash = index;
 
-        if(data[index_clean].value == nullptr) {
+        if (data[index_clean].value == nullptr) {
             data[index_clean].value = new U();
             *data[index_clean].value = *passedMap.data[i].value;
             ++ele_count;
-        }
-        else
+        } else
             *data[index_clean].value += *passedMap.data[i].value;   //adds the two "value"s together
     }
 
@@ -285,24 +294,24 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_ma
 }
 
 template<class T, class U>
-hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_map<T, U> &passedMap) {
+hash_table<T, U> &hash_table<T, U>::overlap_with(const hash_table<T, U> &passedMap) {
     for (int i = 0; i < passedMap.max_cap; ++i) {
-        if(passedMap.data[i].value == nullptr)
+        if (passedMap.data[i].value == nullptr)
             continue;
 
         const unsigned int index = passedMap.data[i].hash;
         int index_clean = index % max_cap;
-        while(index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index){
+        while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
             ++index_clean;
         }
 
-        if(index_clean >= max_cap) {
+        if (index_clean >= max_cap) {
             index_clean = increase_max_cap(index);
         }
 
         data[index_clean].hash = index;
 
-        if(data[index_clean].value == nullptr) {
+        if (data[index_clean].value == nullptr) {
             data[index_clean].value = new U();
             ++ele_count;
         }
@@ -313,4 +322,4 @@ hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_
     return *this;
 }
 
-#endif //INC_22S_FINAL_PROJ_HASH_ORDERED_MAP_H
+#endif //INC_22S_FINAL_PROJ_HASH_TABLE_H

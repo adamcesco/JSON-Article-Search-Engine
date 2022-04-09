@@ -14,9 +14,9 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
 
     this->tables = new TableBundle();
-    this->tables->orgs = new hash_ordered_map<std::string, std::vector<std::string>>();
-    this->tables->authors = new hash_ordered_map<std::string, std::vector<std::string>>();
-    this->tables->articles = new hash_ordered_map<std::string, Article>();
+    this->tables->orgs = new hash_table<std::string, std::vector<std::string>>();
+    this->tables->authors = new hash_table<std::string, std::vector<std::string>>();
+    this->tables->articles = new hash_table<std::string, Article>();
 
     this->processor = new Processor(this->tables);
 }
@@ -39,16 +39,21 @@ void printProgressBar(double progress) {
     std::cout.flush();
 }
 
+/**
+ * Loads the data from the data folder into the tables and AVL tree.
+ */
 void SearchEngine::generateIndex() {
+    // Call generateIndex on the processor asynchronously so that we can show a progress bar
     std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
                                               this->data_folder);
+
+    // Poll the progress of the processor's filename stack every 41 milliseconds
     while (fut.wait_for(std::chrono::milliseconds(41)) != std::future_status::ready) {
         double progress = this->processor->getProgress();
         if (progress > 0) {
             printProgressBar(progress);
         }
     }
-
     printProgressBar(1);
     std::cout << std::endl;
 }

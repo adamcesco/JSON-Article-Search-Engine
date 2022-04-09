@@ -45,8 +45,10 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
     SECTION("Testing avl tree random filling (all rotations) and destructor") {
         avl_tree<int, int> testDummy;
 
-        for (int i = 0; i < 33; ++i) {  //when the last element of this loop is inserted, there is misalignment amongst nodes and their parents, find this bug
-            testDummy.insert(rand(), i);    //step through the creation of this tree, and see where the pointers are misaligned
+        for (int i = 0; i <
+                        33; ++i) {  //when the last element of this loop is inserted, there is misalignment amongst nodes and their parents, find this bug
+            testDummy.insert(rand(),
+                             i);    //step through the creation of this tree, and see where the pointers are misaligned
         }
 
     }

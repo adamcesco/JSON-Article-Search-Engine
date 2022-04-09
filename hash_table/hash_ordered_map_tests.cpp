@@ -3,65 +3,58 @@
 //
 
 #include "../catch.hpp"
-#include "hash_ordered_map.h"
+#include "hash_table.h"
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
 
-TEST_CASE("Testing basic constructors and destructor", "[hash_ordered_map]"){
-    SECTION("Testing default constructor"){
-        hash_ordered_map<char, int> testDummy;
+TEST_CASE("Testing basic constructors and destructor", "[hash_table]") {
+    SECTION("Testing default constructor") {
+        hash_table<char, int> testDummy;
         REQUIRE(testDummy.size() == 0);
         REQUIRE(testDummy.is_empty() == true);
     }
 }
 
-TEST_CASE("Testing hash_ordered_map filling and reading methods", "[hash_ordered_map]"){
-    hash_ordered_map<char, int> testDummy;
+TEST_CASE("Testing hash_table filling and reading methods", "[hash_table]") {
+    hash_table<char, int> testDummy;
 
-    SECTION("Testing \"U& hash_ordered_map<T, U>::operator[](const T&)\""){
+    SECTION("Testing \"U& hash_table<T, U>::operator[](const T&)\"") {
         testDummy['A'] = 123;
         REQUIRE(testDummy['A'] == 123);
         REQUIRE(testDummy.size() == 1);
         REQUIRE(testDummy.is_empty() == false);
 
-        hash_ordered_map<std::string, int> homTestString;
+        hash_table<std::string, int> homTestString;
         homTestString["Adam"] = 123;
         REQUIRE(homTestString["Adam"] == 123);
         REQUIRE(homTestString.size() == 1);
         REQUIRE(homTestString.is_empty() == false);
     }
 
-    SECTION("Testing \"hash_ordered_map<T, U>& hash_ordered_map<T, U>::emplace_pair(const T &key, const U &value)\""){
+    SECTION("Testing \"hash_table<T, U>& hash_table<T, U>::emplace_pair(const T &key, const U &value)\"") {
         testDummy.emplace_pair('A', 123);
         REQUIRE(testDummy.read_at('A') == 123);
         REQUIRE(testDummy.size() == 1);
         REQUIRE(testDummy.is_empty() == false);
     }
 
-    SECTION("Testing \"U hash_ordered_map<T, U>::read_at(const T &key) const\""){
+    SECTION("Testing \"U hash_table<T, U>::read_at(const T &key) const\"") {
         testDummy.emplace_pair('A', 123);
         REQUIRE(testDummy.read_at('A') == 123);
 
-        bool error = false;
-        try{
-            testDummy.read_at('?');
-        }
-        catch (const std::invalid_argument& e){
-            error = true;
-        }
-        REQUIRE(error);
+        CHECK_THROWS(testDummy.read_at('?'));
     }
 
-    SECTION("Testing bool hash_ordered_map<T, U>::contains(const T &key) const\""){
+    SECTION("Testing bool hash_table<T, U>::contains(const T &key) const\"") {
         testDummy.emplace_pair('A', 123);
         REQUIRE(testDummy.contains('A') == true);
         REQUIRE(testDummy.contains('B') == false);
     }
 
-    SECTION("Testing \"void hash_ordered_map<T, U>::increase_max_cap()\" by building with \"U& hash_ordered_map<T, U>::operator[](const T&)\""){
+    SECTION("Testing \"void hash_table<T, U>::increase_max_cap()\" by building with \"U& hash_table<T, U>::operator[](const T&)\"") {
         int counter[27];
-        for (int & it : counter) {
+        for (int &it: counter) {
             it = 0;
         }
 
@@ -81,9 +74,9 @@ TEST_CASE("Testing hash_ordered_map filling and reading methods", "[hash_ordered
         }
     }
 
-    SECTION("Testing \"void hash_ordered_map<T, U>::increase_max_cap()\" by building with \"hash_ordered_map<T, U>& hash_ordered_map<T, U>::emplace_pair(const T &key, const U &value)\""){
+    SECTION("Testing \"void hash_table<T, U>::increase_max_cap()\" by building with \"hash_table<T, U>& hash_table<T, U>::emplace_pair(const T &key, const U &value)\"") {
         int counter[27];
-        for (int & it : counter) {
+        for (int &it: counter) {
             it = 0;
         }
 
@@ -104,18 +97,20 @@ TEST_CASE("Testing hash_ordered_map filling and reading methods", "[hash_ordered
         }
     }
 
-    SECTION("Testing large file reading via \"hash_ordered_map/test_Oedipus-King-of-Thebes.txt\" and comparing STL unordered_maps to HashOrderedMaps"){
+    SECTION("Testing large file reading via \"hash_table/test_Oedipus-King-of-Thebes.txt\" and comparing STL unordered_maps to HashOrderedMaps") {
         std::ifstream inFile;
-        inFile.open("../hash_ordered_map/test_Oedipus-King-of-Thebes.txt");
-        if(!inFile.is_open()) {
-            std::cout << "Error in Testing large file reading via \"../hash_ordered_map/test_Oedipus-King-of-Thebes.txt\" | file could not open" << std::endl;
+        inFile.open("../hash_table/test_Oedipus-King-of-Thebes.txt");
+        if (!inFile.is_open()) {
+            std::cout
+                    << "Error in Testing large file reading via \"../hash_table/test_Oedipus-King-of-Thebes.txt\" | file could not open"
+                    << std::endl;
             REQUIRE(false);
             return;
         }
 
-        hash_ordered_map<std::string, int> wordFreqCounterCUSTOM;
+        hash_table<std::string, int> wordFreqCounterCUSTOM;
         std::unordered_map<std::string, int> wordFreqCounterSTL;
-        while(inFile.good()){
+        while (inFile.good()) {
             std::string word;
             inFile >> word;
             wordFreqCounterCUSTOM[word]++;
@@ -125,17 +120,17 @@ TEST_CASE("Testing hash_ordered_map filling and reading methods", "[hash_ordered
 
         REQUIRE(wordFreqCounterCUSTOM.size() == wordFreqCounterSTL.size());
 
-        for (const auto & it : wordFreqCounterSTL) {
+        for (const auto &it: wordFreqCounterSTL) {
             REQUIRE(wordFreqCounterCUSTOM.contains(it.first) == true);
             REQUIRE(wordFreqCounterCUSTOM.read_at(it.first) == it.second);
         }
     }
 }
 
-TEST_CASE("Testing hash_ordered_map clearing methods", "[hash_ordered_map]") {
-    hash_ordered_map<char, int> testDummy;
+TEST_CASE("Testing hash_table clearing methods", "[hash_table]") {
+    hash_table<char, int> testDummy;
 
-    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear_value_at(const T &key)\""){
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &key)\"") {
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
             int randNum = rand();
@@ -150,19 +145,19 @@ TEST_CASE("Testing hash_ordered_map clearing methods", "[hash_ordered_map]") {
         REQUIRE(testDummy.size() == 24);
 
         bool error = false;
-        try{
+        try {
             testDummy.clear_value_at('?');
         }
-        catch (const std::invalid_argument& e){
+        catch (const std::invalid_argument &e) {
             error = true;
         }
         REQUIRE(error);
 
         error = false;
-        try{
+        try {
             testDummy.read_at('A');
         }
-        catch (const std::invalid_argument& e){
+        catch (const std::invalid_argument &e) {
             error = true;
         }
         REQUIRE(error);
@@ -171,7 +166,7 @@ TEST_CASE("Testing hash_ordered_map clearing methods", "[hash_ordered_map]") {
         REQUIRE(testDummy.contains('B') == false);
     }
 
-    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::clear()\""){
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::clear()\"") {
         for (int i = 0; i < 26; ++i) {
             char key = i + 'A';
             int randNum = rand();
@@ -184,23 +179,23 @@ TEST_CASE("Testing hash_ordered_map clearing methods", "[hash_ordered_map]") {
         REQUIRE(testDummy.is_empty() == true);
 
         bool error = false;
-        try{
+        try {
             testDummy.read_at('A');
         }
-        catch (const std::invalid_argument& e){
+        catch (const std::invalid_argument &e) {
             error = true;
         }
         REQUIRE(error);
     }
 }
 
-TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map]"){
+TEST_CASE("Testing copy-constructor and assignment operator", "[hash_table]") {
     int counter[27];
-    for (int & it : counter) {
+    for (int &it: counter) {
         it = 0;
     }
 
-    hash_ordered_map<char, int> testDummy;
+    hash_table<char, int> testDummy;
     for (int i = 0; i < 26; ++i) {
         char key = i + 'A';
         int randNum = rand();
@@ -208,8 +203,8 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
         counter[key & 31] = randNum;
     }
 
-    SECTION("Testing copy-constructor"){
-        hash_ordered_map<char, int> homChar(testDummy);
+    SECTION("Testing copy-constructor") {
+        hash_table<char, int> homChar(testDummy);
         REQUIRE(homChar.size() == 26);
         REQUIRE(homChar.is_empty() == false);
 
@@ -223,8 +218,8 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
         }
     }
 
-    SECTION("Testing assignment operator"){
-        hash_ordered_map<char, int> homChar;
+    SECTION("Testing assignment operator") {
+        hash_table<char, int> homChar;
         homChar = testDummy;
         REQUIRE(homChar.size() == 26);
         REQUIRE(homChar.is_empty() == false);
@@ -240,15 +235,16 @@ TEST_CASE("Testing copy-constructor and assignment operator", "[hash_ordered_map
     }
 }
 
-TEST_CASE("Testing appending-type methods", "[hash_ordered_map]"){
-    hash_ordered_map<char, int> testDummy;
-    for (int i = 0; i < 16; ++i) {  //fills until and including letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
+TEST_CASE("Testing appending-type methods", "[hash_table]") {
+    hash_table<char, int> testDummy;
+    for (int i = 0;
+         i < 16; ++i) {  //fills until and including letter 'O', which of course stands for "OhGodHelpMeINeedAHotGothGF"
         char key = i + 'A';
         testDummy.emplace_pair(key, 1);
     }
 
-    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::merge_with(const hash_ordered_map<T, U> & passedMap)\""){
-        hash_ordered_map<char, int> homChar;
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::merge_with(const hash_table<T, U> & passedMap)\"") {
+        hash_table<char, int> homChar;
         homChar.emplace_pair('A', -2);
         homChar.emplace_pair('B', 10);
         homChar.emplace_pair('Y', -3);
@@ -275,8 +271,8 @@ TEST_CASE("Testing appending-type methods", "[hash_ordered_map]"){
         REQUIRE(homChar.read_at('Z') == -4);
     }
 
-    SECTION("Testing \"hash_ordered_map<T, U> &hash_ordered_map<T, U>::overlap_with(const hash_ordered_map<T, U> & passedMap)\""){
-        hash_ordered_map<char, int> homChar;
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::overlap_with(const hash_table<T, U> & passedMap)\"") {
+        hash_table<char, int> homChar;
         homChar.emplace_pair('A', -2);
         homChar.emplace_pair('B', 10);
         homChar.emplace_pair('Y', -3);

@@ -5,23 +5,32 @@
 #ifndef INC_22S_FINAL_PROJ_TABLEBUNDLE_H
 #define INC_22S_FINAL_PROJ_TABLEBUNDLE_H
 
-#include "./hash_ordered_map/hash_ordered_map.h"
+#include "./hash_table/hash_table.h"
 #include <mutex>
 #include <vector>
 
 struct Article {
     std::string uuid;
+    std::string filename;
     std::vector<std::string> orgList;
     std::string author;
-    std::string filename;
+
+    // Overloaded stream insertion operator
+    friend std::ostream &operator<<(std::ostream &os, const Article &article) {
+        os << "Article: " << article.uuid << " " << article.filename << " " << article.author << " ";
+        for (auto &org: article.orgList) {
+            os << org << " ";
+        }
+        return os;
+    }
 };
 
 struct TableBundle {
     // Authors to uuids
-    hash_ordered_map<std::string, std::vector<std::string>> *authors;
+    hash_table<std::string, std::vector<std::string>> *authors;
     // Orgs to uuids
-    hash_ordered_map<std::string, std::vector<std::string>> *orgs;
-    hash_ordered_map<std::string, Article> *articles;
+    hash_table<std::string, std::vector<std::string>> *orgs;
+    hash_table<std::string, Article> *articles;
     std::mutex authorsMutex;
     std::mutex orgsMutex;
     std::mutex articlesMutex;

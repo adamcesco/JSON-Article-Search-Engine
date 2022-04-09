@@ -11,7 +11,7 @@
 #include <atomic>
 #include <mutex>
 #include <queue>
-#include "hash_ordered_map/hash_ordered_map.h"
+#include "hash_table/hash_table.h"
 #include "./TableBundle.h"
 
 class Processor {
@@ -25,6 +25,12 @@ private:
     std::queue<std::string> fileQueue;
 
     TableBundle *tableBundle;
+
+    void fillArticle(Article article);
+
+    void fillOrganization(std::string organization, std::string uuid);
+
+    void fillAuthors(std::string authors, std::string uuid);
 
     void fillQueue(std::string folderName);
 

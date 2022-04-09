@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include "Processor.h"
-#include "hash_ordered_map/hash_ordered_map.h"
+#include "hash_table/hash_table.h"
 #include "./TableBundle.h"
 
 class SearchEngine {
@@ -21,8 +21,14 @@ private:
     TableBundle *tables;
 
 public:
+    /**
+     * @param data_folder The folder containing the data files
+     */
     explicit SearchEngine(std::string data_folder);
 
+    /**
+     * Populates the tables and the inverse index with the articles
+     */
     void generateIndex();
 
     ~SearchEngine();

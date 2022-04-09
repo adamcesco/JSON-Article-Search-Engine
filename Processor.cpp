@@ -15,13 +15,15 @@
 
 namespace fs = std::experimental::filesystem;
 
-// TODO: ADD DESTRUCTOR
-
 Processor::Processor(TableBundle *tb) {
     this->tableBundle = tb;
     this->fileQueueMutex = new std::mutex();
 }
 
+/**
+ * Adds every article filename to a queue so that the multithreading can process them easily
+ * @param folderName The folder name to search
+ */
 void Processor::fillQueue(std::string folderName) {
     // Only files not folders
     for (const fs::directory_entry &dir_entry:
@@ -33,18 +35,19 @@ void Processor::fillQueue(std::string folderName) {
     }
 }
 
+
 void Processor::process() {
     while (true) {
         this->fileQueueMutex->lock();
-        // double check to make sure its not empty
-        // TODO: DO THIS BETTER
         if (this->fileQueue.empty()) {
+            // Prevents a deadlock
             this->fileQueueMutex->unlock();
             break;
         }
         std::string filename = this->fileQueue.front();
         this->fileQueue.pop();
         this->fileQueueMutex->unlock();
+
         std::ifstream file(filename);
         if (!file.is_open()) {
             std::cout << "Could not open file: " << filename << std::endl;
@@ -55,7 +58,7 @@ void Processor::process() {
             std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             document.Parse(content.c_str());
         } catch (std::exception &e) {
-            std::cout << "Could not read file: " << filename << std::endl;
+            std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
             continue;
         }
         file.close();
@@ -64,33 +67,49 @@ void Processor::process() {
         assert(document.HasMember("title"));
         assert(document["title"].IsString());
         assert(document["text"].IsString());
+        assert(document["uuid"].IsString());
+        assert(document["author"].IsString());
+        assert(document["entities"].IsObject());
+        assert(document["entities"]["organizations"].IsArray());
 
-        // loop through every word in text
-        std::string text = document["text"].GetString();
-        std::istringstream iss(text);
+        std::string uuid = document["uuid"].GetString();
 
-        // Iterate the istringstream
-        // using do-while loop
-        do {
-            std::string subs;
-
-            // Get the word from the istringstream
-            iss >> subs;
-
-            // Print the word fetched
-            // from the istringstream
-            if (subs[0] > 96 && subs[0] < 123) {
+        std::vector<std::string> orgs = {};
+        // Check if array empty
+        for (auto &org: document["entities"]["organizations"].GetArray()) {
+            if (org.IsObject()) {
+                if (org["name"].IsString()) {
+                    orgs.push_back(org["name"].GetString());
+                }
             }
+        }
 
-        } while (iss);
+        Article art = {
+                .uuid = document["uuid"].GetString(),
+                .filename = filename,
+                .orgList = orgs,
+                .author = document["author"].GetString(),
+        };
+
+        this->tableBundle->articlesMutex.lock();
+        this->tableBundle->articles->operator[](uuid) = art;
+        this->tableBundle->articlesMutex.unlock();
+
+        std::thread tableFillAuthor(&Processor::fillAuthors, this, uuid, document["author"].GetString());
+        tableFillAuthor.join();
+
+
         filesProcessed++;
     }
 }
 
 
+/**
+ * Generates the index from a specific folder
+ * @param folderName the folder to recursively process through
+ * @return A dummy return value so that the function can be called with std::async
+ */
 std::string Processor::generateIndex(std::string folderName) {
-
-
     std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
     std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
@@ -112,6 +131,7 @@ std::string Processor::generateIndex(std::string folderName) {
     t5.join();
     t6.join();
 
+
     return "Indexing complete";
 }
 
@@ -129,3 +149,23 @@ bool Processor::safeIsEmpty() {
 Processor::~Processor() {
     delete this->fileQueueMutex;
 }
+
+void Processor::fillArticle(Article article) {
+    this->tableBundle->articlesMutex.lock();
+    this->tableBundle->articles->operator[](article.uuid) = article;
+    this->tableBundle->articlesMutex.unlock();
+}
+
+void Processor::fillOrganization(std::string organization, std::string uuid) {
+    this->tableBundle->orgsMutex.lock();
+    this->tableBundle->orgs->operator[](organization).push_back(uuid);
+    this->tableBundle->orgsMutex.unlock();
+}
+
+void Processor::fillAuthors(std::string authors, std::string uuid) {
+    this->tableBundle->authorsMutex.lock();
+    this->tableBundle->authors->operator[](authors).push_back(uuid);
+    this->tableBundle->authorsMutex.unlock();
+}
+
+

@@ -58,11 +58,14 @@ public:
 
     avl_tree &insert(const T &, const U &, void (*)(U &, const U &));   //O(n lg n)
     avl_tree &insert(const T &, const U &);
+
     avl_tree &insert_overwriting(const T &, const U &);
 
     bool clear_node_at(const T &);
 
     U &operator[](const T &);
+
+    void print_tree() { print_inorder(root); }
 
     int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
 
@@ -79,14 +82,19 @@ private:
 
     void balance_alpha(binary_node<T, U> *&);
 
-    enum INSERT_OPERATION { INSERTED, MASKED };
+    enum INSERT_OPERATION {
+        INSERTED, MASKED
+    };
 
     binary_node<T, U> *
     unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));           //O(lg n)
     binary_node<T, U> *unbalanced_insert_appending(const T &, const U &, INSERT_OPERATION &);
+
     binary_node<T, U> *unbalanced_insert_overwriting(const T &, const U &, INSERT_OPERATION &);
 
     int update_height_of_subtree(binary_node<T, U> *);                   //O(lg n)
+
+    void print_inorder(binary_node<T, U> *&);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -428,7 +436,8 @@ avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &face, const U &value
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+binary_node<T, U> *
+avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
     int leftBranch = 0;
@@ -468,6 +477,15 @@ binary_node<T, U> *avl_tree<T, U>::unbalanced_insert_overwriting(const T &passed
         y->emplace_right(passedFace, passedValue);
         y->right->parent = y;
         return y->right;
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
+    if (node != nullptr) {
+        print_inorder(node->left);
+        std::cout << node->face << " " << std::endl;
+        print_inorder(node->right);
     }
 }
 

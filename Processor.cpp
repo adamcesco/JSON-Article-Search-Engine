@@ -142,9 +142,14 @@ std::string Processor::generateIndex(std::string folderName) {
     std::thread t1(&Processor::process, this);
     std::thread t2(&Processor::process, this);
     std::thread t3(&Processor::process, this);
+    std::thread t4(&Processor::process, this);
+    std::thread t5(&Processor::process, this);
+
     t1.join();
     t2.join();
     t3.join();
+    t4.join();
+    t5.join();
 
     this->totalWords = this->wordMap->size();
 
@@ -205,6 +210,7 @@ void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> 
 }
 
 std::string Processor::convertToTree() {
+    std::cout << termcolor::red << std::endl << this->totalWords << std::endl;
     this->wordTreeMutex->lock();
     this->wordMapMutex->lock();
     for (auto &word: *this->wordMap) {

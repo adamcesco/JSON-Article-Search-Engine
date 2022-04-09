@@ -74,4 +74,8 @@ void SearchEngine::generateIndex() {
     }
     printProgressBar(1);
     std::cout << std::endl;
+
+    std::cout << this->wordTree->size() << std::endl;
+    this->wordTree->print_tree();
+
 }

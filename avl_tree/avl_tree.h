@@ -226,7 +226,8 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
     pivot = parent->left;
 
     parent->left = pivot->right;
-    parent->left->parent = parent;
+    if(parent->left != nullptr)
+        parent->left->parent = parent;
     pivot->right = parent;
     parent->parent = pivot;
 
@@ -261,7 +262,8 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
     pivot = parent->right;
 
     parent->right = pivot->left;
-    parent->right->parent = parent;
+    if(parent->right != nullptr)
+        parent->right->parent = parent;
     pivot->left = parent;
     parent->parent = pivot;
 

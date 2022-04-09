@@ -95,9 +95,13 @@ void Processor::process() {
         this->tableBundle->articles->operator[](uuid) = art;
         this->tableBundle->articlesMutex.unlock();
 
-        std::thread tableFillAuthor(&Processor::fillAuthors, this, uuid, document["author"].GetString());
-        tableFillAuthor.join();
+        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, document["author"].GetString());
+        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
+        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
 
+        tableFillAuthorThread.join();
+        tableFillOrgsThread.join();
+        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -156,9 +160,11 @@ void Processor::fillArticle(Article article) {
     this->tableBundle->articlesMutex.unlock();
 }
 
-void Processor::fillOrganization(std::string organization, std::string uuid) {
+void Processor::fillOrganization(std::vector<std::string> organizations, std::string uuid) {
     this->tableBundle->orgsMutex.lock();
-    this->tableBundle->orgs->operator[](organization).push_back(uuid);
+    for (auto &org: organizations) {
+        this->tableBundle->orgs->operator[](org).push_back(uuid);
+    }
     this->tableBundle->orgsMutex.unlock();
 }
 

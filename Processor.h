@@ -28,7 +28,7 @@ private:
 
     void fillArticle(Article article);
 
-    void fillOrganization(std::string organization, std::string uuid);
+    void fillOrganization(std::vector<std::string> organizations, std::string uuid);
 
     void fillAuthors(std::string authors, std::string uuid);
 

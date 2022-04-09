@@ -277,7 +277,6 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
 template<class T, class U>
 void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
     parent->right = LL_rotate(parent->right, RIGHT);
-    update_height_of_subtree(parent->right);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {
@@ -292,7 +291,6 @@ void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
 template<class T, class U>
 void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, pivot = y
     parent->left = RR_rotate(parent->left, LEFT);
-    update_height_of_subtree(parent->left);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {

@@ -8,6 +8,7 @@
 #include <future>
 #include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
+#include <iomanip>      // std::setprecision
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -18,7 +19,10 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->tables->authors = new hash_table<std::string, std::vector<std::string>>();
     this->tables->articles = new hash_table<std::string, Article>();
 
-    this->processor = new Processor(this->tables);
+    this->wordTree = new avl_tree<std::string, std::vector<std::string>>();
+    this->wordTreeMutex = new std::mutex();
+
+    this->processor = new Processor(this->tables, this->wordTree, this->wordTreeMutex);
 }
 
 SearchEngine::~SearchEngine() {
@@ -35,7 +39,7 @@ void printProgressBar(double progress) {
         else if (i == pos) std::cout << ">";
         else std::cout << " ";
     }
-    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout << "] " << std::setprecision(3) << std::fixed << double(progress * 100.0) << " %\r";
     std::cout.flush();
 }
 

@@ -13,6 +13,8 @@
 #include <queue>
 #include "hash_table/hash_table.h"
 #include "./TableBundle.h"
+#include "StopWords.h"
+#include "./avl_tree/avl_tree.h"
 
 class Processor {
 
@@ -20,11 +22,16 @@ private:
     // Passed from SearchEngine
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
+    StopWords stopWords;
 
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
 
+    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
+    std::mutex *wordTreeMutex;
+
     TableBundle *tableBundle;
+
 
     void fillArticle(Article article);
 
@@ -39,7 +46,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle);
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree, std::mutex *treeMut);
 
     ~Processor();
 

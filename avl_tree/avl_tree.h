@@ -61,12 +61,18 @@ public:
 
     U &get_at(const T &);
 
-    avl_tree &insert(const T &, const U &);   //O(n lg n)
+    unsigned int size() { return nodeCount; }
+
+    avl_tree &insert(const T &, const U &, void (*)(U &, const U &));   //O(n lg n)
+    avl_tree &insert(const T &, const U &);
+
     bool clear_node_at(const T &);
 
     U &operator[](const T &);
 
     int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
+
+    avl_tree<T, U> &set_append_method(void *(U &, const U &));
 
     ~avl_tree();
 
@@ -81,7 +87,10 @@ private:
 
     void balance_alpha(binary_node<T, U> *&);
 
-    binary_node<T, U> *unbalanced_insert(const T &, const U &, INSERT_OPERATION &);           //O(lg n)
+    binary_node<T, U> *
+    unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));           //O(lg n)
+    binary_node<T, U> *unbalanced_insert(const T &, const U &, INSERT_OPERATION &);
+
     int update_height_of_subtree(binary_node<T, U> *);                   //O(lg n)
 
     binary_node<T, U> *root = nullptr;
@@ -89,9 +98,9 @@ private:
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value) {
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value, void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
-    binary_node<T, U> *curNode = unbalanced_insert(face, value, operation);        //O(lg n)
+    binary_node<T, U> *curNode = unbalanced_insert(face, value, operation, append);        //O(lg n)
     if (operation == MASKED)
         return *this;
 
@@ -113,7 +122,8 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value) {
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation,
+                                  void (*append)(U &, const U &)) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
     int leftBranch = 0;
@@ -136,11 +146,10 @@ avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INS
     if (leftBranch == 0) {
         if (temp == nullptr) {
             temp = new binary_node<T, U>();
+            root = temp;
             temp->data = passedValue;
-            if (root == nullptr)
-                root = temp;
         } else {
-            temp->data += passedValue;
+            append(temp->data, passedValue);
             operation = MASKED;
         }
         temp->face = passedFace;
@@ -218,7 +227,7 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
     pivot = parent->left;
 
     parent->left = pivot->right;
-    if(parent->left != nullptr)
+    if (parent->left != nullptr)
         parent->left->parent = parent;
     pivot->right = parent;
     parent->parent = pivot;
@@ -235,15 +244,6 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
 
     pivot->parent = pivotParent;
 
-    if (pivot->left != nullptr)
-        pivot->left->parent = pivot;
-    if (pivot->right != nullptr)
-        pivot->right->parent = pivot;
-    if (parent->left != nullptr)
-        parent->left->parent = parent;
-    if (parent->right != nullptr)
-        parent->right->parent = parent;
-
     return pivot;
 }
 
@@ -254,11 +254,10 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
     pivot = parent->right;
 
     parent->right = pivot->left;
-    if(parent->right != nullptr)
+    if (parent->right != nullptr)
         parent->right->parent = parent;
     pivot->left = parent;
     parent->parent = pivot;
-
 
 
     if (parent == root)
@@ -272,23 +271,13 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
 
     pivot->parent = pivotParent;
 
-    if (pivot->left != nullptr)
-        pivot->left->parent = pivot;
-    if (pivot->right != nullptr)
-        pivot->right->parent = pivot;
-    if (parent->left != nullptr)
-        parent->left->parent = parent;
-    if (parent->right != nullptr)
-        parent->right->parent = parent;
-
     return pivot;
 }
 
 template<class T, class U>
 void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
-    update_height_of_subtree(root);
     parent->right = LL_rotate(parent->right, RIGHT);
-    update_height_of_subtree(root);
+    update_height_of_subtree(parent);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {
@@ -303,7 +292,7 @@ void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
 template<class T, class U>
 void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, pivot = y
     parent->left = RR_rotate(parent->left, LEFT);
-    update_height_of_subtree(root);
+    update_height_of_subtree(parent);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {
@@ -347,6 +336,74 @@ U &avl_tree<T, U>::get_at(const T &passedFace) {
 
     throw std::invalid_argument(
             "Error in \"U &avl_tree<T, U>::get_at(const T&)\" | Passed value cannot be found within tree.");
+}
+
+template<class T, class U>
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value) {
+    INSERT_OPERATION operation = INSERTED;
+    binary_node<T, U> *curNode = unbalanced_insert(face, value, operation);        //O(lg n)
+    if (operation == MASKED)
+        return *this;
+
+    binary_node<T, U> *finalAlpha = curNode;
+    while (finalAlpha->parent != nullptr && finalAlpha->parent->maxHeight < finalAlpha->maxHeight + 1) {  //O(lg n)
+        ++finalAlpha->parent->maxHeight;
+        finalAlpha = finalAlpha->parent;
+    }
+    finalAlpha = finalAlpha->parent;
+
+    curNode = curNode->parent;
+    while (curNode != finalAlpha) {    //O(lg n)
+        balance_alpha(curNode);      //O(lg n)
+        curNode = curNode->parent;
+    }
+    ++nodeCount;
+    return *this;
+}
+
+template<class T, class U>
+binary_node<T, U> *
+avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+    binary_node<T, U> *temp = root;
+    binary_node<T, U> *y = nullptr;
+    int leftBranch = 0;
+
+    while (temp != nullptr) {
+        y = temp;
+        if (passedFace == temp->face) {
+            leftBranch = 0;
+            break;
+        } else if (passedFace < temp->face) {
+            temp = temp->left;
+            leftBranch = -1;
+        } else {
+            temp = temp->right;
+            leftBranch = 1;
+        }
+    }
+
+    operation = INSERTED;
+    if (leftBranch == 0) {
+        if (temp == nullptr) {
+            temp = new binary_node<T, U>();
+            root = temp;
+            temp->data = passedValue;
+        } else {
+            temp->data += passedValue;
+            operation = MASKED;
+        }
+        temp->face = passedFace;
+
+        return temp;
+    } else if (leftBranch == -1) {
+        y->emplace_left(passedFace, passedValue);
+        y->left->parent = y;
+        return y->left;
+    } else {
+        y->emplace_right(passedFace, passedValue);
+        y->right->parent = y;
+        return y->right;
+    }
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

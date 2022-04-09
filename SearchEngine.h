@@ -12,13 +12,16 @@
 #include "Processor.h"
 #include "hash_table/hash_table.h"
 #include "./TableBundle.h"
+#include "avl_tree/avl_tree.h"
 
 class SearchEngine {
 private:
     std::string data_folder;
 
     Processor *processor = nullptr;
-    TableBundle *tables;
+    TableBundle *tables = nullptr;
+    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
+    std::mutex *wordTreeMutex = nullptr;
 
 public:
     /**

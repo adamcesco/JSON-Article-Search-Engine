@@ -17,4 +17,21 @@ std::string getCenteredText(std::string text, int width) {
     return spacesStr + text;
 }
 
+std::string& toLower(std::string& str) {
+    for (int i = 0; i < str.length(); i++) {
+        str[i] = tolower(str[i]);
+    }
+    return str;
+}
+
+std::string& removePunctuation(std::string& str) {
+    for (int i = 0; i < str.length(); i++) {
+        if (ispunct(str[i])) {
+            str.erase(i, 1);
+            i--;
+        }
+    }
+    return str;
+}
+
 #endif //INC_22S_FINAL_PROJ_UTILS_H

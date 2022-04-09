@@ -10,15 +10,13 @@
 #include <thread>
 #include <fstream>
 #include "./TableBundle.h"
+#include "./include/porter2_stemmer/porter2_stemmer.h"
+#include "./StopWords.h"
 
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
 
-Processor::Processor(TableBundle *tb) {
-    this->tableBundle = tb;
-    this->fileQueueMutex = new std::mutex();
-}
 
 /**
  * Adds every article filename to a queue so that the multithreading can process them easily
@@ -33,6 +31,11 @@ void Processor::fillQueue(std::string folderName) {
             this->totalFiles++;
         }
     }
+}
+
+
+void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::string> &newVal) {
+    existing.push_back(newVal[0]);
 }
 
 
@@ -54,8 +57,8 @@ void Processor::process() {
             continue;
         }
         rapidjson::Document document;
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         try {
-            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             document.Parse(content.c_str());
         } catch (std::exception &e) {
             std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
@@ -63,16 +66,8 @@ void Processor::process() {
         }
         file.close();
 
-        assert(document.IsObject());
-        assert(document.HasMember("title"));
-        assert(document["title"].IsString());
-        assert(document["text"].IsString());
-        assert(document["uuid"].IsString());
-        assert(document["author"].IsString());
-        assert(document["entities"].IsObject());
-        assert(document["entities"]["organizations"].IsArray());
-
         std::string uuid = document["uuid"].GetString();
+        std::string author = document["author"].GetString();
 
         std::vector<std::string> orgs = {};
         // Check if array empty
@@ -85,15 +80,39 @@ void Processor::process() {
         }
 
         Article art = {
-                .uuid = document["uuid"].GetString(),
+                .uuid = uuid,
                 .filename = filename,
                 .orgList = orgs,
-                .author = document["author"].GetString(),
+                .author = author,
         };
 
-        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, document["author"].GetString());
+        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
         std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
         std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
+
+
+        std::string text = document["text"].GetString();
+        std::istringstream iss(text);
+
+        // Iterate the istringstream
+        // using do-while loop
+        do {
+            std::string subs;
+            // Get the word from the istringstream
+            iss >> subs;
+            toLower(subs);
+            removePunctuation(subs);
+            if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
+                Porter2Stemmer::stem(subs);
+                if (subs.length() > 0) {
+                    // Add ato avl tree
+                    std::vector<std::string> dummyVector = {subs};
+                    this->wordTreeMutex->lock();
+                    this->wordTree->insert(subs, dummyVector, &aliasPushBack);
+                    this->wordTreeMutex->unlock();
+                }
+            }
+        } while (iss);
         tableFillAuthorThread.join();
         tableFillOrgsThread.join();
         tableFillArticlesThread.join();
@@ -118,8 +137,11 @@ std::string Processor::generateIndex(std::string folderName) {
 
     // Actually process the files
     std::thread t1(&Processor::process, this);
+    std::thread t2(&Processor::process, this);
+    std::thread t3(&Processor::process, this);
     t1.join();
-
+    t2.join();
+    t3.join();
 
     return "Indexing complete";
 }
@@ -157,6 +179,17 @@ void Processor::fillAuthors(std::string authors, std::string uuid) {
     this->tableBundle->authorsMutex.lock();
     this->tableBundle->authors->operator[](authors).push_back(uuid);
     this->tableBundle->authorsMutex.unlock();
+}
+
+
+Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
+                     std::mutex *treeMut) {
+    this->tableBundle = tableBundle;
+    this->stopWords = StopWords();
+    this->wordTree = tree;
+    this->wordTreeMutex = treeMut;
+    this->totalFiles = 0;
+    this->fileQueueMutex = new std::mutex();
 }
 
 

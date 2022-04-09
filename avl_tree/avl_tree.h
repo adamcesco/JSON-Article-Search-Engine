@@ -2,14 +2,13 @@
 // Created by Adam Escobedo on 4/7/2022.
 //
 
-#ifndef INC_22S_FINAL_PROJ_DS_AVL_TREE_H
-#define INC_22S_FINAL_PROJ_DS_AVL_TREE_H
+#ifndef INC_22S_FINAL_PROJ_AVL_TREE_H
+#define INC_22S_FINAL_PROJ_AVL_TREE_H
 
 #include <algorithm>
 
 template<class T, class U>
 struct binary_node{
-
     void emplace_left(const T& pFace, const U& value) { delete left; left = new binary_node<T, U>(); left->face = pFace; left->data = value; }
     void emplace_right(const T& pFace, const U& value) { delete right; right = new binary_node<T, U>(); right->face = pFace; right->data = value; }
 
@@ -22,28 +21,27 @@ struct binary_node{
 };
 
 template<class T, class U>
-class DS_AVL_Tree{
+class avl_tree{
 public:
     bool contains(const T&);
-    DS_AVL_Tree& insert(const T&, const U&);
+    avl_tree& insert(const T&, const U&);   //O(n lg n)
     bool clear_node_at(const T&);
     U& operator[](const T&);
 
 private:
-    void LL_rotate(binary_node<T, U>*);
-    void RR_rotate(binary_node<T, U>*);
-    void LR_rotate(binary_node<T, U>*);
-    void RL_rotate(binary_node<T, U>*);
+    binary_node<T, U>* LL_rotate(binary_node<T, U>*);
+    binary_node<T, U>* RR_rotate(binary_node<T, U>*);
+    binary_node<T, U>* LR_rotate(binary_node<T, U>*);
+    binary_node<T, U>* RL_rotate(binary_node<T, U>*);
     void balance_alpha(binary_node<T, U>*);
-    binary_node<T, U>* unbalanced_insert(const T&, const U&);   //O(lg n)
-    binary_node<T, U>* update_maxHeights_via(binary_node<T, U>*);     //O(lg n)
+    binary_node<T, U>* unbalanced_insert(const T&, const U&);           //O(lg n)
+    int update_height_of_subtree(binary_node<T, U>*);                   //O(n)
 
-    int maxHeight = 0;
     binary_node<T, U>* root = nullptr;
 };
 
 template<class T, class U>
-DS_AVL_Tree<T, U>& DS_AVL_Tree<T, U>::insert(const T& face, const U& value) {
+avl_tree<T, U>& avl_tree<T, U>::insert(const T& face, const U& value) {
     binary_node<T, U>* curNode = unbalanced_insert(face, value);        //O(lg n)
 
     binary_node<T, U>* finalAlpha = curNode;
@@ -55,17 +53,15 @@ DS_AVL_Tree<T, U>& DS_AVL_Tree<T, U>::insert(const T& face, const U& value) {
 
     curNode = curNode->parent;
     while(curNode != finalAlpha){    //O(lg n)
-        balance_alpha(curNode);
+        balance_alpha(curNode);     //O(n)
         curNode = curNode->parent;
     }
-
-    //after rotating: updated all node max heights
 
     return *this;
 }
 
 template<class T, class U>
-binary_node<T, U> *DS_AVL_Tree<T, U>::unbalanced_insert(const T & passedFace, const U& passedValue) {
+binary_node<T, U> *avl_tree<T, U>::unbalanced_insert(const T & passedFace, const U& passedValue) {
     binary_node<T, U>* temp = root;
     binary_node<T, U>* y = nullptr;
     int leftBranch = 0;
@@ -107,37 +103,25 @@ binary_node<T, U> *DS_AVL_Tree<T, U>::unbalanced_insert(const T & passedFace, co
 }
 
 template<class T, class U>
-binary_node<T, U>* DS_AVL_Tree<T, U>::update_maxHeights_via(binary_node<T, U>* node) {
-    while(node->parent != nullptr && node->parent->maxHeight < node->maxHeight + 1){
-        ++node->parent->maxHeight;
-        node = node->parent;
-    }
-    return node->parent;
-}
-
-template<class T, class U>
-void DS_AVL_Tree<T, U>::balance_alpha(binary_node<T, U>* node) {
-    int balance = node->left->maxHeight - node->right->maxHeight;   //needs nullptr checks
+void avl_tree<T, U>::balance_alpha(binary_node<T, U>* node) {
+    int balance = node->left->maxHeight - node->right->maxHeight;   //needs nullptr checks, nullptr = -1
     if(balance > 1){
         if(node->left->left->maxHeight - node->left->right->maxHeight > 0)  //logic is correct
             LL_rotate(node);
         else
-            LR_rotate(node);
-
-        //update heights here
+            RL_rotate(node);
     }
     else if (balance < -1){
-        if(node->right->left->maxHeight - node->right->right->maxHeight > 0)    //logic is correct
-            RL_rotate(node);
-        else
+        if(node->right->left->maxHeight - node->right->right->maxHeight < 0)    //logic is correct
             RR_rotate(node);
-
-        //update heights here
+        else
+            LR_rotate(node);
     }
+    update_height_of_subtree(root);
 }
 
 template<class T, class U>
-bool DS_AVL_Tree<T, U>::contains(const T& passedFace) {
+bool avl_tree<T, U>::contains(const T& passedFace) {
     binary_node<T, U>* temp = root;
     while(temp != nullptr){
         if(passedFace == temp->face){
@@ -153,4 +137,50 @@ bool DS_AVL_Tree<T, U>::contains(const T& passedFace) {
     return false;
 }
 
-#endif //INC_22S_FINAL_PROJ_DS_AVL_TREE_H
+template<class T, class U>
+int avl_tree<T, U>::update_height_of_subtree(binary_node<T, U>* node) {
+    int height = 0;
+    if(node != nullptr){
+        int left_height = update_height_of_subtree(node->left);
+        int right_height = update_height_of_subtree(node->right);
+        node->maxHeight = height = std::max(left_height, right_height);
+        height += 1;
+    }
+    return height;
+}
+
+template<class T, class U>
+binary_node<T, U>* avl_tree<T, U>::LL_rotate(binary_node<T, U>* parent) {   //parent = x, pivot = y
+    binary_node<T, U>* pivot;
+    pivot = parent->left;
+
+    parent->left = pivot->right;
+    pivot->right = parent;
+    return pivot;
+}
+
+template<class T, class U>
+binary_node<T, U>* avl_tree<T, U>::RR_rotate(binary_node<T, U>* parent) {   //parent = x, pivot = y
+    binary_node<T, U>* pivot;
+    pivot = parent->right;
+
+    parent->right = pivot->left;
+    pivot->left = parent;
+    return pivot;
+}
+
+template<class T, class U>
+binary_node<T, U>* avl_tree<T, U>::LR_rotate(binary_node<T, U>* parent) {
+    parent->right = LL_rotate(parent->right);
+    update_height_of_subtree(root);
+    RR_rotate(parent);
+}
+
+template<class T, class U>
+binary_node<T, U>* avl_tree<T, U>::RL_rotate(binary_node<T, U>* parent) {   //parent = x, pivot = y
+    parent->left = RR_rotate(parent->left);
+    update_height_of_subtree(root);
+    LL_rotate(parent);
+}
+
+#endif //INC_22S_FINAL_PROJ_AVL_TREE_H

@@ -6,16 +6,22 @@
 #include <thread>
 #include "SearchEngine.h"
 #include <future>
+#include "./TableBundle.h"
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
-    this->authors = new hash_ordered_map<std::string, std::vector<std::string>>();
-    this->processor = new Processor(this->authors);
+
+    this->tables = new TableBundle();
+    this->tables->orgs = new hash_ordered_map<std::string, std::vector<std::string>>();
+    this->tables->authors = new hash_ordered_map<std::string, std::vector<std::string>>();
+    this->tables->articles = new hash_ordered_map<std::string, Article>();
+
+    this->processor = new Processor(this->tables);
 }
 
 SearchEngine::~SearchEngine() {
     delete this->processor;
-    delete this->authors;
+    delete this->tables;
 }
 
 void printProgressBar(double progress) {

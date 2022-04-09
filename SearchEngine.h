@@ -11,14 +11,14 @@
 #include <vector>
 #include "Processor.h"
 #include "hash_ordered_map/hash_ordered_map.h"
+#include "./TableBundle.h"
 
 class SearchEngine {
 private:
     std::string data_folder;
 
-    // Key: author name,  value: vector of article ids
-    hash_ordered_map<std::string, std::vector<std::string>> *authors = nullptr;
     Processor *processor = nullptr;
+    TableBundle *tables;
 
 public:
     explicit SearchEngine(std::string data_folder);

@@ -8,13 +8,14 @@
 #include "./include/rapidjson/document.h"
 #include <thread>
 #include <fstream>
+#include "./TableBundle.h"
 
 namespace fs = std::experimental::filesystem;
 
 // TODO: ADD DESTRUCTOR
 
-Processor::Processor(hash_ordered_map<std::string, std::vector<std::string>> *authors) {
-    this->authors = authors;
+Processor::Processor(TableBundle *tb) {
+    this->tableBundle = tb;
     this->fileQueueMutex = new std::mutex();
 }
 

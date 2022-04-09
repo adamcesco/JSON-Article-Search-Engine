@@ -12,18 +12,19 @@
 #include <mutex>
 #include <queue>
 #include "hash_ordered_map/hash_ordered_map.h"
+#include "./TableBundle.h"
 
 class Processor {
 
 private:
     // Passed from SearchEngine
-    hash_ordered_map<std::string, std::vector<std::string>> *authors = nullptr;
-
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
 
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
+
+    TableBundle *tableBundle;
 
     void fillQueue(std::string folderName);
 
@@ -32,7 +33,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(hash_ordered_map<std::string, std::vector<std::string>> *authors);
+    explicit Processor(TableBundle *tableBundle);
 
     ~Processor();
 

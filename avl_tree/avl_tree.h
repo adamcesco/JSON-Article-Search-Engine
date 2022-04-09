@@ -29,12 +29,8 @@ struct binary_node {
     }
 
     ~binary_node() {
-        if (left != nullptr) {
-            delete left;
-        }
-        if (right != nullptr) {
-            delete right;
-        }
+        delete left;
+        delete right;
     }
 
     T face;
@@ -62,15 +58,16 @@ public:
 
     avl_tree &insert(const T &, const U &, void (*)(U &, const U &));   //O(n lg n)
     avl_tree &insert(const T &, const U &);
+
     avl_tree &insert_overwriting(const T &, const U &);
 
     bool clear_node_at(const T &);
 
     U &operator[](const T &);
 
-    int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
+    void print_tree() { print_inorder(root); }
 
-    avl_tree<T, U> &set_append_method(void *(U &, const U &));
+    int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
 
     ~avl_tree();
 
@@ -85,14 +82,19 @@ private:
 
     void balance_alpha(binary_node<T, U> *&);
 
-    enum INSERT_OPERATION { INSERTED, MASKED };
+    enum INSERT_OPERATION {
+        INSERTED, MASKED
+    };
 
     binary_node<T, U> *
     unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));           //O(lg n)
     binary_node<T, U> *unbalanced_insert_appending(const T &, const U &, INSERT_OPERATION &);
+
     binary_node<T, U> *unbalanced_insert_overwriting(const T &, const U &, INSERT_OPERATION &);
 
     int update_height_of_subtree(binary_node<T, U> *);                   //O(lg n)
+
+    void print_inorder(binary_node<T, U> *&);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -169,28 +171,33 @@ avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INS
 
 template<class T, class U>
 void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&node) {
-    DIRECTION nodeDir = LEFT;
-    if (node->parent != nullptr) {
-        if (node->parent->left == node)
-            nodeDir = LEFT;
-        else if (node->parent->right == node)
-            nodeDir = RIGHT;
-    }
-
-
     int balance = node_height_difference(node->left, node->right);   //needs nullptr checks, nullptr = -1
     if (balance > 1) {
+        DIRECTION nodeDir = LEFT;
+        if (node->parent != nullptr) {
+            if (node->parent->left == node)
+                nodeDir = LEFT;
+            else if (node->parent->right == node)
+                nodeDir = RIGHT;
+        }
+
         if (node_height_difference(node->left->left, node->left->right) > 0)  //logic is correct
-            LL_rotate(node, nodeDir);
+            update_height_of_subtree(LL_rotate(node, nodeDir));
         else
             RL_rotate(node);
-        update_height_of_subtree(root);
     } else if (balance < -1) {
+        DIRECTION nodeDir = LEFT;
+        if (node->parent != nullptr) {
+            if (node->parent->left == node)
+                nodeDir = LEFT;
+            else if (node->parent->right == node)
+                nodeDir = RIGHT;
+        }
+
         if (node_height_difference(node->right->left, node->right->right) < 0)    //logic is correct
-            RR_rotate(node, nodeDir);
+            update_height_of_subtree(RR_rotate(node, nodeDir));
         else
             LR_rotate(node);
-        update_height_of_subtree(root);
     }
 }
 
@@ -245,7 +252,7 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
 
     pivot->parent = pivotParent;
 
-    return pivot;
+    return pivot;       //highest node that needs changing is "pivot"
 }
 
 template<class T, class U>
@@ -272,13 +279,12 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
 
     pivot->parent = pivotParent;
 
-    return pivot;
+    return pivot;       //highest node that needs changing is "pivot"
 }
 
 template<class T, class U>
 void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
     parent->right = LL_rotate(parent->right, RIGHT);
-    update_height_of_subtree(parent);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {
@@ -287,13 +293,12 @@ void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
         else
             nodeDir = RIGHT;
     }
-    RR_rotate(parent, nodeDir);
+    update_height_of_subtree(RR_rotate(parent, nodeDir));
 }
 
 template<class T, class U>
 void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, pivot = y
     parent->left = RR_rotate(parent->left, LEFT);
-    update_height_of_subtree(parent);
 
     DIRECTION nodeDir = LEFT;
     if (parent->parent != nullptr) {
@@ -302,7 +307,7 @@ void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, piv
         else
             nodeDir = RIGHT;
     }
-    LL_rotate(parent, nodeDir);
+    update_height_of_subtree(LL_rotate(parent, nodeDir));
 }
 
 template<class T, class U>
@@ -431,7 +436,8 @@ avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &face, const U &value
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+binary_node<T, U> *
+avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
     int leftBranch = 0;
@@ -471,6 +477,15 @@ binary_node<T, U> *avl_tree<T, U>::unbalanced_insert_overwriting(const T &passed
         y->emplace_right(passedFace, passedValue);
         y->right->parent = y;
         return y->right;
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
+    if (node != nullptr) {
+        print_inorder(node->left);
+        std::cout << node->face << " " << std::endl;
+        print_inorder(node->right);
     }
 }
 

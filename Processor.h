@@ -23,15 +23,17 @@ private:
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
-
-    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
-    std::mutex *wordTreeMutex;
+    std::unordered_map<std::string, std::vector<std::string>> *wordMap = nullptr;
+    std::mutex *wordMapMutex;
 
     TableBundle *tableBundle;
 
+    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
+    std::mutex *wordTreeMutex;
+    std::atomic<int> wordsConverted;
+    int totalWords = 0;
 
     void fillArticle(Article article);
 
@@ -43,17 +45,23 @@ private:
 
     void process();
 
+
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree, std::mutex *treeMut);
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
+                       std::mutex *treeMut);
 
     ~Processor();
 
 
+    std::string convertToTree();
+
     std::string generateIndex(std::string folderName);
 
     double getProgress();
+
+    double getConversionProgress();
 };
 
 

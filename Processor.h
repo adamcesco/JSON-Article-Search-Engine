@@ -15,6 +15,8 @@
 #include "./TableBundle.h"
 #include "StopWords.h"
 #include "./avl_tree/avl_tree.h"
+#include <tbb/concurrent_hash_map.h>
+#include <tbb/concurrent_unordered_map.h>
 
 class Processor {
 
@@ -25,8 +27,8 @@ private:
     StopWords stopWords;
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
-    std::unordered_map<std::string, std::vector<std::string>> *wordMap = nullptr;
-    std::mutex *wordMapMutex;
+
+    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *tbbMap = nullptr;
 
     TableBundle *tableBundle;
 

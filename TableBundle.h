@@ -8,6 +8,7 @@
 #include "./hash_table/hash_table.h"
 #include <mutex>
 #include <vector>
+#include <tbb/concurrent_unordered_map.h>
 
 struct Article {
     std::string uuid;
@@ -27,10 +28,10 @@ struct Article {
 
 struct TableBundle {
     // Authors to uuids
-    hash_table<std::string, std::vector<std::string>> *authors;
+    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *authors;
     // Orgs to uuids
-    hash_table<std::string, std::vector<std::string>> *orgs;
-    hash_table<std::string, Article> *articles;
+    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *orgs;
+    tbb::concurrent_unordered_map<std::string, Article> *articles;
     std::mutex authorsMutex;
     std::mutex orgsMutex;
     std::mutex articlesMutex;

@@ -12,11 +12,12 @@
 #include "./TableBundle.h"
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 #include "./StopWords.h"
-
+#include <tbb/concurrent_unordered_map.h>
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
 
+typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accessor tbbAccessor;
 
 /**
  * Adds every article filename to a queue so that the multithreading can process them easily
@@ -72,11 +73,7 @@ void Processor::process() {
         std::vector<std::string> orgs = {};
         // Check if array empty
         for (auto &org: document["organizations"].GetArray()) {
-            if (org.IsObject()) {
-                if (org["name"].IsString()) {
-                    orgs.push_back(org["name"].GetString());
-                }
-            }
+            orgs.push_back(org.GetString());
         }
 
         Article art = {
@@ -86,9 +83,13 @@ void Processor::process() {
                 .author = author,
         };
 
-        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
-        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
-        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
+//        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
+//        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
+//        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
+
+        this->fillAuthors(uuid, author);
+        this->fillOrganization(orgs, uuid);
+        this->fillArticle(art);
 
 
         std::string text = document["text"].GetString();
@@ -96,6 +97,7 @@ void Processor::process() {
 
         // Iterate the istringstream
         // using do-while loop
+        tbbAccessor accessor;
         do {
             std::string subs;
             // Get the word from the istringstream
@@ -104,20 +106,18 @@ void Processor::process() {
             removePunctuation(subs);
             if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
                 Porter2Stemmer::stem(subs);
-                if (subs.length() > 0) {
-                    // Add ato avl tree
-                    this->wordMapMutex->lock();
-                    auto ref = this->wordMap->operator[](subs);
-                    if (std::find(ref.begin(), ref.end(), subs) == ref.end()) {
-                        ref.push_back(uuid);
-                    }
-                    this->wordMapMutex->unlock();
+                if (subs.length() > 0 && subs.substr(0, 3) != "www") {
+                    // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
+                    auto ref = this->tbbMap->operator[](subs);
+                    ref.push_back(uuid);
+                    // End quoted code
+
                 }
             }
         } while (iss);
-        tableFillAuthorThread.join();
-        tableFillOrgsThread.join();
-        tableFillArticlesThread.join();
+//        tableFillAuthorThread.join();
+//        tableFillOrgsThread.join();
+//        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -142,15 +142,13 @@ std::string Processor::generateIndex(std::string folderName) {
     std::thread t2(&Processor::process, this);
     std::thread t3(&Processor::process, this);
     std::thread t4(&Processor::process, this);
-    std::thread t5(&Processor::process, this);
 
     t1.join();
     t2.join();
     t3.join();
     t4.join();
-    t5.join();
 
-    this->totalWords = this->wordMap->size();
+    this->totalWords = this->tbbMap->size();
 
     return "Indexing complete";
 }
@@ -168,26 +166,21 @@ bool Processor::safeIsEmpty() {
 
 Processor::~Processor() {
     delete this->fileQueueMutex;
+    delete this->tbbMap;
 }
 
 void Processor::fillArticle(Article article) {
-    this->tableBundle->articlesMutex.lock();
     this->tableBundle->articles->operator[](article.uuid) = article;
-    this->tableBundle->articlesMutex.unlock();
 }
 
 void Processor::fillOrganization(std::vector<std::string> organizations, std::string uuid) {
-    this->tableBundle->orgsMutex.lock();
     for (auto &org: organizations) {
         this->tableBundle->orgs->operator[](org).push_back(uuid);
     }
-    this->tableBundle->orgsMutex.unlock();
 }
 
 void Processor::fillAuthors(std::string authors, std::string uuid) {
-    this->tableBundle->authorsMutex.lock();
     this->tableBundle->authors->operator[](authors).push_back(uuid);
-    this->tableBundle->authorsMutex.unlock();
 }
 
 
@@ -199,26 +192,22 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
     this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
     this->fileQueueMutex = new std::mutex();
-    this->wordMap = new std::unordered_map<std::string, std::vector<std::string>>();
-    this->wordMapMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
+    this->tbbMap = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
 }
 
 void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> &s2) {
 }
 
 std::string Processor::convertToTree() {
-    std::cout << termcolor::red << std::endl << this->totalWords << std::endl;
     this->wordTreeMutex->lock();
-    this->wordMapMutex->lock();
-    for (auto &word: *this->wordMap) {
+    for (auto &word: *this->tbbMap) {
         // pass first second and empty function
         this->wordTree->insert(word.first, word.second, dummyFunction);
         this->wordsConverted++;
     }
     this->wordTreeMutex->unlock();
-    this->wordMapMutex->unlock();
     return "Conversion complete";
 }
 

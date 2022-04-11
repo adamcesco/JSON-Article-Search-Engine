@@ -15,9 +15,9 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
 
     this->tables = new TableBundle();
-    this->tables->orgs = new hash_table<std::string, std::vector<std::string>>();
-    this->tables->authors = new hash_table<std::string, std::vector<std::string>>();
-    this->tables->articles = new hash_table<std::string, Article>();
+    this->tables->orgs = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+    this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+    this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
 
     this->wordTree = new avl_tree<std::string, std::vector<std::string>>();
     this->wordTreeMutex = new std::mutex();
@@ -47,12 +47,14 @@ void printProgressBar(double progress) {
  * Loads the data from the data folder into the tables and AVL tree.
  */
 void SearchEngine::generateIndex() {
+    // Start clock
+    auto start = std::chrono::high_resolution_clock::now();
     // Call generateIndex on the processor asynchronously so that we can show a progress bar
     std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
                                               this->data_folder);
 
     // Poll the progress of the processor's filename stack every 400 milliseconds
-    while (fut.wait_for(std::chrono::milliseconds(400)) != std::future_status::ready) {
+    while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
         double progress = this->processor->getProgress();
         if (progress > 0) {
             printProgressBar(progress);
@@ -61,21 +63,12 @@ void SearchEngine::generateIndex() {
     printProgressBar(1);
     std::cout << std::endl;
 
+
+    this->processor->convertToTree();
+    // End clock
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
-    std::cout << termcolor::green << "Converting to AVL Tree" << termcolor::reset << std::endl;
-
-    std::future<std::string> conversionFuture = std::async(std::launch::async, &Processor::convertToTree,
-                                                           this->processor);
-    while (conversionFuture.wait_for(std::chrono::milliseconds(400)) != std::future_status::ready) {
-        double progress = this->processor->getConversionProgress();
-        if (progress > 0) {
-            printProgressBar(progress);
-        }
-    }
-    printProgressBar(1);
-    std::cout << std::endl;
-
-    std::cout << this->wordTree->size() << std::endl;
-    this->wordTree->print_tree_inorder();
+    std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
 
 }

@@ -220,6 +220,8 @@ void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
             LL_rotate(alpha, nodeDir);
         else
             RL_rotate(alpha);
+
+        alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
     } else if (balance < -1) {
         DIRECTION nodeDir = LEFT;
         if (alpha->parent != nullptr) {
@@ -233,6 +235,8 @@ void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
             RR_rotate(alpha, nodeDir);
         else
             LR_rotate(alpha);
+
+        alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
     }
 }
 

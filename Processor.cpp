@@ -73,11 +73,7 @@ void Processor::process() {
         std::vector<std::string> orgs = {};
         // Check if array empty
         for (auto &org: document["organizations"].GetArray()) {
-            if (org.IsObject()) {
-                if (org["name"].IsString()) {
-                    orgs.push_back(org["name"].GetString());
-                }
-            }
+            orgs.push_back(org.GetString());
         }
 
         Article art = {
@@ -141,13 +137,11 @@ std::string Processor::generateIndex(std::string folderName) {
     std::thread t2(&Processor::process, this);
     std::thread t3(&Processor::process, this);
     std::thread t4(&Processor::process, this);
-    std::thread t5(&Processor::process, this);
 
     t1.join();
     t2.join();
     t3.join();
     t4.join();
-    t5.join();
 
     this->totalWords = this->tbbMap->size();
 
@@ -215,8 +209,6 @@ std::string Processor::convertToTree() {
         this->wordTree->insert(word.first, word.second, dummyFunction);
         this->wordsConverted++;
     }
-
-
     this->wordTreeMutex->unlock();
     return "Conversion complete";
 }

@@ -87,8 +87,6 @@ public:
      * */
     avl_tree &insert_overwriting(const T &pKey, const U &pValue);
 
-    bool clear_node_at(const T &pKey);
-
     /**
      * @brief Prints the tree in value-specific_ascending order via the "in-order" recursive algorithm.
      */

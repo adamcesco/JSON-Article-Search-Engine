@@ -102,9 +102,8 @@ void Processor::process() {
             std::string subs;
             // Get the word from the istringstream
             iss >> subs;
-            toLower(subs);
+            cleanStr(subs);
             if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
-                removePunctuation(subs);
                 Porter2Stemmer::stem(subs);
                 if (subs.length() > 0 && subs.substr(0, 3) != "www") {
                     // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t

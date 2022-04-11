@@ -113,7 +113,7 @@ private:
 
     void RL_rotate(binary_node<T, U> *&alpha);
 
-    void balance_alpha(binary_node<T, U> *&alpha);
+    bool balance_alpha(binary_node<T, U> *&alpha);
 
     binary_node<T, U> *unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATION &operation,
                                          void (*append)(U &, const U &));
@@ -143,18 +143,20 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue, void (*ap
     if (operation == MASKED)
         return *this;
 
-    while (curNode->parent != nullptr && curNode->parent->maxHeight < curNode->maxHeight + 1) {  //O(lg n)
-        ++curNode->parent->maxHeight;
+    binary_node<T, U> *prev = nullptr;
+    while (curNode != nullptr) {  //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-        balance_alpha(curNode);
+        if (balance_alpha(curNode)) {
+            curNode = prev;
+            continue;
+        }
 
+        prev = curNode;
         curNode = curNode->parent;
     }
-    curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-    balance_alpha(curNode);
-
 
     ++nodeCount;
+
     return *this;
 }
 
@@ -205,7 +207,7 @@ avl_tree<T, U>::unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATI
 }
 
 template<class T, class U>
-void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
+bool avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
     int balance = node_height_difference(alpha->left, alpha->right);   //needs nullptr checks, nullptr = -1
     if (balance > 1) {
         DIRECTION nodeDir = LEFT;
@@ -220,8 +222,7 @@ void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
             LL_rotate(alpha, nodeDir);
         else
             RL_rotate(alpha);
-
-        alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
+        return true;
     } else if (balance < -1) {
         DIRECTION nodeDir = LEFT;
         if (alpha->parent != nullptr) {
@@ -235,9 +236,9 @@ void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
             RR_rotate(alpha, nodeDir);
         else
             LR_rotate(alpha);
-
-        alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
+        return true;
     }
+    return false;
 }
 
 template<class T, class U>
@@ -292,7 +293,6 @@ avl_tree<T, U>::LL_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir) {   //
     pivot->parent = alphaParent;
 
     alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
-    pivot->maxHeight = std::max(node_height(pivot->left), node_height(pivot->right)) + 1;
 
     return pivot;       //highest node that needs changing is "pivot"
 }
@@ -322,7 +322,6 @@ avl_tree<T, U>::RR_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir) {   //
     pivot->parent = alphaParent;
 
     alpha->maxHeight = std::max(node_height(alpha->left), node_height(alpha->right)) + 1;
-    pivot->maxHeight = std::max(node_height(pivot->left), node_height(pivot->right)) + 1;
 
     return pivot;       //highest node that needs changing is "pivot"
 }
@@ -396,14 +395,20 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue) {
     if (operation == MASKED)
         return *this;
 
+    binary_node<T, U> *prev = nullptr;
     while (curNode != nullptr) {  //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-        balance_alpha(curNode);
+        if (balance_alpha(curNode)) {
+            curNode = prev;
+            continue;
+        }
 
+        prev = curNode;
         curNode = curNode->parent;
     }
 
     ++nodeCount;
+
     return *this;
 }
 
@@ -459,18 +464,20 @@ avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &pKey, const U &pValu
     if (operation == MASKED)
         return *this;
 
-    while (curNode->parent != nullptr && curNode->parent->maxHeight < curNode->maxHeight + 1) {  //O(lg n)
-        ++curNode->parent->maxHeight;
+    binary_node<T, U> *prev = nullptr;
+    while (curNode != nullptr) {  //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-        balance_alpha(curNode);
+        if (balance_alpha(curNode)) {
+            curNode = prev;
+            continue;
+        }
 
+        prev = curNode;
         curNode = curNode->parent;
     }
-    curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-    balance_alpha(curNode);
-
 
     ++nodeCount;
+
     return *this;
 }
 
@@ -540,7 +547,6 @@ bool avl_tree<T, U>::is_balanced() {
 
 template<class T, class U>
 bool avl_tree<T, U>::check_balance(binary_node<T, U> *&node) {
-    int height = 0;
     if (node != nullptr) {
         if (check_balance(node->left) == false)
             return false;
@@ -553,7 +559,9 @@ bool avl_tree<T, U>::check_balance(binary_node<T, U> *&node) {
         else if (balance < -1)
             return false;
 
-        height += 1;
+        int nodeHeight = std::max(node_height(node->left), node_height(node->right)) + 1;
+        if (nodeHeight != node->maxHeight)
+            return false;
     }
     return true;
 }

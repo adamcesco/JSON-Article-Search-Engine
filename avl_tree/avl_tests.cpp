@@ -53,5 +53,6 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
                              i);    //step through the creation of this tree, and see where the pointers are misaligned
         }
         REQUIRE(testDummy.is_balanced());
+        REQUIRE(testDummy.size() == 3330);
     }
 }

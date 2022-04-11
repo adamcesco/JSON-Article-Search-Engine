@@ -203,7 +203,7 @@ std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {
         // pass first second and empty function
-        this->wordTree->insert(word.first, word.second, dummyFunction);
+        this->wordTree->insert_overwriting(word.first, word.second);
         this->wordsConverted++;
     }
     this->wordTreeMutex->unlock();

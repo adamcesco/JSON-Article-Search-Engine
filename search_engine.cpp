@@ -9,7 +9,7 @@
 #include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
 #include <iomanip>      // std::setprecision
-
+#include "./include/porter2_stemmer/porter2_stemmer.h"
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
@@ -73,4 +73,15 @@ void SearchEngine::generateIndex() {
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
 
+}
+
+std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
+    std::string clean;
+    for (const char &it: term) {
+        if (std::isalpha(it)) {
+            clean += tolower(it);
+        }
+    }
+    Porter2Stemmer::stem(clean);
+    return this->wordTree->get_at(clean);
 }

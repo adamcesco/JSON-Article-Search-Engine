@@ -12,11 +12,12 @@
 #include "./TableBundle.h"
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 #include "./StopWords.h"
-
+#include <tbb/concurrent_unordered_map.h>
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
 
+typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accessor tbbAccessor;
 
 /**
  * Adds every article filename to a queue so that the multithreading can process them easily
@@ -96,6 +97,7 @@ void Processor::process() {
 
         // Iterate the istringstream
         // using do-while loop
+        tbbAccessor accessor;
         do {
             std::string subs;
             // Get the word from the istringstream
@@ -104,15 +106,11 @@ void Processor::process() {
             removePunctuation(subs);
             if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
                 Porter2Stemmer::stem(subs);
-                if (subs.length() > 0) {
-                    // Add ato avl tree
-                    std::vector<std::string> dummyVector = {subs};
-                    this->wordMapMutex->lock();
-                    auto ref = this->wordMap->operator[](subs);
-                    if (std::find(ref.begin(), ref.end(), subs) == ref.end()) {
-                        ref.push_back(uuid);
-                    }
-                    this->wordMapMutex->unlock();
+                if (subs.length() > 0 && subs.substr(0, 3) != "www") {
+                    // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
+                    auto ref = this->tbbMap->operator[](subs);
+                    ref.push_back(uuid);
+                    // End quoted code
                 }
             }
         } while (iss);
@@ -151,7 +149,7 @@ std::string Processor::generateIndex(std::string folderName) {
     t4.join();
     t5.join();
 
-    this->totalWords = this->wordMap->size();
+    this->totalWords = this->tbbMap->size();
 
     return "Indexing complete";
 }
@@ -169,6 +167,7 @@ bool Processor::safeIsEmpty() {
 
 Processor::~Processor() {
     delete this->fileQueueMutex;
+    delete this->tbbMap;
 }
 
 void Processor::fillArticle(Article article) {
@@ -200,10 +199,9 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
     this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
     this->fileQueueMutex = new std::mutex();
-    this->wordMap = new std::unordered_map<std::string, std::vector<std::string>>();
-    this->wordMapMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
+    this->tbbMap = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
 }
 
 void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> &s2) {
@@ -212,14 +210,14 @@ void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> 
 std::string Processor::convertToTree() {
     std::cout << termcolor::red << std::endl << this->totalWords << std::endl;
     this->wordTreeMutex->lock();
-    this->wordMapMutex->lock();
-    for (auto &word: *this->wordMap) {
+    for (auto &word: *this->tbbMap) {
         // pass first second and empty function
         this->wordTree->insert(word.first, word.second, dummyFunction);
         this->wordsConverted++;
     }
+
+
     this->wordTreeMutex->unlock();
-    this->wordMapMutex->unlock();
     return "Conversion complete";
 }
 

@@ -52,7 +52,7 @@ void SearchEngine::generateIndex() {
                                               this->data_folder);
 
     // Poll the progress of the processor's filename stack every 400 milliseconds
-    while (fut.wait_for(std::chrono::milliseconds(400)) != std::future_status::ready) {
+    while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
         double progress = this->processor->getProgress();
         if (progress > 0) {
             printProgressBar(progress);

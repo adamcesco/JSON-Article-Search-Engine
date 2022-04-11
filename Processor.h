@@ -17,6 +17,7 @@
 #include "./avl_tree/avl_tree.h"
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/concurrent_unordered_map.h>
+#include <tbb/concurrent_vector.h>
 
 class Processor {
 
@@ -28,11 +29,11 @@ private:
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
 
-    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *tbbMap = nullptr;
+    tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>> *tbbMap = nullptr;
 
     TableBundle *tableBundle;
 
-    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
+    avl_tree<std::string, tbb::concurrent_vector<std::string>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
     std::atomic<int> wordsConverted;
     int totalWords = 0;
@@ -51,7 +52,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string>> *tree,
                        std::mutex *treeMut);
 
     ~Processor();

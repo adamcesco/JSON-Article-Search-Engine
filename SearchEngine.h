@@ -29,6 +29,8 @@ public:
      */
     explicit SearchEngine(std::string data_folder);
 
+    void testFindWord(std::string word);
+
     /**
      * Populates the tables and the inverse index with the articles
      */

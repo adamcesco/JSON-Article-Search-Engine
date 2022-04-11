@@ -22,7 +22,9 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->wordTree = new avl_tree<std::string, std::vector<std::string>>();
     this->wordTreeMutex = new std::mutex();
 
-    this->processor = new Processor(this->tables, this->wordTree, this->wordTreeMutex);
+    this->processor = new Processor(this->tables,
+                                    reinterpret_cast<avl_tree<std::string, tbb::concurrent_vector<std::string>> *>(this->wordTree),
+                                    this->wordTreeMutex);
 }
 
 SearchEngine::~SearchEngine() {
@@ -73,4 +75,13 @@ void SearchEngine::generateIndex() {
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
 
+}
+
+void SearchEngine::testFindWord(std::string word) {
+    this->wordTree->print_tree_inorder();
+    std::vector<std::string> result = this->wordTree->get_at(word);
+    std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
+    for (std::string article: result) {
+        std::cout << article << std::endl;
+    }
 }

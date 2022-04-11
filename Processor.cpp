@@ -9,10 +9,7 @@
 #include "./include/termcolor/termcolor.hpp"
 #include <thread>
 #include <fstream>
-#include "./TableBundle.h"
 #include "./include/porter2_stemmer/porter2_stemmer.h"
-#include "./StopWords.h"
-#include <tbb/concurrent_unordered_map.h>
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
@@ -108,8 +105,7 @@ void Processor::process() {
                 Porter2Stemmer::stem(subs);
                 if (subs.length() > 0 && subs.substr(0, 3) != "www") {
                     // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
-                    auto ref = this->tbbMap->operator[](subs);
-                    ref.push_back(uuid);
+                    this->tbbMap->operator[](subs).push_back(uuid);
                     // End quoted code
                 }
             }
@@ -183,7 +179,7 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
+Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string>> *tree,
                      std::mutex *treeMut) {
     this->tableBundle = tableBundle;
     this->stopWords = StopWords();
@@ -193,17 +189,17 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
     this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
-    this->tbbMap = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>>();
 }
 
-void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> &s2) {
+void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurrent_vector<std::string> &s2) {
 }
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {
         // pass first second and empty function
-        this->wordTree->insert(word.first, word.second, dummyFunction);
+        this->wordTree->insert_overwriting(word.first, word.second);
         this->wordsConverted++;
     }
     this->wordTreeMutex->unlock();

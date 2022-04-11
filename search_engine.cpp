@@ -71,5 +71,4 @@ void SearchEngine::generateIndex() {
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
 
-
 }

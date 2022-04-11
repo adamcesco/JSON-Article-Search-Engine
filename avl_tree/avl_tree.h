@@ -8,23 +8,19 @@
 #include <algorithm>
 #include <iostream>
 
-enum DIRECTION {    //used to determine which directing super-parent stitches
-    LEFT, RIGHT
-};
-
 template<class T, class U>
 struct binary_node {
-    void emplace_left(const T &pFace, const U &value) {
+    void emplace_left(const T &pKey, const U &value) {
         delete left;
         left = new binary_node<T, U>();
-        left->face = pFace;
+        left->key = pKey;
         left->data = value;
     }
 
-    void emplace_right(const T &pFace, const U &value) {
+    void emplace_right(const T &pKey, const U &value) {
         delete right;
         right = new binary_node<T, U>();
-        right->face = pFace;
+        right->key = pKey;
         right->data = value;
     }
 
@@ -33,7 +29,7 @@ struct binary_node {
         delete right;
     }
 
-    T face;
+    T key;
     U data;
     int maxHeight = 0;
     binary_node<T, U> *parent = nullptr;
@@ -50,60 +46,96 @@ public:
 
     avl_tree &operator=(const avl_tree &);
 
-    bool contains(const T &);
+    /**
+     * @brief Returns true if the passed key is within the tree, otherwise returns false. O(lg n).
+     * @param pKey This is the value that will be searched for within the avl_tree
+     * @attention Uses "==", "<", and ">" operators.
+     * */
+    bool contains(const T &pKey);
 
-    U &get_at(const T &);
+    /**
+     * @brief Returns the value bound to the passed key by reference. O(lg n).
+     * @param pKey This is the value that will be searched for within the avl_tree, in order to get the value associated with it.
+     * @attention Uses "==", "<", and ">" operators.
+     * */
+    U &get_at(const T &pKey);
 
     unsigned int size() { return nodeCount; }
 
-    avl_tree &insert(const T &, const U &, void (*)(U &, const U &));   //O(n lg n)
-    avl_tree &insert(const T &, const U &);
+    /**
+     * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the passed append function will be used to append the passed value to the original value within that pre-existing node.
+     * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
+     * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @param append This is the function that will be used in the case where a node with a key equal to the passed key already exist. This is where the funciton will "append" the passed value to the original value within that pre-existing node.
+     * @attention Uses "=", "==", "<", and ">" operators.
+     * */
+    avl_tree &insert(const T &pKey, const U &pValue, void (*append)(U &, const U &));   //O(n lg n)
 
-    avl_tree &insert_overwriting(const T &, const U &);
+    /**
+     * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "+=" operator will be called to append the passed value into the original value within that pre-existing node.
+     * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
+     * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention Uses "=", "+=", "==", "<", and ">" operators.
+     * */
+    avl_tree &insert(const T &pKey, const U &pValue);
 
-    bool clear_node_at(const T &);
+    /**
+     * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "=" operator will be called to overwrite the original value within that pre-existing node with the passed value.
+     * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
+     * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention Uses "=", "==", "<", and ">" operators.
+     * */
+    avl_tree &insert_overwriting(const T &pKey, const U &pValue);
 
-    U &operator[](const T &);
+    bool clear_node_at(const T &pKey);
 
-    void print_tree() { print_inorder(root); }
-
-    int node_height_difference(binary_node<T, U> *, binary_node<T, U> *);
+    /**
+     * @brief Prints the tree in value-specific_ascending order via the "in-order" recursive algorithm.
+     */
+    void print_tree_inorder() { print_inorder(root); }
 
     ~avl_tree();
 
 private:
-    binary_node<T, U> *LL_rotate(binary_node<T, U> *&, DIRECTION);
-
-    binary_node<T, U> *RR_rotate(binary_node<T, U> *&, DIRECTION);
-
-    void LR_rotate(binary_node<T, U> *&);
-
-    void RL_rotate(binary_node<T, U> *&);
-
-    void balance_alpha(binary_node<T, U> *&);
-
     enum INSERT_OPERATION {
         INSERTED, MASKED
     };
 
-    binary_node<T, U> *
-    unbalanced_insert(const T &, const U &, INSERT_OPERATION &, void (*)(U &, const U &));           //O(lg n)
-    binary_node<T, U> *unbalanced_insert_appending(const T &, const U &, INSERT_OPERATION &);
+    enum DIRECTION {    //used to determine which directing super-parent stitches
+        LEFT, RIGHT
+    };
 
-    binary_node<T, U> *unbalanced_insert_overwriting(const T &, const U &, INSERT_OPERATION &);
+    binary_node<T, U> *LL_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir);
 
-    int update_height_of_subtree(binary_node<T, U> *);                   //O(lg n)
+    binary_node<T, U> *RR_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir);
 
-    void print_inorder(binary_node<T, U> *&);
+    void LR_rotate(binary_node<T, U> *&parent);
+
+    void RL_rotate(binary_node<T, U> *&parent);
+
+    void balance_alpha(binary_node<T, U> *&node);
+
+    binary_node<T, U> *unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATION &operation,
+                                         void (*append)(U &, const U &));
+
+    binary_node<T, U> *unbalanced_insert_appending(const T &pKey, const U &pValue, INSERT_OPERATION &operation);
+
+    binary_node<T, U> *unbalanced_insert_overwriting(const T &pKey, const U &pValue, INSERT_OPERATION &operation);
+
+    int node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode);
+
+    int update_height_of_subtree(binary_node<T, U> *node);
+
+    void print_inorder(binary_node<T, U> *&node);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value, void (*append)(U &, const U &)) {
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue, void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
-    binary_node<T, U> *curNode = unbalanced_insert(face, value, operation, append);        //O(lg n)
+    binary_node<T, U> *curNode = unbalanced_insert(pKey, pValue, operation, append);        //O(lg n)
     if (operation == MASKED)
         return *this;
 
@@ -125,7 +157,7 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value, void (*app
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation,
+avl_tree<T, U>::unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATION &operation,
                                   void (*append)(U &, const U &)) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
@@ -133,10 +165,10 @@ avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INS
 
     while (temp != nullptr) {
         y = temp;
-        if (passedFace == temp->face) {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
-        } else if (passedFace < temp->face) {
+        } else if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
         } else {
@@ -150,20 +182,20 @@ avl_tree<T, U>::unbalanced_insert(const T &passedFace, const U &passedValue, INS
         if (temp == nullptr) {
             temp = new binary_node<T, U>();
             root = temp;
-            temp->data = passedValue;
+            temp->data = pValue;
         } else {
-            append(temp->data, passedValue);
+            append(temp->data, pValue);
             operation = MASKED;
         }
-        temp->face = passedFace;
+        temp->key = pKey;
 
         return temp;
     } else if (leftBranch == -1) {
-        y->emplace_left(passedFace, passedValue);
+        y->emplace_left(pKey, pValue);
         y->left->parent = y;
         return y->left;
     } else {
-        y->emplace_right(passedFace, passedValue);
+        y->emplace_right(pKey, pValue);
         y->right->parent = y;
         return y->right;
     }
@@ -202,12 +234,12 @@ void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&node) {
 }
 
 template<class T, class U>
-bool avl_tree<T, U>::contains(const T &passedFace) {
+bool avl_tree<T, U>::contains(const T &pKey) {
     binary_node<T, U> *temp = root;
     while (temp != nullptr) {
-        if (passedFace == temp->face) {
+        if (pKey == temp->key) {
             return true;
-        } else if (passedFace < temp->face) {
+        } else if (pKey < temp->key) {
             temp = temp->left;
         } else {
             temp = temp->right;
@@ -229,7 +261,8 @@ int avl_tree<T, U>::update_height_of_subtree(binary_node<T, U> *node) {
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTION stitch) {   //parent = x, pivot = y
+binary_node<T, U> *
+avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   //parent = x, pivot = y
     binary_node<T, U> *pivot;
     binary_node<T, U> *pivotParent = parent->parent;
     pivot = parent->left;
@@ -244,7 +277,7 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
     if (parent == root)
         root = pivot;
     if (pivotParent != nullptr) {
-        if (stitch == LEFT)
+        if (stitchDir == LEFT)
             pivotParent->left = pivot;
         else
             pivotParent->right = pivot;
@@ -256,7 +289,8 @@ binary_node<T, U> *avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTI
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTION stitch) {   //parent = x, pivot = y
+binary_node<T, U> *
+avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   //parent = x, pivot = y
     binary_node<T, U> *pivot;
     binary_node<T, U> *pivotParent = parent->parent;
     pivot = parent->right;
@@ -271,7 +305,7 @@ binary_node<T, U> *avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTI
     if (parent == root)
         root = pivot;
     if (pivotParent != nullptr) {
-        if (stitch == LEFT)
+        if (stitchDir == LEFT)
             pivotParent->left = pivot;
         else
             pivotParent->right = pivot;
@@ -328,12 +362,12 @@ int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_n
 }
 
 template<class T, class U>
-U &avl_tree<T, U>::get_at(const T &passedFace) {
+U &avl_tree<T, U>::get_at(const T &pKey) {
     binary_node<T, U> *temp = root;
     while (temp != nullptr) {
-        if (passedFace == temp->face) {
+        if (pKey == temp->key) {
             return temp->data;
-        } else if (passedFace < temp->face) {
+        } else if (pKey < temp->key) {
             temp = temp->left;
         } else {
             temp = temp->right;
@@ -345,9 +379,9 @@ U &avl_tree<T, U>::get_at(const T &passedFace) {
 }
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value) {
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue) {
     INSERT_OPERATION operation = INSERTED;
-    binary_node<T, U> *curNode = unbalanced_insert_appending(face, value, operation);        //O(lg n)
+    binary_node<T, U> *curNode = unbalanced_insert_appending(pKey, pValue, operation);        //O(lg n)
     if (operation == MASKED)
         return *this;
 
@@ -369,17 +403,17 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &face, const U &value) {
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::unbalanced_insert_appending(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+avl_tree<T, U>::unbalanced_insert_appending(const T &pKey, const U &pValue, INSERT_OPERATION &operation) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
     int leftBranch = 0;
 
     while (temp != nullptr) {
         y = temp;
-        if (passedFace == temp->face) {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
-        } else if (passedFace < temp->face) {
+        } else if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
         } else {
@@ -393,29 +427,29 @@ avl_tree<T, U>::unbalanced_insert_appending(const T &passedFace, const U &passed
         if (temp == nullptr) {
             temp = new binary_node<T, U>();
             root = temp;
-            temp->data = passedValue;
+            temp->data = pValue;
         } else {
-            temp->data += passedValue;
+            temp->data += pValue;
             operation = MASKED;
         }
-        temp->face = passedFace;
+        temp->key = pKey;
 
         return temp;
     } else if (leftBranch == -1) {
-        y->emplace_left(passedFace, passedValue);
+        y->emplace_left(pKey, pValue);
         y->left->parent = y;
         return y->left;
     } else {
-        y->emplace_right(passedFace, passedValue);
+        y->emplace_right(pKey, pValue);
         y->right->parent = y;
         return y->right;
     }
 }
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &face, const U &value) {
+avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &pKey, const U &pValue) {
     INSERT_OPERATION operation = INSERTED;
-    binary_node<T, U> *curNode = unbalanced_insert_overwriting(face, value, operation);        //O(lg n)
+    binary_node<T, U> *curNode = unbalanced_insert_overwriting(pKey, pValue, operation);        //O(lg n)
     if (operation == MASKED)
         return *this;
 
@@ -437,17 +471,17 @@ avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &face, const U &value
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &passedValue, INSERT_OPERATION &operation) {
+avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, INSERT_OPERATION &operation) {
     binary_node<T, U> *temp = root;
     binary_node<T, U> *y = nullptr;
     int leftBranch = 0;
 
     while (temp != nullptr) {
         y = temp;
-        if (passedFace == temp->face) {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
-        } else if (passedFace < temp->face) {
+        } else if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
         } else {
@@ -461,20 +495,20 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &passedFace, const U &pass
         if (temp == nullptr) {
             temp = new binary_node<T, U>();
             root = temp;
-            temp->data = passedValue;
+            temp->data = pValue;
         } else {
-            temp->data = passedValue;
+            temp->data = pValue;
             operation = MASKED;
         }
-        temp->face = passedFace;
+        temp->key = pKey;
 
         return temp;
     } else if (leftBranch == -1) {
-        y->emplace_left(passedFace, passedValue);
+        y->emplace_left(pKey, pValue);
         y->left->parent = y;
         return y->left;
     } else {
-        y->emplace_right(passedFace, passedValue);
+        y->emplace_right(pKey, pValue);
         y->right->parent = y;
         return y->right;
     }
@@ -484,7 +518,7 @@ template<class T, class U>
 void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
     if (node != nullptr) {
         print_inorder(node->left);
-        std::cout << node->face << " " << std::endl;
+        std::cout << node->key << std::endl;
         print_inorder(node->right);
     }
 }

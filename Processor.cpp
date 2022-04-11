@@ -83,9 +83,13 @@ void Processor::process() {
                 .author = author,
         };
 
-        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
-        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
-        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
+//        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
+//        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
+//        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
+
+        this->fillAuthors(uuid, author);
+        this->fillOrganization(orgs, uuid);
+        this->fillArticle(art);
 
 
         std::string text = document["text"].GetString();
@@ -110,9 +114,9 @@ void Processor::process() {
                 }
             }
         } while (iss);
-        tableFillAuthorThread.join();
-        tableFillOrgsThread.join();
-        tableFillArticlesThread.join();
+//        tableFillAuthorThread.join();
+//        tableFillOrgsThread.join();
+//        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -165,23 +169,17 @@ Processor::~Processor() {
 }
 
 void Processor::fillArticle(Article article) {
-    this->tableBundle->articlesMutex.lock();
     this->tableBundle->articles->operator[](article.uuid) = article;
-    this->tableBundle->articlesMutex.unlock();
 }
 
 void Processor::fillOrganization(std::vector<std::string> organizations, std::string uuid) {
-    this->tableBundle->orgsMutex.lock();
     for (auto &org: organizations) {
         this->tableBundle->orgs->operator[](org).push_back(uuid);
     }
-    this->tableBundle->orgsMutex.unlock();
 }
 
 void Processor::fillAuthors(std::string authors, std::string uuid) {
-    this->tableBundle->authorsMutex.lock();
     this->tableBundle->authors->operator[](authors).push_back(uuid);
-    this->tableBundle->authorsMutex.unlock();
 }
 
 
@@ -202,7 +200,6 @@ void dummyFunction(std::vector<std::string> &s1, const std::vector<std::string> 
 }
 
 std::string Processor::convertToTree() {
-    std::cout << termcolor::red << std::endl << this->totalWords << std::endl;
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {
         // pass first second and empty function

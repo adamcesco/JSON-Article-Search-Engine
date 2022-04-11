@@ -145,13 +145,13 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue, void (*ap
 
     while (curNode->parent != nullptr && curNode->parent->maxHeight < curNode->maxHeight + 1) {  //O(lg n)
         ++curNode->parent->maxHeight;
-        balance_alpha(curNode);
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
+        balance_alpha(curNode);
 
         curNode = curNode->parent;
     }
-    balance_alpha(curNode);
     curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
+    balance_alpha(curNode);
 
 
     ++nodeCount;
@@ -396,16 +396,12 @@ avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue) {
     if (operation == MASKED)
         return *this;
 
-    while (curNode->parent != nullptr && curNode->parent->maxHeight < curNode->maxHeight + 1) {  //O(lg n)
-        ++curNode->parent->maxHeight;
-        balance_alpha(curNode);
+    while (curNode != nullptr) {  //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
+        balance_alpha(curNode);
 
         curNode = curNode->parent;
     }
-    balance_alpha(curNode);
-    curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-
 
     ++nodeCount;
     return *this;
@@ -465,13 +461,13 @@ avl_tree<T, U> &avl_tree<T, U>::insert_overwriting(const T &pKey, const U &pValu
 
     while (curNode->parent != nullptr && curNode->parent->maxHeight < curNode->maxHeight + 1) {  //O(lg n)
         ++curNode->parent->maxHeight;
-        balance_alpha(curNode);
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
+        balance_alpha(curNode);
 
         curNode = curNode->parent;
     }
-    balance_alpha(curNode);
     curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
+    balance_alpha(curNode);
 
 
     ++nodeCount;

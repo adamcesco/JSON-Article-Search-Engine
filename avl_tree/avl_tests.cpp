@@ -26,6 +26,7 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.contains(3));
         REQUIRE(testDummy.contains(4));
         REQUIRE(testDummy.contains(5));
+        REQUIRE(testDummy.is_balanced());
     }
 
     SECTION("Testing avl tree filling (RR rotations only) and destructor") {
@@ -40,6 +41,7 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.contains(3));
         REQUIRE(testDummy.contains(4));
         REQUIRE(testDummy.contains(5));
+        REQUIRE(testDummy.is_balanced());
     }
 
     SECTION("Testing avl tree random filling (all rotations) and destructor") {
@@ -50,5 +52,7 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
             testDummy.insert(rand(),
                              i);    //step through the creation of this tree, and see where the pointers are misaligned
         }
+        REQUIRE(testDummy.is_balanced());
+        REQUIRE(testDummy.size() == 3330);
     }
 }

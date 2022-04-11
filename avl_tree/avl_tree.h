@@ -105,15 +105,15 @@ private:
         LEFT, RIGHT
     };
 
-    binary_node<T, U> *LL_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir);
+    binary_node<T, U> *LL_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir);
 
-    binary_node<T, U> *RR_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir);
+    binary_node<T, U> *RR_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir);
 
-    void LR_rotate(binary_node<T, U> *&parent);
+    void LR_rotate(binary_node<T, U> *&alpha);
 
-    void RL_rotate(binary_node<T, U> *&parent);
+    void RL_rotate(binary_node<T, U> *&alpha);
 
-    void balance_alpha(binary_node<T, U> *&node);
+    void balance_alpha(binary_node<T, U> *&alpha);
 
     binary_node<T, U> *unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATION &operation,
                                          void (*append)(U &, const U &));
@@ -202,34 +202,34 @@ avl_tree<T, U>::unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATI
 }
 
 template<class T, class U>
-void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&node) {
-    int balance = node_height_difference(node->left, node->right);   //needs nullptr checks, nullptr = -1
+void avl_tree<T, U>::balance_alpha(binary_node<T, U> *&alpha) {
+    int balance = node_height_difference(alpha->left, alpha->right);   //needs nullptr checks, nullptr = -1
     if (balance > 1) {
         DIRECTION nodeDir = LEFT;
-        if (node->parent != nullptr) {
-            if (node->parent->left == node)
+        if (alpha->parent != nullptr) {
+            if (alpha->parent->left == alpha)
                 nodeDir = LEFT;
-            else if (node->parent->right == node)
+            else if (alpha->parent->right == alpha)
                 nodeDir = RIGHT;
         }
 
-        if (node_height_difference(node->left->left, node->left->right) > 0)  //logic is correct
-            update_height_of_subtree(LL_rotate(node, nodeDir));
+        if (node_height_difference(alpha->left->left, alpha->left->right) > 0)  //logic is correct
+            update_height_of_subtree(LL_rotate(alpha, nodeDir));
         else
-            RL_rotate(node);
+            RL_rotate(alpha);
     } else if (balance < -1) {
         DIRECTION nodeDir = LEFT;
-        if (node->parent != nullptr) {
-            if (node->parent->left == node)
+        if (alpha->parent != nullptr) {
+            if (alpha->parent->left == alpha)
                 nodeDir = LEFT;
-            else if (node->parent->right == node)
+            else if (alpha->parent->right == alpha)
                 nodeDir = RIGHT;
         }
 
-        if (node_height_difference(node->right->left, node->right->right) < 0)    //logic is correct
-            update_height_of_subtree(RR_rotate(node, nodeDir));
+        if (node_height_difference(alpha->right->left, alpha->right->right) < 0)    //logic is correct
+            update_height_of_subtree(RR_rotate(alpha, nodeDir));
         else
-            LR_rotate(node);
+            LR_rotate(alpha);
     }
 }
 
@@ -262,19 +262,19 @@ int avl_tree<T, U>::update_height_of_subtree(binary_node<T, U> *node) {
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   //parent = x, pivot = y
+avl_tree<T, U>::LL_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir) {   //alpha = x, pivot = y
     binary_node<T, U> *pivot;
-    binary_node<T, U> *pivotParent = parent->parent;
-    pivot = parent->left;
+    binary_node<T, U> *pivotParent = alpha->parent;
+    pivot = alpha->left;
 
-    parent->left = pivot->right;
-    if (parent->left != nullptr)
-        parent->left->parent = parent;
-    pivot->right = parent;
-    parent->parent = pivot;
+    alpha->left = pivot->right;
+    if (alpha->left != nullptr)
+        alpha->left->parent = alpha;
+    pivot->right = alpha;
+    alpha->parent = pivot;
 
 
-    if (parent == root)
+    if (alpha == root)
         root = pivot;
     if (pivotParent != nullptr) {
         if (stitchDir == LEFT)
@@ -290,19 +290,19 @@ avl_tree<T, U>::LL_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   /
 
 template<class T, class U>
 binary_node<T, U> *
-avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   //parent = x, pivot = y
+avl_tree<T, U>::RR_rotate(binary_node<T, U> *&alpha, DIRECTION stitchDir) {   //alpha = x, pivot = y
     binary_node<T, U> *pivot;
-    binary_node<T, U> *pivotParent = parent->parent;
-    pivot = parent->right;
+    binary_node<T, U> *pivotParent = alpha->parent;
+    pivot = alpha->right;
 
-    parent->right = pivot->left;
-    if (parent->right != nullptr)
-        parent->right->parent = parent;
-    pivot->left = parent;
-    parent->parent = pivot;
+    alpha->right = pivot->left;
+    if (alpha->right != nullptr)
+        alpha->right->parent = alpha;
+    pivot->left = alpha;
+    alpha->parent = pivot;
 
 
-    if (parent == root)
+    if (alpha == root)
         root = pivot;
     if (pivotParent != nullptr) {
         if (stitchDir == LEFT)
@@ -317,31 +317,31 @@ avl_tree<T, U>::RR_rotate(binary_node<T, U> *&parent, DIRECTION stitchDir) {   /
 }
 
 template<class T, class U>
-void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&parent) {
-    parent->right = LL_rotate(parent->right, RIGHT);
+void avl_tree<T, U>::LR_rotate(binary_node<T, U> *&alpha) {
+    alpha->right = LL_rotate(alpha->right, RIGHT);
 
     DIRECTION nodeDir = LEFT;
-    if (parent->parent != nullptr) {
-        if (parent->parent->left == parent)
+    if (alpha->parent != nullptr) {
+        if (alpha->parent->left == alpha)
             nodeDir = LEFT;
         else
             nodeDir = RIGHT;
     }
-    update_height_of_subtree(RR_rotate(parent, nodeDir));
+    update_height_of_subtree(RR_rotate(alpha, nodeDir));
 }
 
 template<class T, class U>
-void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&parent) {   //parent = x, pivot = y
-    parent->left = RR_rotate(parent->left, LEFT);
+void avl_tree<T, U>::RL_rotate(binary_node<T, U> *&alpha) {   //alpha = x, pivot = y
+    alpha->left = RR_rotate(alpha->left, LEFT);
 
     DIRECTION nodeDir = LEFT;
-    if (parent->parent != nullptr) {
-        if (parent->parent->left == parent)
+    if (alpha->parent != nullptr) {
+        if (alpha->parent->left == alpha)
             nodeDir = LEFT;
         else
             nodeDir = RIGHT;
     }
-    update_height_of_subtree(LL_rotate(parent, nodeDir));
+    update_height_of_subtree(LL_rotate(alpha, nodeDir));
 }
 
 template<class T, class U>

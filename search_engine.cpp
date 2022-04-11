@@ -28,6 +28,8 @@ SearchEngine::SearchEngine(std::string data_folder) {
 SearchEngine::~SearchEngine() {
     delete this->processor;
     delete this->tables;
+    delete this->wordTree;
+    delete this->wordTreeMutex;
 }
 
 void printProgressBar(double progress) {

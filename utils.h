@@ -7,7 +7,7 @@
 
 #include <string>
 
-std::string getCenteredText(std::string text, int width) {
+std::string getCenteredText(const std::string &text, int width) {
     int textLength = text.length();
     int spaces = (width - textLength) / 2;
     std::string spacesStr = "";

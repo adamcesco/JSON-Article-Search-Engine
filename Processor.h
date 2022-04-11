@@ -37,11 +37,11 @@ private:
     std::atomic<int> wordsConverted;
     int totalWords = 0;
 
-    void fillArticle(Article article);
+    void fillArticle(const Article &article);
 
-    void fillOrganization(std::vector<std::string> organizations, std::string uuid);
+    void fillOrganization(const std::vector<std::string> &organizations, const std::string &uuid);
 
-    void fillAuthors(std::string authors, std::string uuid);
+    void fillAuthors(const std::string &authors, const std::string &uuid);
 
     void fillQueue(std::string folderName);
 

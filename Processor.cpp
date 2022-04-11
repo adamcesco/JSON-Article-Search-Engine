@@ -73,7 +73,7 @@ void Processor::process() {
         std::vector<std::string> orgs = {};
         // Check if array empty
         for (auto &org: document["organizations"].GetArray()) {
-            orgs.push_back(org.GetString());
+            orgs.emplace_back(org.GetString());
         }
 
         Article art = {
@@ -87,7 +87,8 @@ void Processor::process() {
 //        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
 //        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
 
-        this->fillAuthors(uuid, author);
+        this->fillAuthors(uuid,
+                          author);    ////Saying that this has values that are incorrectly passed, double check this DREW
         this->fillOrganization(orgs, uuid);
         this->fillArticle(art);
 
@@ -167,17 +168,17 @@ Processor::~Processor() {
     delete this->tbbMap;
 }
 
-void Processor::fillArticle(Article article) {
+void Processor::fillArticle(const Article &article) {
     this->tableBundle->articles->operator[](article.uuid) = article;
 }
 
-void Processor::fillOrganization(std::vector<std::string> organizations, std::string uuid) {
+void Processor::fillOrganization(const std::vector<std::string> &organizations, const std::string &uuid) {
     for (auto &org: organizations) {
         this->tableBundle->orgs->operator[](org).push_back(uuid);
     }
 }
 
-void Processor::fillAuthors(std::string authors, std::string uuid) {
+void Processor::fillAuthors(const std::string &authors, const std::string &uuid) {
     this->tableBundle->authors->operator[](authors).push_back(uuid);
 }
 

@@ -33,7 +33,7 @@ private:
 
     TableBundle *tableBundle;
 
-    avl_tree<std::string, tbb::concurrent_vector<std::string>> *wordTree = nullptr;
+    avl_tree<std::string, std::vector<std::string>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
     std::atomic<int> wordsConverted;
     int totalWords = 0;
@@ -52,7 +52,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string>> *tree,
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
                        std::mutex *treeMut);
 
     ~Processor();

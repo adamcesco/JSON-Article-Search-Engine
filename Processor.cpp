@@ -179,7 +179,7 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string>> *tree,
+Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::string>> *tree,
                      std::mutex *treeMut) {
     this->tableBundle = tableBundle;
     this->stopWords = StopWords();
@@ -199,7 +199,12 @@ std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {
         // pass first second and empty function
-        this->wordTree->insert_overwriting(word.first, word.second);
+        this->wordTree->insert_overwriting(word.first, std::vector<std::string>());
+        std::vector<std::string> &tempTree = this->wordTree->get_at(word.first);
+        for (auto &uuid: word.second) {
+            tempTree.push_back(uuid);
+        }
+
         this->wordsConverted++;
     }
     this->wordTreeMutex->unlock();

@@ -1,4 +1,6 @@
-data/
+data/articles
+data/*
 cmake-build-debug/
 cmake-build-release/
 .idea/
+!data/small_articles

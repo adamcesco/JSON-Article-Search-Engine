@@ -1,6 +1,16 @@
 #include <iostream>
+#include "catch_setup.h"
+#include "SearchEngine.h"
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
+
+int main(int argc, char **argv) {
+    if (argc == 1) {
+        runCatchTests();
+        return 0;
+    } else {
+        SearchEngine engine(argv[1]);
+        engine.generateIndex();
+//        engine.testFindWord("york");
+    }
     return 0;
 }

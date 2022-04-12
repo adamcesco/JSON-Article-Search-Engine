@@ -29,10 +29,12 @@ private:
     std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
 
+    /** @attention Do not delete/destruct this instance ("tbbMap") until you are done with the avl_tree instance that contains pointers to the values of "tbbMap" */
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>> *tbbMap = nullptr;
 
     TableBundle *tableBundle;
 
+    /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::tbbMap" */
     avl_tree<std::string, tbb::concurrent_vector<std::string> *> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
     std::atomic<int> wordsConverted;

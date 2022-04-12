@@ -27,10 +27,10 @@ SearchEngine::SearchEngine(std::string data_folder) {
 }
 
 SearchEngine::~SearchEngine() {
-    delete this->processor;
-    delete this->tables;
-    delete this->wordTree;
-    delete this->wordTreeMutex;
+//    delete this->processor;
+//    delete this->tables;
+//    delete this->wordTree;
+//    delete this->wordTreeMutex;
 }
 
 void printProgressBar(double progress) {
@@ -80,7 +80,12 @@ void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
     tbb::concurrent_vector<std::string> *result = this->wordTree->get_at(word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
-    for (std::string article: *result) {
-        std::cout << article << std::endl;
-    }
+//    for (std::string article: *result) {
+//        std::cout << article << std::endl;
+//    }
+}
+
+std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
+    // TODO
+    return std::vector<std::string>();
 }

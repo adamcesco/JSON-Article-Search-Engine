@@ -18,6 +18,7 @@
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/concurrent_unordered_map.h>
 #include <tbb/concurrent_vector.h>
+#include <tbb/concurrent_queue.h>
 
 class Processor {
 
@@ -26,8 +27,7 @@ private:
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::mutex *fileQueueMutex;
-    std::queue<std::string> fileQueue;
+    tbb::concurrent_queue<std::string> fileQueue;
 
     /** @attention Do not delete/destruct this instance ("tbbMap") until you are done with the avl_tree instance that contains pointers to the values of "tbbMap" */
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>> *tbbMap = nullptr;

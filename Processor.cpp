@@ -39,15 +39,15 @@ void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::st
 
 void Processor::process() {
     while (true) {
-        this->fileQueueMutex->lock();
         if (this->fileQueue.empty()) {
             // Prevents a deadlock
-            this->fileQueueMutex->unlock();
             break;
         }
-        std::string filename = this->fileQueue.front();
-        this->fileQueue.pop();
-        this->fileQueueMutex->unlock();
+
+        std::string filename;
+        if (!this->fileQueue.try_pop(filename)) {
+            break;
+        }
 
         std::ifstream file(filename);
         if (!file.is_open()) {
@@ -152,15 +152,8 @@ double Processor::getProgress() {
     return (double) this->filesProcessed.load() / (double) this->totalFiles;
 }
 
-bool Processor::safeIsEmpty() {
-    this->fileQueueMutex->lock();
-    bool empty = this->fileQueue.empty();
-    this->fileQueueMutex->unlock();
-    return empty;
-}
 
 Processor::~Processor() {
-    delete this->fileQueueMutex;
     delete this->tbbMap;
 }
 
@@ -186,7 +179,6 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concur
     this->wordTree = tree;
     this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
-    this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
     this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>>();

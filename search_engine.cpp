@@ -19,7 +19,7 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
     this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
 
-    this->wordTree = new avl_tree<std::string, tbb::concurrent_vector<std::string> *>();
+    this->wordTree = new avl_tree<std::string, tbb::concurrent_vector<std::string *> *>();
     this->wordTreeMutex = new std::mutex();
 
     this->processor = new Processor(this->tables, this->wordTree,
@@ -27,10 +27,10 @@ SearchEngine::SearchEngine(std::string data_folder) {
 }
 
 SearchEngine::~SearchEngine() {
-    delete this->processor;
-    delete this->tables;
-    delete this->wordTree;
-    delete this->wordTreeMutex;
+//    delete this->processor;
+//    delete this->tables;
+//    delete this->wordTree;
+//    delete this->wordTreeMutex;
 }
 
 void printProgressBar(double progress) {
@@ -78,9 +78,9 @@ void SearchEngine::generateIndex() {
 
 void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
-    tbb::concurrent_vector<std::string> *result = this->wordTree->get_at(word);
+    tbb::concurrent_vector<std::string *> *result = this->wordTree->get_at(word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
-    for (std::string article: *result) {
-        std::cout << article << std::endl;
-    }
+//    for (std::string *article: *result) {
+//        std::cout << *article << std::endl;
+//    }
 }

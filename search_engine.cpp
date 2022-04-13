@@ -80,9 +80,9 @@ void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
     tbb::concurrent_vector<std::string> *result = this->wordTree->get_at(word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
-//    for (std::string article: *result) {
-//        std::cout << article << std::endl;
-//    }
+    for (std::string article: *result) {
+        std::cout << article << std::endl;
+    }
 }
 
 std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {

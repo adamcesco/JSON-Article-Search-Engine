@@ -64,30 +64,35 @@ void Processor::process() {
         }
         file.close();
 
-        std::string uuid = document["uuid"].GetString();
-        std::string author = document["author"].GetString();
-
-        std::vector<std::string> orgs = {};
-        // Check if array empty
-        for (auto &org: document["organizations"].GetArray()) {
-            orgs.emplace_back(org.GetString());
+        if (!document.IsObject() || !document.HasMember("uuid")) {
+            continue;
         }
 
-        Article art = {
-                .uuid = uuid,
-                .filename = filename,
-                .orgList = orgs,
-                .author = author,
-        };
+
+        std::string *uuid = new std::string(document["uuid"].GetString());
+//        std::string author = document["author"].GetString();
+
+//        std::vector<std::string> orgs = {};
+//        // Check if array empty
+//        for (auto &org: document["organizations"].GetArray()) {
+//            orgs.emplace_back(org.GetString());
+//        }
+
+//        Article art = {
+//                .uuid = *uuid,
+//                .filename = filename,
+//                .orgList = orgs,
+//                .author = author,
+//        };
 
 //        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
 //        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
 //        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
 
-        this->fillAuthors(uuid,
-                          author);    ////Saying that this has values that are incorrectly passed, double check this DREW
-        this->fillOrganization(orgs, uuid);
-        this->fillArticle(art);
+//        this->fillAuthors(*uuid,
+//                          author);    ////Saying that this has values that are incorrectly passed, double check this DREW
+//        this->fillOrganization(orgs, *uuid);
+//        this->fillArticle(art);
 
 
         std::string text = document["text"].GetString();
@@ -101,7 +106,7 @@ void Processor::process() {
             // Get the word from the istringstream
             iss >> subs;
             cleanStr(subs);
-            if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
+            if (stopWords.lexicon.find(subs) == stopWords.lexicon.end()) {
                 Porter2Stemmer::stem(subs);
                 if (subs.length() > 0 && subs.substr(0, 3) != "www") {
                     // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
@@ -179,7 +184,7 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string> *> *tree,
+Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string *> *> *tree,
                      std::mutex *treeMut) {
     this->tableBundle = tableBundle;
     this->stopWords = StopWords();
@@ -189,7 +194,7 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concur
     this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
-    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>>();
+    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string *>>();
 }
 
 void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurrent_vector<std::string> &s2) {
@@ -197,6 +202,7 @@ void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurren
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
+    std::cout << this->tbbMap->size() << std::endl;
     for (auto &word: *this->tbbMap) {
         // pass first second and empty function
         this->wordTree->insert_overwriting(word.first, &word.second);

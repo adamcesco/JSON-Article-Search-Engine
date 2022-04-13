@@ -9,7 +9,7 @@
 #include <unordered_set>
 
 struct StopWords {
-    std::unordered_set<std::string> stopWords = {
+    std::unordered_set<std::string> lexicon = {
             "a",
             "able",
             "about",

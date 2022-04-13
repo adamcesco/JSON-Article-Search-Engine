@@ -124,7 +124,7 @@ private:
 
     binary_node<T, U> *unbalanced_insert_overwriting(const T &pKey, const U &pValue, INSERT_OPERATION &operation);
 
-    int node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode);
+    static int node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode);
 
     static int node_height(binary_node<T, U> *node);
 
@@ -139,7 +139,7 @@ private:
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, tbb::concurrent_vector <std::basic_string<char>> pValue,
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue,
                                        void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
     binary_node<T, U> *curNode = unbalanced_insert(pKey, pValue, operation, append);        //O(lg n)
@@ -173,15 +173,15 @@ avl_tree<T, U>::unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATI
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey == temp->key) {
-            leftBranch = 0;
-            break;
-        } else if (pKey < temp->key) {
+        if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
-        } else {
+        } else if (pKey > temp->key) {
             temp = temp->right;
             leftBranch = 1;
+        } else {
+            leftBranch = 0;
+            break;
         }
     }
 
@@ -363,7 +363,7 @@ avl_tree<T, U>::~avl_tree() {
 }
 
 template<class T, class U>
-int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode) {
+inline int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode) {
     int leftDiff = -1;
     int rightDiff = -1;
     if (leftNode != nullptr)
@@ -424,15 +424,15 @@ avl_tree<T, U>::unbalanced_insert_appending(const T &pKey, const U &pValue, INSE
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey == temp->key) {
-            leftBranch = 0;
-            break;
-        } else if (pKey < temp->key) {
+        if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
-        } else {
+        } else if (pKey > temp->key) {
             temp = temp->right;
             leftBranch = 1;
+        } else {
+            leftBranch = 0;
+            break;
         }
     }
 
@@ -493,15 +493,15 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, IN
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey == temp->key) {
-            leftBranch = 0;
-            break;
-        } else if (pKey < temp->key) {
+        if (pKey < temp->key) {
             temp = temp->left;
             leftBranch = -1;
-        } else {
+        } else if (pKey > temp->key) {
             temp = temp->right;
             leftBranch = 1;
+        } else {
+            leftBranch = 0;
+            break;
         }
     }
 

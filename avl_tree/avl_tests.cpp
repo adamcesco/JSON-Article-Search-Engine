@@ -104,4 +104,29 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.get_at(0).size() == 1002);
         REQUIRE(testDummy.is_balanced());
     }
+
+    SECTION("Testing avl tree node deletion and destructing") {
+        avl_tree<int, int> testDummy;
+        testDummy.insert(5, -5);
+        testDummy.insert(4, -4);
+        testDummy.insert(3, -3);
+        testDummy.insert(2, -2);
+        testDummy.insert(1, -1);
+        REQUIRE(testDummy.contains(1));
+        REQUIRE(testDummy.contains(2));
+        REQUIRE(testDummy.contains(3));
+        REQUIRE(testDummy.contains(4));
+        REQUIRE(testDummy.contains(5));
+        REQUIRE(testDummy.is_balanced());
+
+        testDummy.delete_node(5);
+
+        REQUIRE(testDummy.contains(1));
+        REQUIRE(testDummy.contains(2));
+        REQUIRE(testDummy.contains(3));
+        REQUIRE(testDummy.contains(4));
+        REQUIRE(!testDummy.contains(5));
+        REQUIRE(testDummy.is_balanced());
+        REQUIRE(testDummy.size() == 4);
+    }
 }

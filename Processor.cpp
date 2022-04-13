@@ -64,6 +64,11 @@ void Processor::process() {
         }
         file.close();
 
+        if (!document.IsObject() || !document.HasMember("uuid")) {
+            continue;
+        }
+
+
         std::string *uuid = new std::string(document["uuid"].GetString());
 //        std::string author = document["author"].GetString();
 

@@ -82,10 +82,16 @@ void SearchEngine::testFindWord(std::string word) {
     Porter2Stemmer::stem(word);
     tbb::concurrent_vector<std::string *> *result = this->wordTree->get_at(word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
+
     std::string *prev;
 //    for (std::string *article: *result) {
 //        if (prev != article)
 //            std::cout << *article << std::endl;
 //        prev = article;
 //    }
+}
+
+std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
+    // TODO
+    return std::vector<std::string>();
 }

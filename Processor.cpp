@@ -165,8 +165,8 @@ bool Processor::safeIsEmpty() {
 }
 
 Processor::~Processor() {
-    delete this->fileQueueMutex;
-    delete this->tbbMap;
+//    delete this->fileQueueMutex;
+//    delete this->tbbMap;
 }
 
 void Processor::fillArticle(const Article &article) {

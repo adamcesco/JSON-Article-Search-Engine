@@ -6,6 +6,7 @@
 #include "avl_tree.h"
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 
 TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
     SECTION("Testing default constructor and destructor") {
@@ -128,5 +129,21 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(!testDummy.contains(5));
         REQUIRE(testDummy.is_balanced());
         REQUIRE(testDummy.size() == 4);
+    }
+
+    SECTION("Testing random avl tree node deletion and destructing") {
+        avl_tree<int, std::vector<int>> testDummy;
+        std::unordered_set<int> insertedNums;
+
+        for (int i = 0; i < 1000; ++i) {
+            int toInsert = rand() % 1000;
+            insertedNums.emplace(toInsert);
+            testDummy.insert_overwriting(toInsert, {i});
+        }
+
+        for (const auto &it: insertedNums) {
+            testDummy.delete_node(it);
+        }
+        REQUIRE(testDummy.size() == 0);
     }
 }

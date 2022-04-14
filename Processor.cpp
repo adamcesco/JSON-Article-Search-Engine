@@ -71,14 +71,20 @@ void Processor::process() {
 
         // Iterate the istringstream
         // using do-while loop
-        tbbAccessor accessor;
+        std::string subs;
         do {
-            std::string subs;
             iss >> subs;
-            cleanStr(subs);
-            unsigned int hashed = hashObj(subs);
+            if (subs.length() > 6)
+                Porter2Stemmer::stem(subs);
+            unsigned int hashed = 1;
+            for (char &cc: subs) {
+                if (std::isalpha(cc)) {
+                    hashed *= 16777619;
+                    hashed = hashed ^ (cc & 31);
+                }
+            }
+
             if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end()) {
-//            Porter2Stemmer::stem(subs);
                 this->wordMap->operator[](hashed).push_back(uuid);
             }
         } while (iss);

@@ -75,11 +75,21 @@ void SearchEngine::generateIndex() {
 
 }
 
+unsigned int hasher(const std::string &str) {
+    unsigned int hashed = 1;
+    for (const char &cc: str) {
+        if (std::isalpha(cc)) {
+            hashed *= 16777619;
+            hashed = hashed ^ (cc & 31);
+        }
+    }
+    return hashed;
+}
+
 void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
     Porter2Stemmer::stem(word);
-    std::hash<std::string> hashObj;
-    std::vector<std::string *> *result = this->wordTree->get_at(hashObj(word));
+    std::vector<std::string *> *result = this->wordTree->get_at(hasher(word));
     std::cout << "Found " << result->size() << " articles containing the word " << word << std::endl;
 
 //    std::string *prev;

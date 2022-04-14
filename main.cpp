@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[1]);
         engine.generateIndex();
-        engine.testFindWord("laughing");
+        engine.testFindWord("joking");
     }
     return 0;
 }

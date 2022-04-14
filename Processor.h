@@ -24,7 +24,7 @@ class Processor {
 private:
     // Passed from SearchEngine
     int totalFiles = 0;
-    std::atomic<int> filesProcessed;
+    int filesProcessed;
     StopWords stopWords;
     std::vector<std::string> fileVector;
 
@@ -35,7 +35,7 @@ private:
 
     /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::wordMap" */
     avl_tree<unsigned int, std::vector<std::string *> *> *wordTree = nullptr;
-    std::atomic<int> wordsConverted;
+    int wordsConverted;
     int totalWords = 0;
 
     void fillArticle(const Article &article);

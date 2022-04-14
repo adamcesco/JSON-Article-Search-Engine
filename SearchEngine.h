@@ -21,7 +21,6 @@ private:
     Processor *processor = nullptr;
     TableBundle *tables = nullptr;
     avl_tree<unsigned int, std::vector<std::string *> *> *wordTree = nullptr;
-    std::mutex *wordTreeMutex = nullptr;
 
 public:
     /**

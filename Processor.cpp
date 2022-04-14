@@ -14,8 +14,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accessor tbbAccessor;
-
 /**
  * Adds every article filename to a queue so that the multithreading can process them easily
  * @param folderName The folder name to search
@@ -31,12 +29,6 @@ void Processor::fillQueue(const std::string &folderName) {
     }
 }
 
-
-void aliasPushBack(std::vector<std::string *> &existing, const std::vector<std::string *> &newVal) {
-    existing.push_back(newVal[0]);
-}
-
-
 void Processor::process() {
     std::hash<std::string> hashObj;
     for (auto &filename: fileVector) {
@@ -50,24 +42,18 @@ void Processor::process() {
         std::string text = std::string(document["text"].GetString());
         std::istringstream textCorpus(text);
 
-        // Iterate the istringstream
-        // using do-while loop
         std::string subs;
         do {
             textCorpus >> subs;
-//            if (subs.length() > 6)
-//                Porter2Stemmer::stem(subs);
             unsigned int hashed = 1;
-            for (char &cc: subs) {
+            for (char &cc: subs)
                 if (std::isalpha(cc)) {
                     hashed *= 16777619;
                     hashed = hashed ^ (cc & 31);
                 }
-            }
 
-            if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end()) {
+            if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end())
                 this->wordMap->operator[](hashed).push_back(uuid);
-            }
         } while (textCorpus);
 
         filesProcessed++;
@@ -102,7 +88,7 @@ std::string Processor::generateIndex(const std::string &folderName) {
 }
 
 double Processor::getProgress() {
-    return (double) this->filesProcessed.load() / (double) this->totalFiles;
+    return (double) filesProcessed / (double) totalFiles;
 }
 
 Processor::~Processor() {
@@ -136,6 +122,6 @@ Processor::Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree)
 }
 
 double Processor::getConversionProgress() {
-    return (double) this->wordsConverted.load() / (double) this->totalWords;
+    return (double) wordsConverted / (double) totalWords;
 }
 

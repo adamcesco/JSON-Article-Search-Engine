@@ -20,12 +20,12 @@ typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accesso
  * Adds every article filename to a queue so that the multithreading can process them easily
  * @param folderName The folder name to search
  */
-void Processor::fillQueue(std::string folderName) {
+void Processor::fillQueue(const std::string &folderName) {
     // Only files not folders
     for (const fs::directory_entry &dir_entry:
             fs::recursive_directory_iterator(folderName)) {
         if (fs::is_regular_file(dir_entry)) {
-            this->fileQueue.push(dir_entry.path().string());
+            this->fileVector.push_back(dir_entry.path().string());
             this->totalFiles++;
         }
     }
@@ -39,33 +39,14 @@ void aliasPushBack(std::vector<std::string *> &existing, const std::vector<std::
 
 void Processor::process() {
     std::hash<std::string> hashObj;
-    while (!this->fileQueue.empty()) {
-        std::string filename = this->fileQueue.front();
-        this->fileQueue.pop();
-
+    for (auto &filename: fileVector) {
         std::ifstream file(filename);
-        if (!file.is_open()) {
-            std::cout << "Could not open file: " << filename << std::endl;
-            continue;
-        }
         rapidjson::Document document;
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        try {
-            document.Parse(content.c_str());
-        } catch (std::exception &e) {
-            std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
-            continue;
-        }
+        document.Parse(content.c_str());
         file.close();
 
-        if (!document.IsObject() || !document.HasMember("uuid")) {
-            continue;
-        }
-
-
         auto *uuid = new std::string(document["uuid"].GetString());
-
-
         std::string text = document["text"].GetString();
         std::istringstream iss(text);
 
@@ -149,13 +130,11 @@ Processor::Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree)
     this->wordMap = new std::unordered_map<unsigned int, std::vector<std::string *>>();
 }
 
-std::string Processor::convertToTree() {
-    std::cout << this->wordMap->size() << std::endl;
+void Processor::convertToTree() {
     for (auto &word: *this->wordMap) {
         this->wordTree->insert_overwriting(word.first, &word.second);
         this->wordsConverted++;
     }
-    return "Conversion complete";
 }
 
 double Processor::getConversionProgress() {

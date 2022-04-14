@@ -26,7 +26,7 @@ private:
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::queue<std::string> fileQueue;
+    std::vector<std::string> fileVector;
 
     /** @attention Do not delete/destruct this instance ("wordMap") until you are done with the avl_tree instance that contains pointers to the values of "wordMap" */
     std::unordered_map<unsigned int, std::vector<std::string *>> *wordMap = nullptr;
@@ -44,7 +44,7 @@ private:
 
     void fillAuthors(const std::string &authors, const std::string &uuid);
 
-    void fillQueue(std::string folderName);
+    void fillQueue(const std::string &folderName);
 
     void process();
 
@@ -53,7 +53,7 @@ public:
 
     ~Processor();
 
-    std::string convertToTree();
+    void convertToTree();
 
     std::string generateIndex(std::string folderName);
 

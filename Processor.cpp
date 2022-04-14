@@ -47,16 +47,16 @@ void Processor::process() {
         file.close();
 
         auto *uuid = new std::string(document["uuid"].GetString());
-        std::string text = document["text"].GetString();
-        std::istringstream iss(text);
+        std::string text = std::string(document["text"].GetString());
+        std::istringstream textCorpus(text);
 
         // Iterate the istringstream
         // using do-while loop
         std::string subs;
         do {
-            iss >> subs;
-            if (subs.length() > 6)
-                Porter2Stemmer::stem(subs);
+            textCorpus >> subs;
+//            if (subs.length() > 6)
+//                Porter2Stemmer::stem(subs);
             unsigned int hashed = 1;
             for (char &cc: subs) {
                 if (std::isalpha(cc)) {
@@ -68,9 +68,14 @@ void Processor::process() {
             if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end()) {
                 this->wordMap->operator[](hashed).push_back(uuid);
             }
-        } while (iss);
+        } while (textCorpus);
 
         filesProcessed++;
+    }
+
+    for (auto &word: *this->wordMap) {
+        this->wordTree->insert_overwriting(word.first, &word.second);
+        this->wordsConverted++;
     }
 }
 
@@ -80,7 +85,7 @@ void Processor::process() {
  * @param folderName the folder to recursively process through
  * @return A dummy return value so that the function can be called with std::async
  */
-std::string Processor::generateIndex(std::string folderName) {
+std::string Processor::generateIndex(const std::string &folderName) {
     std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
     std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
@@ -128,13 +133,6 @@ Processor::Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree)
     this->filesProcessed = 0;
     this->wordsConverted = 0;
     this->wordMap = new std::unordered_map<unsigned int, std::vector<std::string *>>();
-}
-
-void Processor::convertToTree() {
-    for (auto &word: *this->wordMap) {
-        this->wordTree->insert_overwriting(word.first, &word.second);
-        this->wordsConverted++;
-    }
 }
 
 double Processor::getConversionProgress() {

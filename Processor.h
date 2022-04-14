@@ -55,7 +55,7 @@ public:
 
     void convertToTree();
 
-    std::string generateIndex(std::string folderName);
+    std::string generateIndex(const std::string &folderName);
 
     double getProgress();
 

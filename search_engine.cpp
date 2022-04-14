@@ -52,6 +52,7 @@ void SearchEngine::generateIndex() {
     // Start clock
     auto start = std::chrono::high_resolution_clock::now();
     // Call generateIndex on the processor asynchronously so that we can show a progress bar
+
     std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
                                               this->data_folder);
 
@@ -65,8 +66,6 @@ void SearchEngine::generateIndex() {
     printProgressBar(1);
     std::cout << std::endl;
 
-
-    this->processor->convertToTree();
     // End clock
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;

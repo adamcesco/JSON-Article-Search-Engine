@@ -70,7 +70,7 @@ public:
      * @param append This is the function that will be used in the case where a node with a key equal to the passed key already exist. This is where the funciton will "append" the passed value to the original value within that pre-existing node.
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
-    avl_tree &insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue,
+    avl_tree &insert(const T &pKey, U &pValue,
                      void (*append)(U &, const U &));   //O(n lg n)
 
     /**
@@ -139,7 +139,7 @@ private:
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue,
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, U &pValue,
                                        void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
     binary_node<T, U> *curNode = unbalanced_insert(pKey, pValue, operation, append);        //O(lg n)

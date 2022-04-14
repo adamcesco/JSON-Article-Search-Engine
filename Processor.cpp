@@ -32,22 +32,16 @@ void Processor::fillQueue(std::string folderName) {
 }
 
 
-void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::string> &newVal) {
+void aliasPushBack(std::vector<std::string *> &existing, const std::vector<std::string *> &newVal) {
     existing.push_back(newVal[0]);
 }
 
 
 void Processor::process() {
-    while (true) {
-        this->fileQueueMutex->lock();
-        if (this->fileQueue.empty()) {
-            // Prevents a deadlock
-            this->fileQueueMutex->unlock();
-            break;
-        }
+    std::hash<std::string> hashObj;
+    while (!this->fileQueue.empty()) {
         std::string filename = this->fileQueue.front();
         this->fileQueue.pop();
-        this->fileQueueMutex->unlock();
 
         std::ifstream file(filename);
         if (!file.is_open()) {
@@ -69,30 +63,7 @@ void Processor::process() {
         }
 
 
-        std::string *uuid = new std::string(document["uuid"].GetString());
-//        std::string author = document["author"].GetString();
-
-//        std::vector<std::string> orgs = {};
-//        // Check if array empty
-//        for (auto &org: document["organizations"].GetArray()) {
-//            orgs.emplace_back(org.GetString());
-//        }
-
-//        Article art = {
-//                .uuid = *uuid,
-//                .filename = filename,
-//                .orgList = orgs,
-//                .author = author,
-//        };
-
-//        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
-//        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
-//        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
-
-//        this->fillAuthors(*uuid,
-//                          author);    ////Saying that this has values that are incorrectly passed, double check this DREW
-//        this->fillOrganization(orgs, *uuid);
-//        this->fillArticle(art);
+        auto *uuid = new std::string(document["uuid"].GetString());
 
 
         std::string text = document["text"].GetString();
@@ -103,21 +74,14 @@ void Processor::process() {
         tbbAccessor accessor;
         do {
             std::string subs;
-            // Get the word from the istringstream
             iss >> subs;
             cleanStr(subs);
-            if (stopWords.lexicon.find(subs) == stopWords.lexicon.end()) {
-                Porter2Stemmer::stem(subs);
-                if (subs.length() > 0 && subs.substr(0, 3) != "www") {
-                    // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
-                    this->tbbMap->operator[](subs).push_back(uuid);
-                    // End quoted code
-                }
+            unsigned int hashed = hashObj(subs);
+            if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end()) {
+//            Porter2Stemmer::stem(subs);
+                this->wordMap->operator[](hashed).push_back(uuid);
             }
         } while (iss);
-//        tableFillAuthorThread.join();
-//        tableFillOrgsThread.join();
-//        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -138,17 +102,9 @@ std::string Processor::generateIndex(std::string folderName) {
     std::cout << termcolor::reset << std::endl;
 
     // Actually process the files
-    std::thread t1(&Processor::process, this);
-    std::thread t2(&Processor::process, this);
-    std::thread t3(&Processor::process, this);
-    std::thread t4(&Processor::process, this);
+    process();
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-
-    this->totalWords = this->tbbMap->size();
+    this->totalWords = this->wordMap->size();
 
     return "Indexing complete";
 }
@@ -157,16 +113,9 @@ double Processor::getProgress() {
     return (double) this->filesProcessed.load() / (double) this->totalFiles;
 }
 
-bool Processor::safeIsEmpty() {
-    this->fileQueueMutex->lock();
-    bool empty = this->fileQueue.empty();
-    this->fileQueueMutex->unlock();
-    return empty;
-}
-
 Processor::~Processor() {
 //    delete this->fileQueueMutex;
-//    delete this->tbbMap;
+//    delete this->wordMap;
 }
 
 void Processor::fillArticle(const Article &article) {
@@ -184,32 +133,22 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string *> *> *tree,
-                     std::mutex *treeMut) {
-    this->tableBundle = tableBundle;
+Processor::Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree) {
+//    this->tableBundle = tableBundle;
     this->stopWords = StopWords();
     this->wordTree = tree;
-    this->wordTreeMutex = treeMut;
     this->totalFiles = 0;
-    this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
-    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string *>>();
-}
-
-void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurrent_vector<std::string> &s2) {
+    this->wordMap = new std::unordered_map<unsigned int, std::vector<std::string *>>();
 }
 
 std::string Processor::convertToTree() {
-    this->wordTreeMutex->lock();
-    std::cout << this->tbbMap->size() << std::endl;
-    for (auto &word: *this->tbbMap) {
-        // pass first second and empty function
+    std::cout << this->wordMap->size() << std::endl;
+    for (auto &word: *this->wordMap) {
         this->wordTree->insert_overwriting(word.first, &word.second);
-
         this->wordsConverted++;
     }
-    this->wordTreeMutex->unlock();
     return "Conversion complete";
 }
 

@@ -26,17 +26,15 @@ private:
     int totalFiles = 0;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::mutex *fileQueueMutex;
     std::queue<std::string> fileQueue;
 
-    /** @attention Do not delete/destruct this instance ("tbbMap") until you are done with the avl_tree instance that contains pointers to the values of "tbbMap" */
-    tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string *>> *tbbMap = nullptr;
+    /** @attention Do not delete/destruct this instance ("wordMap") until you are done with the avl_tree instance that contains pointers to the values of "wordMap" */
+    std::unordered_map<unsigned int, std::vector<std::string *>> *wordMap = nullptr;
 
     TableBundle *tableBundle;
 
-    /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::tbbMap" */
-    avl_tree<std::string, tbb::concurrent_vector<std::string *> *> *wordTree = nullptr;
-    std::mutex *wordTreeMutex;
+    /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::wordMap" */
+    avl_tree<unsigned int, std::vector<std::string *> *> *wordTree = nullptr;
     std::atomic<int> wordsConverted;
     int totalWords = 0;
 
@@ -50,15 +48,10 @@ private:
 
     void process();
 
-
-    bool safeIsEmpty();
-
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string *> *> *tree,
-                       std::mutex *treeMut);
+    explicit Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree);
 
     ~Processor();
-
 
     std::string convertToTree();
 

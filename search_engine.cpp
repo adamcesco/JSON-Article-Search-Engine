@@ -15,16 +15,14 @@
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
 
-    this->tables = new TableBundle();
-    this->tables->orgs = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
-    this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
-    this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
+//    this->tables = new TableBundle();
+//    this->tables->orgs = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+//    this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+//    this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
 
-    this->wordTree = new avl_tree<std::string, tbb::concurrent_vector<std::string *> *>();
-    this->wordTreeMutex = new std::mutex();
+    this->wordTree = new avl_tree<unsigned int, std::vector<std::string *> *>();
 
-    this->processor = new Processor(this->tables, this->wordTree,
-                                    this->wordTreeMutex);
+    this->processor = new Processor(this->wordTree);
 }
 
 SearchEngine::~SearchEngine() {
@@ -80,10 +78,11 @@ void SearchEngine::generateIndex() {
 void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
     Porter2Stemmer::stem(word);
-    tbb::concurrent_vector<std::string *> *result = this->wordTree->get_at(word);
-    std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
+    std::hash<std::string> hashObj;
+    std::vector<std::string *> *result = this->wordTree->get_at(hashObj(word));
+    std::cout << "Found " << result->size() << " articles containing the word " << word << std::endl;
 
-    std::string *prev;
+//    std::string *prev;
 //    for (std::string *article: *result) {
 //        if (prev != article)
 //            std::cout << *article << std::endl;

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "catch_setup.h"
 #include "SearchEngine.h"
-
+#include <fstream>
 
 int main(int argc, char **argv) {
     if (argc == 1) {

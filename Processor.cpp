@@ -39,8 +39,7 @@ void Processor::process() {
         file.close();
 
         auto *uuid = new std::string(document["uuid"].GetString());
-        std::string text = std::string(document["text"].GetString());
-        std::istringstream textCorpus(text);
+        std::istringstream textCorpus(document["text"].GetString());
 
         std::string subs;
         do {

@@ -104,16 +104,6 @@ void Processor::process() {
                 }
             }
             if (stopWords.hashedLexicon.find(hash) == stopWords.hashedLexicon.end()) {
-                if (subs.length() > 6) {
-                    Porter2Stemmer::stem(subs);
-                    hash = 1;
-                    for (const char &cc: subs) {
-                        if (std::isalpha(cc)) {
-                            hash *= 16777619;
-                            hash = hash ^ (cc & 31);
-                        }
-                    }
-                }
                 this->tbbMap->operator[](hash).push_back(uuid);
             }
         } while (iss);

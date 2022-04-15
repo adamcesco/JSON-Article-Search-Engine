@@ -10,6 +10,7 @@
 
 struct StopWords {
     std::unordered_set<std::string> stopWords = {
+            "",
             "a",
             "able",
             "about",

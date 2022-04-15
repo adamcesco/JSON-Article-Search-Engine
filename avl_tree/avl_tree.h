@@ -25,6 +25,26 @@ struct binary_node {
         right->data = value;
     }
 
+    void copy_subtree(const binary_node<T, U> *pNode) {
+        if (pNode == nullptr)
+            return;
+        key = pNode->key;
+        data = pNode->data;
+        maxHeight = pNode->maxHeight;
+        delete this->left;
+        if (pNode->left != nullptr) {
+            this->left = new binary_node<T, U>();
+            this->left->copy_subtree(pNode->left);
+            this->left->parent = this;
+        }
+        delete this->right;
+        if (pNode->right != nullptr) {
+            this->right = new binary_node<T, U>();
+            this->right->copy_subtree(pNode->right);       //stitch parents
+            this->right->parent = this;
+        }
+    }
+
     ~binary_node() {
         delete left;
         delete right;
@@ -48,15 +68,17 @@ public:
     avl_tree &operator=(const avl_tree &);
 
     /**
-     * @brief Returns true if the passed key is within the tree, otherwise returns false. O(lg n).
+     * @brief Returns true if the passed key is within the tree, otherwise returns false.
      * @param pKey This is the value that will be searched for within the avl_tree
+     * @attention O(lg n)
      * @attention Uses "==", "<", and ">" operators.
      * */
     bool contains(const T &pKey);
 
     /**
-     * @brief Returns the value bound to the passed key by reference. O(lg n).
+     * @brief Returns the value bound to the passed key by reference.
      * @param pKey This is the value that will be searched for within the avl_tree, in order to get the value associated with it.
+     * @attention O(lg n)
      * @attention Uses "==", "<", and ">" operators.
      * */
     U &operator[](const T &pKey);
@@ -68,15 +90,17 @@ public:
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
      * @param append This is the function that will be used in the case where a node with a key equal to the passed key already exist. This is where the funciton will "append" the passed value to the original value within that pre-existing node.
+     * @attention O(lg n)
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
-    avl_tree &insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue,
-                     void (*append)(U &, const U &));   //O(n lg n)
+    avl_tree &
+    insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue, void (*append)(U &, const U &));
 
     /**
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "+=" operator will be called to append the passed value into the original value within that pre-existing node.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention O(lg n)
      * @attention Uses "=", "+=", "==", "<", and ">" operators.
      * */
     avl_tree &insert(const T &pKey, const U &pValue);
@@ -85,12 +109,13 @@ public:
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "=" operator will be called to overwrite the original value within that pre-existing node with the passed value.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention O(lg n)
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
     avl_tree &insert_overwriting(const T &pKey, const U &pValue);
 
     /**
-     * @brief Prints the tree in value-specific_ascending order via the "in-order" recursive algorithm.
+     * @brief Prints the tree in value-specific-ascending order via the "in-order" recursive algorithm.
      */
     void print_tree_inorder() { print_inorder(root); }
 
@@ -668,6 +693,31 @@ binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *&p
         prev->right = pNode;
     pNode->parent = prev;
     return pNode;
+}
+
+template<class T, class U>
+avl_tree<T, U>::avl_tree(const avl_tree &toCpy) {
+    if (toCpy.root != nullptr) {
+        root = new binary_node<T, U>();
+        root->copy_subtree(toCpy.root);
+    }
+    nodeCount = toCpy.nodeCount;
+}
+
+template<class T, class U>
+avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
+    if (this == &toAssign)
+        return *this;
+
+    delete root;
+    root = nullptr;
+
+    if (toAssign.root != nullptr) {
+        root = new binary_node<T, U>();
+        root->copy_subtree(toAssign.root);
+    }
+    nodeCount = toAssign.nodeCount;
+    return *this;
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

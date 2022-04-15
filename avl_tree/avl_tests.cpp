@@ -146,4 +146,73 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         }
         REQUIRE(testDummy.size() == 0);
     }
+
+    SECTION("Testing copy constructor and destructor with empty avl_tree") {
+        avl_tree<int, int> testDummy;
+        avl_tree<int, int> testAVL(testDummy);
+        REQUIRE(testAVL.size() == 0);
+    }
+
+    SECTION("Testing copy constructor and destructor with avl_tree size 1") {
+        avl_tree<int, int> testDummy;
+        testDummy.insert(1, 2);
+
+        avl_tree<int, int> testAVL(testDummy);
+        REQUIRE(testAVL.contains(1));
+        REQUIRE(testAVL.size() == 1);
+    }
+
+    SECTION("Testing copy constructor and destructor with avl_tree size 5") {
+        avl_tree<int, int> testDummy;
+        testDummy.insert(1, -1);
+        testDummy.insert(2, -2);
+        testDummy.insert(3, -3);
+        testDummy.insert(4, -4);
+        testDummy.insert(5, -5);
+
+        avl_tree<int, int> testAVL(testDummy);
+        REQUIRE(testAVL.contains(1));
+        REQUIRE(testAVL.contains(2));
+        REQUIRE(testAVL.contains(3));
+        REQUIRE(testAVL.contains(4));
+        REQUIRE(testAVL.contains(5));
+        REQUIRE(testAVL.size() == 5);
+        REQUIRE(testAVL.is_balanced());
+    }
+
+    SECTION("Testing assignment operator overload and destructor with empty avl_tree") {
+        avl_tree<int, int> testDummy;
+        avl_tree<int, int> testAVL;
+        testAVL = testDummy;
+        REQUIRE(testAVL.size() == 0);
+    }
+
+    SECTION("Testing assignment operator overload and destructor with avl_tree size 1") {
+        avl_tree<int, int> testDummy;
+        testDummy.insert(1, 2);
+
+        avl_tree<int, int> testAVL;
+        testAVL = testDummy;
+        REQUIRE(testAVL.contains(1));
+        REQUIRE(testAVL.size() == 1);
+    }
+
+    SECTION("Testing assignment operator overload and destructor with avl_tree size 5") {
+        avl_tree<int, int> testDummy;
+        testDummy.insert(1, -1);
+        testDummy.insert(2, -2);
+        testDummy.insert(3, -3);
+        testDummy.insert(4, -4);
+        testDummy.insert(5, -5);
+
+        avl_tree<int, int> testAVL;
+        testAVL = testDummy;
+        REQUIRE(testAVL.contains(1));
+        REQUIRE(testAVL.contains(2));
+        REQUIRE(testAVL.contains(3));
+        REQUIRE(testAVL.contains(4));
+        REQUIRE(testAVL.contains(5));
+        REQUIRE(testAVL.size() == 5);
+        REQUIRE(testAVL.is_balanced());
+    }
 }

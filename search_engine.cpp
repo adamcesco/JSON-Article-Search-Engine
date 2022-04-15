@@ -9,6 +9,7 @@
 #include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
 #include <iomanip>      // std::setprecision
+#include "./include/porter2_stemmer/porter2_stemmer.h"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -78,6 +79,7 @@ void SearchEngine::generateIndex() {
 
 void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
+    Porter2Stemmer::stem(word);
     tbb::concurrent_vector<std::string> *result = this->wordTree->get_at(word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
     for (std::string article: *result) {

@@ -42,29 +42,7 @@ void printProgressBar(double progress) {
  * Loads the data from the data folder into the tables and AVL tree.
  */
 void SearchEngine::generateIndex() {
-    // Start clock
-    auto start = std::chrono::high_resolution_clock::now();
-    // Call generateIndex on the processor asynchronously so that we can show a progress bar
-
-    std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
-                                              this->data_folder);
-
-    // Poll the progress of the processor's filename stack every 400 milliseconds
-    while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
-        double progress = this->processor->getProgress();
-        if (progress > 0) {
-            printProgressBar(progress);
-        }
-    }
-    printProgressBar(1);
-    std::cout << std::endl;
-
-    // End clock
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff = end - start;
-    std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
-    std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
-
+    processor->generateIndex(data_folder);
 }
 
 unsigned int hasher(const std::string &str) {
@@ -82,12 +60,12 @@ void SearchEngine::testFindWord(std::string word) {
 //    this->wordTree->print_tree_inorder();
     Porter2Stemmer::stem(word);
     std::vector<std::string *> *result = this->wordTree->get_at(hasher(word));
-    std::cout << "Top three articles containing the word " << word << ':' << std::endl;
+    std::cout << "Top-five articles containing the word " << word << ':' << std::endl;
 
     std::string *prev;
     int count = 0;
     for (std::string *article: *result) {
-        if (count == 3)
+        if (count == 5)
             break;
         if (prev != article)
             std::cout << *article << std::endl;

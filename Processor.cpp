@@ -58,10 +58,13 @@ void Processor::process() {
         filesProcessed++;
     }
 
+    totalWords = wordMap->size();
+
     for (auto &word: *this->wordMap) {
         this->wordTree->insert_overwriting(word.first, &word.second);
-        this->wordsConverted++;
     }
+
+    wordsConverted = wordTree->size();
 }
 
 
@@ -70,20 +73,9 @@ void Processor::process() {
  * @param folderName the folder to recursively process through
  * @return A dummy return value so that the function can be called with std::async
  */
-std::string Processor::generateIndex(const std::string &folderName) {
-    std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
+void Processor::generateIndex(const std::string &folderName) {
     this->fillQueue(folderName);
-    std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
-
-    std::cout << termcolor::green << getCenteredText(fileDisplay, 80) << std::endl;
-    std::cout << termcolor::reset << std::endl;
-
-    // Actually process the files
     process();
-
-    this->totalWords = this->wordMap->size();
-
-    return "Indexing complete";
 }
 
 double Processor::getProgress() {

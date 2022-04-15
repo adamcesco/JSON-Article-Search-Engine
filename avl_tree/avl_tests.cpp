@@ -13,7 +13,7 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         avl_tree<int, int> testDummy;
         testDummy.insert(1, 2);
         REQUIRE(testDummy.contains(1));
-        REQUIRE(testDummy.get_at(1) == 2);
+        REQUIRE(testDummy[1] == 2);
     }
 
     SECTION("Testing avl tree filling (LL rotations only) and destructor") {
@@ -60,9 +60,9 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.contains(5));
         REQUIRE(testDummy.is_balanced());
 
-        testDummy.get_at(1).push_back(-10);
-        REQUIRE(testDummy.get_at(1)[0] == -1);
-        REQUIRE(testDummy.get_at(1)[1] == -10);
+        testDummy[1].push_back(-10);
+        REQUIRE(testDummy[1][0] == -1);
+        REQUIRE(testDummy[1][1] == -10);
     }
 
     SECTION("Testing avl tree random filling (all rotations) and destructor") {
@@ -93,16 +93,16 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.is_balanced());
 
         for (int i = 0; i < 1000; ++i) {
-            REQUIRE(testDummy.get_at(i).size() == 1);
-            testDummy.get_at(i).push_back(0);
-            REQUIRE(testDummy.get_at(i)[1] == 0);
+            REQUIRE(testDummy[i].size() == 1);
+            testDummy[i].push_back(0);
+            REQUIRE(testDummy[i][1] == 0);
         }
         REQUIRE(testDummy.is_balanced());
 
         for (int i = 0; i < 1000; ++i) {
-            testDummy.get_at(0).push_back(0);
+            testDummy[0].push_back(0);
         }
-        REQUIRE(testDummy.get_at(0).size() == 1002);
+        REQUIRE(testDummy[0].size() == 1002);
         REQUIRE(testDummy.is_balanced());
     }
 

@@ -59,7 +59,7 @@ public:
      * @param pKey This is the value that will be searched for within the avl_tree, in order to get the value associated with it.
      * @attention Uses "==", "<", and ">" operators.
      * */
-    U &get_at(const T &pKey);
+    U &operator[](const T &pKey);
 
     unsigned int size() { return nodeCount; }
 
@@ -382,7 +382,7 @@ int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_n
 }
 
 template<class T, class U>
-U &avl_tree<T, U>::get_at(const T &pKey) {
+U &avl_tree<T, U>::operator[](const T &pKey) {
     binary_node<T, U> *temp = root;
     while (temp != nullptr) {
         if (pKey == temp->key) {
@@ -395,7 +395,7 @@ U &avl_tree<T, U>::get_at(const T &pKey) {
     }
 
     throw std::invalid_argument(
-            "Error in \"U &avl_tree<T, U>::get_at(const T&)\" | Passed value cannot be found within tree.");
+            "Error in \"U &avl_tree<T, U>::operator[](const T&)\" | Passed key cannot be found within tree.");
 }
 
 template<class T, class U>

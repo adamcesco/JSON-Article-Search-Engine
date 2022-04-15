@@ -31,12 +31,6 @@ void Processor::fillQueue(std::string folderName) {
     }
 }
 
-
-void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::string> &newVal) {
-    existing.push_back(newVal[0]);
-}
-
-
 void Processor::process() {
     while (true) {
         this->fileQueueMutex->lock();
@@ -94,25 +88,33 @@ void Processor::process() {
 //        this->fillOrganization(orgs, *uuid);
 //        this->fillArticle(art);
 
-
-        std::string text = document["text"].GetString();
-        std::istringstream iss(text);
+        std::istringstream iss(document["text"].GetString());
 
         // Iterate the istringstream
         // using do-while loop
         tbbAccessor accessor;
         do {
             std::string subs;
-            // Get the word from the istringstream
             iss >> subs;
-            cleanStr(subs);
-            if (stopWords.lexicon.find(subs) == stopWords.lexicon.end()) {
-                Porter2Stemmer::stem(subs);
-                if (subs.length() > 0 && subs.substr(0, 3) != "www") {
-                    // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
-                    this->tbbMap->operator[](subs).push_back(uuid);
-                    // End quoted code
+            unsigned int hash = 1;
+            for (const char &cc: subs) {
+                if (std::isalpha(cc)) {
+                    hash *= 16777619;
+                    hash = hash ^ (cc & 31);
                 }
+            }
+            if (stopWords.hashedLexicon.find(hash) == stopWords.hashedLexicon.end()) {
+                if (subs.length() > 6) {
+                    Porter2Stemmer::stem(subs);
+                    hash = 1;
+                    for (const char &cc: subs) {
+                        if (std::isalpha(cc)) {
+                            hash *= 16777619;
+                            hash = hash ^ (cc & 31);
+                        }
+                    }
+                }
+                this->tbbMap->operator[](hash).push_back(uuid);
             }
         } while (iss);
 //        tableFillAuthorThread.join();
@@ -184,7 +186,7 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string *> *> *tree,
+Processor::Processor(TableBundle *tableBundle, avl_tree<unsigned int, tbb::concurrent_vector<std::string *> *> *tree,
                      std::mutex *treeMut) {
     this->tableBundle = tableBundle;
     this->stopWords = StopWords();
@@ -194,21 +196,16 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concur
     this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
-    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string *>>();
-}
-
-void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurrent_vector<std::string> &s2) {
+    this->tbbMap = new tbb::concurrent_unordered_map<unsigned int, tbb::concurrent_vector<std::string *>>();
 }
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     std::cout << this->tbbMap->size() << std::endl;
     for (auto &word: *this->tbbMap) {
-        // pass first second and empty function
         this->wordTree->insert_overwriting(word.first, &word.second);
-
-        this->wordsConverted++;
     }
+    wordsConverted = wordTree->size();
     this->wordTreeMutex->unlock();
     return "Conversion complete";
 }

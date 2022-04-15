@@ -43,6 +43,9 @@ public:
 
     hash_table<T, U> &print_values();
 
+
+    static unsigned int custom_string_hash(const std::string &p);
+
     ~hash_table() { delete[] data; }  //destructor
 
 private:
@@ -330,6 +333,18 @@ hash_table<T, U> &hash_table<T, U>::print_values() {
             std::cout << *data[i].value << std::endl;
     }
     return *this;
+}
+
+template<class T, class U>
+unsigned int hash_table<T, U>::custom_string_hash(const std::string &p) {
+    unsigned int hashed = 1;
+    for (const char &cc: p) {
+        if (std::isalpha(cc)) {
+            hashed *= 16777619;
+            hashed = hashed ^ (cc & 31);
+        }
+    }
+    return hashed;
 }
 
 #endif //INC_22S_FINAL_PROJ_HASH_TABLE_H

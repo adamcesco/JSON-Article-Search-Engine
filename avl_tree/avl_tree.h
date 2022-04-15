@@ -248,12 +248,12 @@ template<class T, class U>
 bool avl_tree<T, U>::contains(const T &pKey) {
     binary_node<T, U> *temp = root;
     while (temp != nullptr) {
-        if (pKey == temp->key) {
-            return true;
+        if (pKey > temp->key) {
+            temp = temp->right;
         } else if (pKey < temp->key) {
             temp = temp->left;
         } else {
-            temp = temp->right;
+            return true;
         }
     }
     return false;

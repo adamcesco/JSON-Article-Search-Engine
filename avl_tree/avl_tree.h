@@ -85,6 +85,8 @@ public:
 
     unsigned int size() { return nodeCount; }
 
+    bool is_empty() { return nodeCount == 0; }
+
     /**
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the passed append function will be used to append the passed value to the original value within that pre-existing node.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
@@ -603,19 +605,25 @@ bool avl_tree<T, U>::check_balance(binary_node<T, U> *&node) {
 
 template<class T, class U>
 avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
+    if (nodeCount == 0)
+        throw std::invalid_argument(
+                "Error in \"avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &)\" | avl tree is empty.");
+
     DIRECTION stitchDir = LEFT;
     binary_node<T, U> *place = find_place_of(pKey, stitchDir);    //O(lg n)
     if (place == nullptr)
         throw std::invalid_argument(
                 "Error in \"avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &)\" | Passed value cannot be found within tree.");
 
-    binary_node<T, U> *curNode = place->parent;
-    place_node_into_subtree(place->left, place->right);     //O(lg n)
+    binary_node<T, U> *parentSaver = place->parent;
+    binary_node<T, U> *curNode = place_node_into_subtree(place->left, place->right);     //O(lg n)
     if (place->parent != nullptr) {
         if (stitchDir == LEFT)
             place->parent->left = place->right;
         else
             place->parent->right = place->right;
+
+        place->parent->maxHeight = std::max(node_height(place->parent->left), node_height(place->parent->right)) + 1;
     }
     if (place == root)
         root = place->right;
@@ -628,6 +636,8 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
     delete place;
 
     binary_node<T, U> *prev = nullptr;
+    if (curNode == nullptr)
+        curNode = parentSaver;
     while (curNode != nullptr) {        //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
         if (balance_alpha(curNode)) {
@@ -663,12 +673,16 @@ binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitc
 
 template<class T, class U>
 binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *&pNode, binary_node<T, U> *&pRoot) {
+    if (pNode == nullptr && pRoot == nullptr) {
+        return nullptr;
+    }
+
     if (pNode == nullptr) {
         return pRoot;
     }
     if (pRoot == nullptr) {
         pRoot = pNode;
-        return pNode;
+        return pRoot;
     }
 
     binary_node<T, U> *temp = pRoot;
@@ -696,12 +710,12 @@ binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *&p
 }
 
 template<class T, class U>
-avl_tree<T, U>::avl_tree(const avl_tree &toCpy) {
-    if (toCpy.root != nullptr) {
+avl_tree<T, U>::avl_tree(const avl_tree &toCopy) {
+    if (toCopy.root != nullptr) {
         root = new binary_node<T, U>();
-        root->copy_subtree(toCpy.root);
+        root->copy_subtree(toCopy.root);
     }
-    nodeCount = toCpy.nodeCount;
+    nodeCount = toCopy.nodeCount;
 }
 
 template<class T, class U>

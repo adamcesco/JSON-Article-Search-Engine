@@ -120,29 +120,31 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.contains(5));
         REQUIRE(testDummy.is_balanced());
 
-        testDummy.delete_node(5);
+        testDummy.delete_node(4);
 
         REQUIRE(testDummy.contains(1));
         REQUIRE(testDummy.contains(2));
         REQUIRE(testDummy.contains(3));
-        REQUIRE(testDummy.contains(4));
-        REQUIRE(!testDummy.contains(5));
+        REQUIRE(!testDummy.contains(4));
+        REQUIRE(testDummy.contains(5));
         REQUIRE(testDummy.is_balanced());
         REQUIRE(testDummy.size() == 4);
     }
 
     SECTION("Testing random avl tree node deletion and destructing") {
-        avl_tree<int, std::vector<int>> testDummy;
+        avl_tree<int, int> testDummy;
         std::unordered_set<int> insertedNums;
 
         for (int i = 0; i < 1000; ++i) {
             int toInsert = rand() % 1000;
             insertedNums.emplace(toInsert);
-            testDummy.insert_overwriting(toInsert, {i});
+            testDummy.insert_overwriting(toInsert, i);
         }
 
         for (const auto &it: insertedNums) {
             testDummy.delete_node(it);
+            if (!testDummy.is_balanced())
+                std::cout << "monkey";
         }
         REQUIRE(testDummy.size() == 0);
     }

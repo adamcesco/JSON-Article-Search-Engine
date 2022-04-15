@@ -108,43 +108,28 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
 
     SECTION("Testing avl tree node deletion and destructing") {
         avl_tree<int, int> testDummy;
-        testDummy.insert(5, -5);
-        testDummy.insert(4, -4);
-        testDummy.insert(3, -3);
-        testDummy.insert(2, -2);
-        testDummy.insert(1, -1);
-        REQUIRE(testDummy.contains(1));
-        REQUIRE(testDummy.contains(2));
-        REQUIRE(testDummy.contains(3));
-        REQUIRE(testDummy.contains(4));
-        REQUIRE(testDummy.contains(5));
-        REQUIRE(testDummy.is_balanced());
+        testDummy.insert(0, 0);
+        testDummy.insert(-6, 1);
+        testDummy.insert(1, 2);
+        testDummy.insert(-7, 3);
 
-        testDummy.delete_node(4);
-
-        REQUIRE(testDummy.contains(1));
-        REQUIRE(testDummy.contains(2));
-        REQUIRE(testDummy.contains(3));
-        REQUIRE(!testDummy.contains(4));
-        REQUIRE(testDummy.contains(5));
+        testDummy.delete_node(-7);
         REQUIRE(testDummy.is_balanced());
-        REQUIRE(testDummy.size() == 4);
     }
 
     SECTION("Testing random avl tree node deletion and destructing") {
         avl_tree<int, int> testDummy;
-        std::unordered_set<int> insertedNums;
 
-        for (int i = 0; i < 1000; ++i) {
-            int toInsert = rand() % 1000;
-            insertedNums.emplace(toInsert);
-            testDummy.insert_overwriting(toInsert, i);
+        for (int i = 0; i < 16; ++i) {
+            testDummy.insert_overwriting(i, i);
         }
+        REQUIRE(testDummy.is_balanced());
 
-        for (const auto &it: insertedNums) {
-            testDummy.delete_node(it);
+        for (int i = 0; i < 16; ++i) {
+            testDummy.delete_node(i);
             if (!testDummy.is_balanced())
-                std::cout << "monkey";
+                std::cout << i << std::endl;
+            REQUIRE(testDummy.is_balanced());
         }
         REQUIRE(testDummy.size() == 0);
     }

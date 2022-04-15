@@ -166,7 +166,7 @@ private:
     binary_node<T, U> *find_place_of(const T &pKey, DIRECTION &);
 
     binary_node<T, U> *
-    place_node_into_subtree(binary_node<T, U> *&pNode, binary_node<T, U> *&pRoot);
+    place_node_into_subtree(binary_node<T, U> *pNode, binary_node<T, U> *pRoot);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -611,12 +611,14 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
 
     DIRECTION stitchDir = LEFT;
     binary_node<T, U> *place = find_place_of(pKey, stitchDir);    //O(lg n)
-    if (place == nullptr)
-        throw std::invalid_argument(
-                "Error in \"avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &)\" | Passed value cannot be found within tree.");
 
-    binary_node<T, U> *parentSaver = place->parent;
-    binary_node<T, U> *curNode = place_node_into_subtree(place->left, place->right);     //O(lg n)
+    binary_node<T, U> *curNode = place->left;
+    if (curNode == nullptr && place->right == nullptr)
+        curNode = place->parent;
+    else if (curNode == nullptr)
+        curNode = place->right;
+
+    place_node_into_subtree(place->left, place->right);     //O(lg n)
     if (place->parent != nullptr) {
         if (stitchDir == LEFT)
             place->parent->left = place->right;
@@ -636,8 +638,6 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
     delete place;
 
     binary_node<T, U> *prev = nullptr;
-    if (curNode == nullptr)
-        curNode = parentSaver;
     while (curNode != nullptr) {        //O(lg n)
         curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
         if (balance_alpha(curNode)) {
@@ -668,11 +668,12 @@ binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitc
             return temp;
         }
     }
-    return temp;
+    throw std::invalid_argument(
+            "Error in \"binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitchDir)\" | Passed value cannot be found within tree.");
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *&pNode, binary_node<T, U> *&pRoot) {
+binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *pNode, binary_node<T, U> *pRoot) {
     if (pNode == nullptr && pRoot == nullptr) {
         return nullptr;
     }
@@ -686,9 +687,9 @@ binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *&p
     }
 
     binary_node<T, U> *temp = pRoot;
-    binary_node<T, U> *prev = pRoot->parent;
+    binary_node<T, U> *prev;
     T pKey = pNode->key;
-    DIRECTION stitchDir = LEFT;
+    DIRECTION stitchDir;
 
     while (temp != nullptr) {
         prev = temp;

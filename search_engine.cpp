@@ -73,8 +73,3 @@ void SearchEngine::testFindWord(std::string word) {
         count++;
     }
 }
-
-std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
-    // TODO
-    return std::vector<std::string>();
-}

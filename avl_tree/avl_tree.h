@@ -611,46 +611,65 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
 
     DIRECTION stitchDir = LEFT;
     binary_node<T, U> *place = find_place_of(pKey, stitchDir);    //O(lg n)
+    binary_node<T, U> *node = nullptr;
 
-    binary_node<T, U> *curNode = place->left;
-    if (curNode == nullptr && place->right == nullptr)
-        curNode = place->parent;
-    else if (curNode == nullptr)
-        curNode = place->right;
+    if ((place->left == nullptr) || (place->right == nullptr)) {
+        binary_node<T, U> *temp = place->left != nullptr ? place->left : place->right;
 
-    place_node_into_subtree(place->left, place->right);     //O(lg n)
-    if (place->parent != nullptr) {
-        if (stitchDir == LEFT)
-            place->parent->left = place->right;
-        else
-            place->parent->right = place->right;
+        // No child case
+        if (temp == nullptr) {
+            temp = place;
+            node = place->parent;
+            place = nullptr;
+        } else { // One child case
+            place->maxHeight = temp->maxHeight;
+            place->key = temp->key;
+            place->data = temp->data;
+            place->left = temp->left;
+            place->right = temp->right;
+            if (temp->left != nullptr)
+                temp->left->parent = place;
+            if (temp->right != nullptr)
+                temp->right->parent = place;
+            node = place;
+        }
 
-        place->parent->maxHeight = std::max(node_height(place->parent->left), node_height(place->parent->right)) + 1;
+        temp->left = nullptr;
+        temp->right = nullptr;
+        temp->parent = nullptr;
+        delete temp;
+    } else {
+        binary_node<T, U> *successor = place->right;
+        while (successor->left != nullptr)
+            successor = successor->left;
+
+        place->key = successor->key;
+        place->data = successor->data;
+        node = successor->parent;
+
+        successor->left = nullptr;
+        successor->right = nullptr;
+        successor->parent = nullptr;
+        delete successor;
     }
-    if (place == root)
-        root = place->right;
-    if (place->right != nullptr)
-        place->right->parent = place->parent;
+    if (place == nullptr) {
+        nodeCount--;
+        return *this;
+    }
 
-    place->parent = nullptr;
-    place->left = nullptr;
-    place->right = nullptr;
-    delete place;
-
-    binary_node<T, U> *prev = nullptr;
-    while (curNode != nullptr) {        //O(lg n)
-        curNode->maxHeight = std::max(node_height(curNode->left), node_height(curNode->right)) + 1;
-        if (balance_alpha(curNode)) {
-            curNode = prev;
+    binary_node<T, U> *prev = node;
+    while (node != nullptr) {
+        node->maxHeight = std::max(node_height(node->left), node_height(node->right)) + 1;
+        if (balance_alpha(node)) {
+            node = prev;
             continue;
         }
 
-        prev = curNode;
-        curNode = curNode->parent;
+        prev = node;
+        node = node->parent;
     }
 
     nodeCount--;
-
     return *this;
 }
 
@@ -674,18 +693,6 @@ binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitc
 
 template<class T, class U>
 binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *pNode, binary_node<T, U> *pRoot) {
-    if (pNode == nullptr && pRoot == nullptr) {
-        return nullptr;
-    }
-
-    if (pNode == nullptr) {
-        return pRoot;
-    }
-    if (pRoot == nullptr) {
-        pRoot = pNode;
-        return pRoot;
-    }
-
     binary_node<T, U> *temp = pRoot;
     binary_node<T, U> *prev;
     T pKey = pNode->key;
@@ -707,6 +714,7 @@ binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *pN
     else
         prev->right = pNode;
     pNode->parent = prev;
+    prev->maxHeight = std::max(node_height(prev->left), node_height(prev->right)) + 1;
     return pNode;
 }
 

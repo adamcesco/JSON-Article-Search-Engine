@@ -119,16 +119,18 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
 
     SECTION("Testing random avl tree node deletion and destructing") {
         avl_tree<int, int> testDummy;
+        std::unordered_set<int> insertedNums;
 
-        for (int i = 0; i < 16; ++i) {
-            testDummy.insert_overwriting(i, i);
+        for (int i = 0; i < 1000; ++i) {
+            int toInsert = rand() % 20;
+            insertedNums.emplace(toInsert);
+            testDummy.insert_overwriting(toInsert, i);
         }
-        REQUIRE(testDummy.is_balanced());
 
-        for (int i = 0; i < 16; ++i) {
-            testDummy.delete_node(i);
+        for (const auto it: insertedNums) {
+            testDummy.delete_node(it);
             if (!testDummy.is_balanced())
-                std::cout << i << std::endl;
+                std::cout << it << std::endl;
             REQUIRE(testDummy.is_balanced());
         }
         REQUIRE(testDummy.size() == 0);

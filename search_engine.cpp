@@ -61,6 +61,7 @@ void SearchEngine::testFindWord(std::string word) {
     std::vector<std::vector<std::string *> *> results;
     Porter2Stemmer::stem(word);
     unsigned int hash = hasher(word);
+    bool found = false;
     std::ifstream inverseStemFile("../data/hashed-inverse-stemmed.txt");
     while (inverseStemFile.good()) {
         unsigned int cell;
@@ -71,6 +72,7 @@ void SearchEngine::testFindWord(std::string word) {
         if (cell != hash)
             continue;
         else {
+            found = true;
             results.push_back(this->wordTree->get_at(cell));
             std::istringstream rowStream(row);
             while (rowStream) {
@@ -85,11 +87,14 @@ void SearchEngine::testFindWord(std::string word) {
         }
     }
     inverseStemFile.close();
+    if (!found)
+        results.push_back(this->wordTree->get_at(hash));
 
     std::cout << "Top-five articles containing the word " << word << ':' << std::endl;
 
     std::string *prev = nullptr;
-    for (int i = 0; i < results.size() - 1; ++i) {
+    int size = results.size() == 1 ? results.size() : results.size() - 1;
+    for (int i = 0; i < size; ++i) {
 //        std::cout << results[i]->size() << std::endl;
         prev = nullptr;
         for (std::string *article: *results[i]) {

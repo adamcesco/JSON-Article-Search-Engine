@@ -9,6 +9,7 @@
 #include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
 #include <iomanip>      // std::setprecision
+#include <fstream>
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 
 
@@ -78,18 +79,49 @@ void SearchEngine::generateIndex() {
 }
 
 void SearchEngine::testFindWord(std::string word) {
-//    this->wordTree->print_tree_inorder();
     Porter2Stemmer::stem(word);
-    tbb::concurrent_vector<std::string *> *result = this->wordTree->get_at(
-            hash_table<bool, bool>::custom_string_hash(word));
-    std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
+    std::vector<tbb::concurrent_vector<std::string *> *> results;
 
-    std::string *prev;
-//    for (std::string *article: *result) {
-//        if (prev != article)
-//            std::cout << *article << std::endl;
-//        prev = article;
-//    }
+    Porter2Stemmer::stem(word);
+    unsigned int hash = hash_table<bool, bool>::custom_string_hash(word);
+    std::ifstream inverseStemFile("../data/hashed-inverse-stemmed.txt");
+    while (inverseStemFile.good()) {
+        unsigned int cell;
+        inverseStemFile >> cell;
+        std::string row;
+        getline(inverseStemFile, row);
+
+        if (cell != hash)
+            continue;
+        else {
+            results.push_back(this->wordTree->get_at(cell));
+            std::istringstream rowStream(row);
+            while (rowStream) {
+                rowStream >> cell;
+                try {
+                    results.push_back(this->wordTree->get_at(cell));
+                } catch (const std::invalid_argument &e) {
+                    continue;
+                }
+            }
+            break;
+        }
+    }
+    inverseStemFile.close();
+
+    std::cout << "Top-five articles containing the word " << word << ':' << std::endl;
+
+    std::string *prev = nullptr;
+    for (int i = 0; i < results.size() - 1; ++i) {
+        std::cout << results[i]->size() << std::endl;
+//        prev = nullptr;
+//        for (std::string *article: *results[i]) {
+//            if (prev != article) {
+//                std::cout << *article << std::endl;
+//            }
+//            prev = article;
+//        }
+    }
 }
 
 std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {

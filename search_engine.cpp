@@ -113,14 +113,14 @@ void SearchEngine::testFindWord(std::string word) {
 
     std::string *prev = nullptr;
     for (int i = 0; i < results.size() - 1; ++i) {
-//        std::cout << results[i]->size() << std::endl;
-        prev = nullptr;
-        for (std::string *article: *results[i]) {
-            if (prev != article) {
-                std::cout << *article << std::endl;
-            }
-            prev = article;
-        }
+        std::cout << results[i]->size() << std::endl;
+//        prev = nullptr;
+//        for (std::string *article: *results[i]) {
+//            if (prev != article) {
+//                std::cout << *article << std::endl;
+//            }
+//            prev = article;
+//        }
     }
 }
 

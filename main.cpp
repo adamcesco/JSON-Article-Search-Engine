@@ -1,3 +1,5 @@
+#pragma GCC optimize("Ofast")
+
 #include <iostream>
 #include "catch_setup.h"
 #include "SearchEngine.h"

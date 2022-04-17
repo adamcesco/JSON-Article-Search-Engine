@@ -1,3 +1,5 @@
+#pragma GCC optimize("Ofast")
+
 #include <iostream>
 #include "catch_setup.h"
 #include "SearchEngine.h"
@@ -10,7 +12,7 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[1]);
         engine.generateIndex();
-        engine.testFindWord("york");
+        engine.testFindWord("booking");
     }
     return 0;
 }

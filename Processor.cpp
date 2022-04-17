@@ -9,6 +9,7 @@
 #include "./include/termcolor/termcolor.hpp"
 #include <thread>
 #include <fstream>
+#include <chrono>
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 #include "./utils.h"
 
@@ -23,16 +24,16 @@ void Processor::fillQueue(const std::string &folderName) {
     for (const fs::directory_entry &dir_entry:
             fs::recursive_directory_iterator(folderName)) {
         if (fs::is_regular_file(dir_entry)) {
-            this->fileVector.push_back(dir_entry.path().string());
-            this->totalFiles++;
+            this->fileVect.push_back(dir_entry.path().string());
         }
     }
 }
 
 void Processor::process() {
-    std::hash<std::string> hashObj;
-    for (auto &filename: fileVector) {
-        std::ifstream file(filename);
+//    std::ofstream stemFile("../data/hashed-inverse-stemmed.txt");
+//    std::unordered_map<unsigned int, std::unordered_set<unsigned int>> inverseStemming;
+    for (std::string &file_dir: fileVect) {
+        std::ifstream file(file_dir);
         rapidjson::Document document;
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         document.Parse(content.c_str());
@@ -51,20 +52,30 @@ void Processor::process() {
                     hashed = hashed ^ (cc & 31);
                 }
 
-            if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end())
+            if (stopWords.hashedLexicon.find(hashed) == stopWords.hashedLexicon.end()) {
+//                cleanStr(subs);
+//                unsigned int first = custom_string_hash(subs);
+//                Porter2Stemmer::stem(subs);
+//                unsigned int second = custom_string_hash(subs);
+//                if (first != second)
+//                    inverseStemming[second].emplace(first);
                 this->wordMap->operator[](hashed).push_back(uuid);
+            }
         } while (textCorpus);
-
-        filesProcessed++;
     }
 
-    totalWords = wordMap->size();
+//    for (auto &it: inverseStemming) {
+//        stemFile << it.first << " ";
+//        for (auto &jt: it.second) {
+//            stemFile << jt << " ";
+//        }
+//        stemFile << std::endl;
+//    }
+//    stemFile.close();
 
     for (auto &word: *this->wordMap) {
         this->wordTree->insert_overwriting(word.first, &word.second);
     }
-
-    wordsConverted = wordTree->size();
 }
 
 
@@ -74,7 +85,7 @@ void Processor::process() {
  * @return A dummy return value so that the function can be called with std::async
  */
 void Processor::generateIndex(const std::string &folderName) {
-    this->fillQueue(folderName);
+    fillQueue(folderName);
     process();
 }
 

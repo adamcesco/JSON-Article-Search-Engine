@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <stack>
 #include "Processor.h"
 #include "hash_table/hash_table.h"
 #include "./TableBundle.h"

@@ -279,6 +279,7 @@ struct StopWords {
             "let",
             "lets",
             "like",
+            "liking",
             "liked",
             "likely",
             "line",

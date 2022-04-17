@@ -75,8 +75,11 @@ void SearchEngine::testFindWord(std::string word) {
             std::istringstream rowStream(row);
             while (rowStream) {
                 rowStream >> cell;
-                std::cout << word << ',' << hash << ',' << cell << std::endl;
-                results.push_back(this->wordTree->get_at(cell));
+                try {
+                    results.push_back(this->wordTree->get_at(cell));
+                } catch (const std::invalid_argument &e) {
+                    continue;
+                }
             }
             break;
         }
@@ -84,21 +87,15 @@ void SearchEngine::testFindWord(std::string word) {
 
     std::cout << "Top-five articles containing the word " << word << ':' << std::endl;
 
-    auto it = results.begin();
-    do {
-        std::cout << (*it)->size() << std::endl;
-        ++it;
-    } while (it != results.end());
-
-//    std::string *prev;
-//    int count = 0;
-//    for (std::string *article: it) {
-//        if (count == 5)
-//            break;
-//        if (prev != article) {
-//            std::cout << *article << std::endl;
-//            count++;
-//        }
-//        prev = article;
-//    }
+    std::string *prev = nullptr;
+    for (int i = 0; i < results.size() - 1; ++i) {
+//        std::cout << results[i]->size() << std::endl;
+        prev = nullptr;
+        for (std::string *article: *results[i]) {
+            if (prev != article) {
+                std::cout << *article << std::endl;
+            }
+            prev = article;
+        }
+    }
 }

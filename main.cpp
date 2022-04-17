@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[1]);
         engine.generateIndex();
-        engine.testFindWord("booking");
+        engine.testFindWord("banking");
     }
     return 0;
 }

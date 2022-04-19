@@ -106,29 +106,6 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.is_balanced());
     }
 
-    SECTION("Testing random avl tree node deletion and destructing") {
-        avl_tree<int, int> testDummy;
-        std::unordered_set<int> insertedNums;
-
-        for (int i = 0; i < 1000; ++i) {
-            int toInsert = rand() % 20;
-            insertedNums.emplace(toInsert);
-            testDummy.insert_overwriting(toInsert, i);
-        }
-
-        for (const auto it: insertedNums) {
-            try {
-                testDummy.delete_node(it);
-                std::cout << "Deleted: " << it << std::endl;
-            }
-            catch (const std::invalid_argument &e) { std::cout << "Could not find: " << it << std::endl; }
-            if (!testDummy.is_balanced())
-                std::cout << it << std::endl;
-            REQUIRE(testDummy.is_balanced());
-        }
-        REQUIRE(testDummy.size() == 0);
-    }
-
     SECTION("Testing copy constructor and destructor with empty avl_tree") {
         avl_tree<int, int> testDummy;
         avl_tree<int, int> testAVL(testDummy);
@@ -253,5 +230,27 @@ TEST_CASE("Testing AVL tree deletion") {
     SECTION("Testing avl tree node deletion and destructing | 7") {
         testDummy.delete_node(0);
         REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing random avl tree node deletion and destructing") {
+        avl_tree<int, int> testDummy;
+        std::unordered_set<int> insertedNums;
+
+        for (int i = 0; i < 1000; ++i) {
+            int toInsert = rand() % 20;
+            insertedNums.emplace(toInsert);
+            testDummy.insert_overwriting(toInsert, i);
+        }
+
+        for (const auto it: insertedNums) {
+            try {
+                testDummy.delete_node(it);
+            }
+            catch (const std::invalid_argument &e) { std::cout << "Could not delete: " << it << std::endl; }
+            if (!testDummy.is_balanced())
+                std::cout << it << std::endl;
+            REQUIRE(testDummy.is_balanced());
+        }
+        REQUIRE(testDummy.size() == 0);
     }
 }

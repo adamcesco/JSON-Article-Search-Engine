@@ -638,7 +638,7 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
                 temp->right->parent = place;
             node = place;
         }
-
+        nodeCount--;
         temp->left = nullptr;
         temp->right = nullptr;
         temp->parent = nullptr;
@@ -649,14 +649,14 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
             successor = successor->left;
 
         T succKey = successor->key;
-//        node = successor->parent;
+        U succData = successor->data;
+        node = nullptr;
         delete_node(succKey);
 
-        place->key = successor->key;
-        place->data = successor->data;
+        place->key = succKey;
+        place->data = succData;
     }
     if (node == nullptr) {
-        nodeCount--;
         return *this;
     }
 
@@ -672,7 +672,6 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
         node = node->parent;
     }
 
-    nodeCount--;
     update_height_of_subtree(root);
     return *this;
 }

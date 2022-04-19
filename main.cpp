@@ -10,9 +10,9 @@ int main(int argc, char **argv) {
         runCatchTests();
         return 0;
     } else {
-        SearchEngine engine(argv[1]);
+        SearchEngine engine(argv[2]);
         engine.generateIndex();
-        engine.testFindWord("ghost");
+        engine.testFindWord(argv[1]);
     }
     return 0;
 }

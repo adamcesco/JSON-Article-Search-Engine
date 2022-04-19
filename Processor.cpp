@@ -39,7 +39,7 @@ void Processor::process() {
         document.Parse(content.c_str());
         file.close();
 
-        auto *uuid = new std::string(document["uuid"].GetString());
+        auto *uuid = &file_dir;
         std::istringstream textCorpus(document["text"].GetString());
 
         std::string subs;

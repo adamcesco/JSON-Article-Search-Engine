@@ -106,17 +106,6 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testDummy.is_balanced());
     }
 
-    SECTION("Testing avl tree node deletion and destructing") {
-        avl_tree<int, int> testDummy;
-        testDummy.insert(0, 0);
-        testDummy.insert(-6, 1);
-        testDummy.insert(1, 2);
-        testDummy.insert(-7, 3);
-
-        testDummy.delete_node(-7);
-        REQUIRE(testDummy.is_balanced());
-    }
-
     SECTION("Testing random avl tree node deletion and destructing") {
         avl_tree<int, int> testDummy;
         std::unordered_set<int> insertedNums;
@@ -128,7 +117,8 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         }
 
         for (const auto it: insertedNums) {
-            testDummy.delete_node(it);
+            try { testDummy.delete_node(it); }
+            catch (const std::invalid_argument &e) { std::cout << "Could not find: " << it << std::endl; }
             if (!testDummy.is_balanced())
                 std::cout << it << std::endl;
             REQUIRE(testDummy.is_balanced());
@@ -203,5 +193,62 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         REQUIRE(testAVL.contains(5));
         REQUIRE(testAVL.size() == 5);
         REQUIRE(testAVL.is_balanced());
+    }
+}
+
+TEST_CASE("Testing AVL tree deletion") {
+    avl_tree<int, int> testDummy;
+    testDummy.insert(0, 0);
+    testDummy.insert(-6, 1);
+    testDummy.insert(2, 2);
+    testDummy.insert(-7, 3);
+
+    SECTION("Testing avl tree node deletion and destructing | 1") {
+        testDummy.delete_node(-7);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 2") {
+        testDummy.delete_node(-6);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 3") {
+        testDummy.delete_node(0);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 4") {
+        testDummy.delete_node(2);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    testDummy.insert(1, 4);
+
+    SECTION("Testing avl tree node deletion and destructing | 5") {
+        testDummy.delete_node(2);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 5") {
+        testDummy.delete_node(1);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    testDummy.insert(3, 4);
+
+    SECTION("Testing avl tree node deletion and destructing | 6") {
+        testDummy.delete_node(2);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 7") {
+        testDummy.delete_node(3);
+        REQUIRE(testDummy.is_balanced());
+    }
+
+    SECTION("Testing avl tree node deletion and destructing | 7") {
+        testDummy.delete_node(0);
+        REQUIRE(testDummy.is_balanced());
     }
 }

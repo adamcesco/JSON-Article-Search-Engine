@@ -165,9 +165,6 @@ private:
 
     binary_node<T, U> *find_place_of(const T &pKey, DIRECTION &);
 
-    binary_node<T, U> *
-    place_node_into_subtree(binary_node<T, U> *pNode, binary_node<T, U> *pRoot);
-
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
 };
@@ -620,6 +617,14 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
         if (temp == nullptr) {
             temp = place;
             node = place->parent;
+            if (node != nullptr) {
+                if (stitchDir == LEFT)
+                    node->left = nullptr;
+                else
+                    node->right = nullptr;
+            }
+            if (place == root)
+                root = node;
             place = nullptr;
         } else { // One child case
             place->maxHeight = temp->maxHeight;
@@ -643,16 +648,14 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
         while (successor->left != nullptr)
             successor = successor->left;
 
+        T succKey = successor->key;
+//        node = successor->parent;
+        delete_node(succKey);
+
         place->key = successor->key;
         place->data = successor->data;
-        node = successor->parent;
-
-        successor->left = nullptr;
-        successor->right = nullptr;
-        successor->parent = nullptr;
-        delete successor;
     }
-    if (place == nullptr) {
+    if (node == nullptr) {
         nodeCount--;
         return *this;
     }
@@ -670,6 +673,7 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
     }
 
     nodeCount--;
+    update_height_of_subtree(root);
     return *this;
 }
 
@@ -689,33 +693,6 @@ binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitc
     }
     throw std::invalid_argument(
             "Error in \"binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitchDir)\" | Passed value cannot be found within tree.");
-}
-
-template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::place_node_into_subtree(binary_node<T, U> *pNode, binary_node<T, U> *pRoot) {
-    binary_node<T, U> *temp = pRoot;
-    binary_node<T, U> *prev;
-    T pKey = pNode->key;
-    DIRECTION stitchDir;
-
-    while (temp != nullptr) {
-        prev = temp;
-        if (pKey < temp->key) {
-            temp = temp->left;
-            stitchDir = LEFT;
-        } else {
-            temp = temp->right;
-            stitchDir = RIGHT;
-        }
-    }
-
-    if (stitchDir == LEFT)
-        prev->left = pNode;
-    else
-        prev->right = pNode;
-    pNode->parent = prev;
-    prev->maxHeight = std::max(node_height(prev->left), node_height(prev->right)) + 1;
-    return pNode;
 }
 
 template<class T, class U>

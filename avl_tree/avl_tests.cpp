@@ -117,7 +117,10 @@ TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
         }
 
         for (const auto it: insertedNums) {
-            try { testDummy.delete_node(it); }
+            try {
+                testDummy.delete_node(it);
+                std::cout << "Deleted: " << it << std::endl;
+            }
             catch (const std::invalid_argument &e) { std::cout << "Could not find: " << it << std::endl; }
             if (!testDummy.is_balanced())
                 std::cout << it << std::endl;

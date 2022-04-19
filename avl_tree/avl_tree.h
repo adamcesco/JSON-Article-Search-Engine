@@ -163,7 +163,7 @@ private:
 
     bool check_balance(binary_node<T, U> *&node);
 
-    binary_node<T, U> *find_place_of(const T &pKey, DIRECTION &);
+    binary_node<T, U> *find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -607,7 +607,7 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
                 "Error in \"avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &)\" | avl tree is empty.");
 
     DIRECTION stitchDir = LEFT;
-    binary_node<T, U> *place = find_place_of(pKey, stitchDir);    //O(lg n)
+    binary_node<T, U> *place = find_place_of_from(root, pKey, stitchDir);    //O(lg n)
     binary_node<T, U> *node = nullptr;
 
     if ((place->left == nullptr) || (place->right == nullptr)) {
@@ -638,46 +638,46 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
                 temp->right->parent = place;
             node = place;
         }
+
         nodeCount--;
         temp->left = nullptr;
         temp->right = nullptr;
         temp->parent = nullptr;
         delete temp;
-    } else {
-        binary_node<T, U> *successor = place->right;
-        while (successor->left != nullptr)
-            successor = successor->left;
 
-        T succKey = successor->key;
-        U succData = successor->data;
-        node = nullptr;
-        delete_node(succKey);
+        binary_node<T, U> *prev = node;
+        while (node != nullptr) {
+            node->maxHeight = std::max(node_height(node->left), node_height(node->right)) + 1;
+            if (balance_alpha(node)) {
+                node = prev;
+                continue;
+            }
 
-        place->key = succKey;
-        place->data = succData;
-    }
-    if (node == nullptr) {
+            prev = node;
+            node = node->parent;
+        }
+
         return *this;
     }
 
-    binary_node<T, U> *prev = node;
-    while (node != nullptr) {
-        node->maxHeight = std::max(node_height(node->left), node_height(node->right)) + 1;
-        if (balance_alpha(node)) {
-            node = prev;
-            continue;
-        }
+    binary_node<T, U> *successor = place->right;
+    while (successor->left != nullptr)
+        successor = successor->left;
 
-        prev = node;
-        node = node->parent;
-    }
+    T succKey = successor->key;
+    U succData = successor->data;
+
+    delete_node(succKey);
+
+    place->key = succKey;
+    place->data = succData;
 
     return *this;
 }
 
 template<class T, class U>
-binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitchDir) {
-    binary_node<T, U> *temp = root;
+binary_node<T, U> *avl_tree<T, U>::find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &stitchDir) {
+    binary_node<T, U> *temp = node;
     while (temp != nullptr) {
         if (pKey > temp->key) {
             temp = temp->right;
@@ -690,7 +690,7 @@ binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitc
         }
     }
     throw std::invalid_argument(
-            "Error in \"binary_node<T, U> *avl_tree<T, U>::find_place_of(const T &pKey, DIRECTION &stitchDir)\" | Passed value cannot be found within tree.");
+            "Error in \"binary_node<T, U> *avl_tree<T, U>::find_place_of_from(const T &pKey, DIRECTION &stitchDir)\" | Passed value cannot be found within tree.");
 }
 
 template<class T, class U>

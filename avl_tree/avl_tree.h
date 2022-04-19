@@ -627,11 +627,11 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
                 root = node;
             place = nullptr;
         } else { // One child case
-            place->maxHeight = temp->maxHeight;
             place->key = temp->key;
             place->data = temp->data;
             place->left = temp->left;
             place->right = temp->right;
+            place->maxHeight = std::max(node_height(place->left), node_height(place->right)) + 1;
             if (temp->left != nullptr)
                 temp->left->parent = place;
             if (temp->right != nullptr)
@@ -672,7 +672,6 @@ avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
         node = node->parent;
     }
 
-    update_height_of_subtree(root);
     return *this;
 }
 

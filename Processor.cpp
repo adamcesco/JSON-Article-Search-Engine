@@ -39,7 +39,6 @@ void Processor::process() {
         document.Parse(content.c_str());
         file.close();
 
-        auto *uuid = &file_dir;
         std::istringstream textCorpus(document["text"].GetString());
 
         std::string subs;
@@ -59,7 +58,7 @@ void Processor::process() {
 //                unsigned int second = custom_string_hash(subs);
 //                if (first != second)
 //                    inverseStemming[second].emplace(first);
-                this->wordMap->operator[](hashed).push_back(uuid);
+                this->wordMap->operator[](hashed).push_back(&file_dir);
             }
         } while (textCorpus);
     }

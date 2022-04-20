@@ -67,6 +67,10 @@ public:
     double getProgress();
 
     double getConversionProgress();
+
+    void build_data_from(const std::string &fileDir);
+
+    void save_data_to(const std::string &fileDir);
 };
 
 

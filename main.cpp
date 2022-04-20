@@ -9,8 +9,10 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[1]);
-        engine.generateIndex();
+        engine.buildTreeFromCache();
+//        engine.generateIndex();
         engine.testFindWord("laughing");
+//        engine.cacheTree();
     }
     return 0;
 }

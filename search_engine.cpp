@@ -91,3 +91,11 @@ std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
     // TODO
     return std::vector<std::string>();
 }
+
+void SearchEngine::cacheTree() {
+    this->processor->save_data_to("../tree-cache.txt");
+}
+
+void SearchEngine::buildTreeFromCache() {
+    this->processor->build_data_from("../tree-cache.txt");
+}

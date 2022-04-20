@@ -193,13 +193,9 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concur
     this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>>();
 }
 
-void dummyFunction(tbb::concurrent_vector<std::string> &s1, const tbb::concurrent_vector<std::string> &s2) {
-}
-
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {
-        // pass first second and empty function
         this->wordTree->insert_overwriting(word.first, &word.second);
 
         this->wordsConverted++;
@@ -210,5 +206,46 @@ std::string Processor::convertToTree() {
 
 double Processor::getConversionProgress() {
     return (double) this->wordsConverted.load() / (double) this->totalWords;
+}
+
+void Processor::build_data_from(const std::string &fileDir) {
+    std::ifstream inFile(fileDir);
+    if (!inFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void Processor::build_data_from(const std::string &fileDir)\" | Could not open " + fileDir);
+
+    this->tbbMap->clear();
+
+    while (inFile.good()) {
+        std::string key;
+        std::string element;
+        std::string row;
+        inFile >> key;
+        getline(inFile, row);
+        std::stringstream rowStream(row);
+        while (rowStream.good()) {
+            rowStream >> element;
+            this->tbbMap->operator[](key).push_back(element);
+        }
+    }
+    inFile.close();
+    
+    convertToTree();
+}
+
+void Processor::save_data_to(const std::string &fileDir) {
+    std::ofstream outFile(fileDir);
+    if (!outFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void Processor::save_data_to(const std::string &fileDir)\" | Could not open " + fileDir);
+
+    for (auto &word: *this->tbbMap) {
+        outFile << word.first;
+        for (auto &element: word.second) {
+            outFile << ' ' << element;
+        }
+        outFile << std::endl;
+    }
+    outFile.close();
 }
 

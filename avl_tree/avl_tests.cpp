@@ -4,9 +4,12 @@
 
 #include "../catch.hpp"
 #include "avl_tree.h"
+#include "avl_tree_io.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 TEST_CASE("Testing avl_tree construct and destructor", "[avl_tree]") {
     SECTION("Testing default constructor and destructor") {
@@ -227,7 +230,7 @@ TEST_CASE("Testing AVL tree deletion") {
         REQUIRE(testDummy.is_balanced());
     }
 
-    SECTION("Testing avl tree node deletion and destructing | 7") {
+    SECTION("Testing avl tree node deletion and destructing | 8") {
         testDummy.delete_node(0);
         REQUIRE(testDummy.is_balanced());
     }
@@ -252,5 +255,48 @@ TEST_CASE("Testing AVL tree deletion") {
             REQUIRE(testDummy.is_balanced());
         }
         REQUIRE(testDummy.size() == 0);
+    }
+}
+
+TEST_CASE("Testing AVL tree saving and building to/from file", "avl_tree_io") {
+    avl_tree_io<char, int> testDummy;
+
+    SECTION("Testing avl_tree_io saving to file and building from a file") {
+        for (int i = 0; i < 26; ++i) {
+            testDummy.insert('a' + i, i);
+        }
+        testDummy.print_levelOrder("../avl_tree/buildCorpus.txt");
+        testDummy.clear();
+        testDummy.build_tree_from_txt("../avl_tree/buildCorpus.txt");
+        for (int i = 0; i < 26; ++i) {
+            REQUIRE(testDummy['a' + i] == i);
+        }
+    }
+}
+
+void append_alias(std::vector<int> &vect1, const std::vector<int> &vect2) {
+    vect1.push_back(vect2[0]);
+}
+
+void push_back_alias(std::vector<int> &vect1, const int &i) {
+    vect1.push_back(i);
+}
+
+TEST_CASE("Testing AVL tree with list data saving and building to/from file", "avl_tree_io_list") {
+    avl_tree_io_list<char, std::vector<int>, int> testDummy;
+    std::unordered_map<char, std::vector<int>> tracker;
+
+    SECTION("Testing avl_tree_io saving to file and building from a file") {
+        for (int i = 0; i < 50; ++i) {
+            char cc = 'a' + rand() % 26;
+            testDummy.insert(cc, {i}, &append_alias);
+            tracker[cc].push_back(i);
+        }
+        testDummy.print_levelOrder("../avl_tree/buildCorpus.txt");
+        testDummy.clear();
+        testDummy.build_tree_from_txt("../avl_tree/buildCorpus.txt", &push_back_alias);
+        for (const auto &it: tracker) {
+            REQUIRE(testDummy[it.first] == it.second);
+        }
     }
 }

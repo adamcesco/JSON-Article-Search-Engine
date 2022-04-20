@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <tbb/concurrent_vector.h>
 
 template<class T, class U>
@@ -96,7 +97,7 @@ public:
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
     avl_tree &
-    insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue, void (*append)(U &, const U &));
+    insert(const T &pKey, const U &pValue, void (*append)(U &, const U &));
 
     /**
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "+=" operator will be called to append the passed value into the original value within that pre-existing node.
@@ -119,15 +120,24 @@ public:
     /**
      * @brief Prints the tree in value-specific-ascending order via the "in-order" recursive algorithm.
      */
-    void print_tree_inorder() { print_inorder(root); }
+    void print_tree_inOrder() { print_inOrder(root); }
+
+    virtual void print_levelOrder();
 
     bool is_balanced();
 
     avl_tree &delete_node(const T &pKey);
 
+    avl_tree &clear() {
+        delete root;
+        root = nullptr;
+        nodeCount = 0;
+    }
+
     ~avl_tree();
 
-private:
+protected:
+
     enum INSERT_OPERATION {
         INSERTED, MASKED
     };
@@ -159,7 +169,9 @@ private:
 
     int update_height_of_subtree(binary_node<T, U> *node);
 
-    void print_inorder(binary_node<T, U> *&node);
+    void print_inOrder(binary_node<T, U> *&node);
+
+    virtual void print_console_current_level(binary_node<T, U> *&node, int level);
 
     bool check_balance(binary_node<T, U> *&node);
 
@@ -170,7 +182,7 @@ private:
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, tbb::concurrent_vector<std::basic_string<char>> pValue,
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue,
                                        void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
     binary_node<T, U> *curNode = unbalanced_insert(pKey, pValue, operation, append);        //O(lg n)
@@ -561,11 +573,11 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, IN
 }
 
 template<class T, class U>
-void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
+void avl_tree<T, U>::print_inOrder(binary_node<T, U> *&node) {
     if (node != nullptr) {
-        print_inorder(node->left);
+        print_inOrder(node->left);
         std::cout << node->key << std::endl;
-        print_inorder(node->right);
+        print_inOrder(node->right);
     }
 }
 
@@ -716,6 +728,26 @@ avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
     }
     nodeCount = toAssign.nodeCount;
     return *this;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_levelOrder() {
+    int height = nodeCount;
+    for (int i = 0; i < height; ++i) {
+        print_console_current_level(root, i);
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_console_current_level(binary_node<T, U> *&node, int level) {
+    if (node == nullptr)
+        return;
+    if (level == 1)
+        std::cout << node->key << std::endl;
+    else if (level > 1) {
+        print_console_current_level(node->left, level - 1);
+        print_console_current_level(node->right, level - 1);
+    }
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

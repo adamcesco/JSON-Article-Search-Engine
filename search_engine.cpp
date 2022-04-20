@@ -78,7 +78,7 @@ void SearchEngine::generateIndex() {
 }
 
 void SearchEngine::testFindWord(std::string word) {
-//    this->wordTree->print_tree_inorder();
+//    this->wordTree->print_tree_inOrder();
     Porter2Stemmer::stem(word);
     tbb::concurrent_vector<std::string> *result = this->wordTree->operator[](word);
     std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;

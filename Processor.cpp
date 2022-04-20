@@ -24,7 +24,8 @@ void Processor::fillQueue(std::string folderName) {
     // Only files not folders
     for (const fs::directory_entry &dir_entry:
             fs::recursive_directory_iterator(folderName)) {
-        if (fs::is_regular_file(dir_entry)) {
+        if (fs::is_regular_file(dir_entry) &&
+            dir_entry.path().string().substr(dir_entry.path().string().size() - 5, 5) == ".json") {
             this->fileQueue.push(dir_entry.path().string());
             this->totalFiles++;
         }

@@ -117,13 +117,6 @@ public:
      * */
     avl_tree &insert_overwriting(const T &pKey, const U &pValue);
 
-    /**
-     * @brief Prints the tree in value-specific-ascending order via the "in-order" recursive algorithm.
-     */
-    void print_tree_inOrder() { print_inOrder(root); }
-
-    virtual void print_levelOrder();
-
     bool is_balanced();
 
     avl_tree &delete_node(const T &pKey);
@@ -168,10 +161,6 @@ protected:
     static int node_height(binary_node<T, U> *node);
 
     int update_height_of_subtree(binary_node<T, U> *node);
-
-    void print_inOrder(binary_node<T, U> *&node);
-
-    virtual void print_console_current_level(binary_node<T, U> *&node, int level);
 
     bool check_balance(binary_node<T, U> *&node);
 
@@ -573,15 +562,6 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, IN
 }
 
 template<class T, class U>
-void avl_tree<T, U>::print_inOrder(binary_node<T, U> *&node) {
-    if (node != nullptr) {
-        print_inOrder(node->left);
-        std::cout << node->key << std::endl;
-        print_inOrder(node->right);
-    }
-}
-
-template<class T, class U>
 inline int avl_tree<T, U>::node_height(binary_node<T, U> *node) {
     return (node == nullptr) ? -1 : node->maxHeight;
 }
@@ -728,26 +708,6 @@ avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
     }
     nodeCount = toAssign.nodeCount;
     return *this;
-}
-
-template<class T, class U>
-void avl_tree<T, U>::print_levelOrder() {
-    int height = nodeCount;
-    for (int i = 0; i < height; ++i) {
-        print_console_current_level(root, i);
-    }
-}
-
-template<class T, class U>
-void avl_tree<T, U>::print_console_current_level(binary_node<T, U> *&node, int level) {
-    if (node == nullptr)
-        return;
-    if (level == 1)
-        std::cout << node->key << std::endl;
-    else if (level > 1) {
-        print_console_current_level(node->left, level - 1);
-        print_console_current_level(node->right, level - 1);
-    }
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

@@ -8,10 +8,15 @@ int main(int argc, char **argv) {
         runCatchTests();
         return 0;
     } else {
-        SearchEngine engine(argv[1]);
+        SearchEngine engine(argv[2]);
         engine.buildTreeFromCache();
 //        engine.generateIndex();
-        engine.testFindWord("laughing");
+        try {
+            engine.testFindWord("dogs");
+        } catch (std::exception &e) {
+            std::cout << e.what() << std::endl;
+        }
+
 //        engine.cacheTree();
     }
     return 0;

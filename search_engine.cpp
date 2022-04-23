@@ -20,7 +20,7 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
     this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
 
-    this->wordTree = new avl_tree<std::string, tbb::concurrent_vector<std::string> *>();
+    this->wordTree = new avl_tree<std::string, std::vector<std::pair<std::string, double>>>();
     this->wordTreeMutex = new std::mutex();
 
     this->processor = new Processor(this->tables, this->wordTree,
@@ -77,14 +77,20 @@ void SearchEngine::generateIndex() {
 
 }
 
+/**
+ * @deprecated
+ */
 void SearchEngine::testFindWord(std::string word) {
-//    this->wordTree->print_tree_inOrder();
     Porter2Stemmer::stem(word);
-    tbb::concurrent_vector<std::string> *result = this->wordTree->operator[](word);
-    std::cout << "Found " << result->size() << " articles containing the word " << word << ":" << std::endl;
-    for (std::string article: *result) {
-        std::cout << article << std::endl;
+    std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
+    std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
+    for (auto& article: result) {
+        std::cout << article.first << " | " << article.second;
+        Article doc =  this->tables->articles->operator[](article.first);
+        std::cout << doc.filename << std::endl;
+
     }
+
 }
 
 std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {

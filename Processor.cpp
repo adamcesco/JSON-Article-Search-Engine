@@ -8,7 +8,6 @@
 #include "./include/rapidjson/document.h"
 #include "./include/termcolor/termcolor.hpp"
 #include <thread>
-#include <fstream>
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 #include "./utils.h"
 
@@ -81,14 +80,9 @@ void Processor::process() {
                 .author = author,
         };
 
-//        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
-//        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
-//        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
-
-        this->fillAuthors(uuid,
-                          author);    ////Saying that this has values that are incorrectly passed, double check this DREW
-        this->fillOrganization(orgs, uuid);
-        this->fillArticle(art);
+        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
+        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
+        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
 
 
         std::string text = document["text"].GetString();
@@ -105,15 +99,13 @@ void Processor::process() {
             if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
                 Porter2Stemmer::stem(subs);
                 if (subs.substr(0, 3) != "www") {
-                    // Used :https://stackoverflow.com/questions/60586122/tbbconcurrent-hash-mapk-v-sample-code-for-intel-threading-building-blocks-t
-                    this->tbbMap->operator[](subs).push_back(uuid);
-                    // End quoted code
+                    this->tbbMap->operator[](subs)[uuid]++;
                 }
             }
         } while (iss);
-//        tableFillAuthorThread.join();
-//        tableFillOrgsThread.join();
-//        tableFillArticlesThread.join();
+        tableFillAuthorThread.join();
+        tableFillOrgsThread.join();
+        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -161,8 +153,8 @@ bool Processor::safeIsEmpty() {
 }
 
 Processor::~Processor() {
-//    delete this->fileQueueMutex;
-//    delete this->tbbMap;
+    delete this->fileQueueMutex;
+    delete this->tbbMap;
 }
 
 void Processor::fillArticle(const Article &article) {
@@ -180,7 +172,7 @@ void Processor::fillAuthors(const std::string &authors, const std::string &uuid)
 }
 
 
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concurrent_vector<std::string> *> *tree,
+Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                      std::mutex *treeMut) {
     this->tableBundle = tableBundle;
     this->stopWords = StopWords();
@@ -190,9 +182,12 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, tbb::concur
     this->fileQueueMutex = new std::mutex();
     this->filesProcessed = 0;
     this->wordsConverted = 0;
-    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_vector<std::string>>();
+    this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>>();
 }
 
+
+
+#include <math.h>
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &word: *this->tbbMap) {

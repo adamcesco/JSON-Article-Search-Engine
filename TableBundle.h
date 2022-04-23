@@ -32,9 +32,6 @@ struct TableBundle {
     // Orgs to uuids
     tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *orgs;
     tbb::concurrent_unordered_map<std::string, Article> *articles;
-    std::mutex authorsMutex;
-    std::mutex orgsMutex;
-    std::mutex articlesMutex;
 
     ~TableBundle() {
         delete authors;

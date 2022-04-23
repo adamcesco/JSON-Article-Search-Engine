@@ -24,18 +24,20 @@ class Processor {
 private:
     // Passed from SearchEngine
     int totalFiles = 0;
-    int filesProcessed;
+    std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::vector<std::string> fileVect;
+    std::mutex *fileQueueMutex;
+    std::queue<std::string> fileQueue;
 
-    /** @attention Do not delete/destruct this instance ("wordMap") until you are done with the avl_tree instance that contains pointers to the values of "wordMap" */
-    std::unordered_map<unsigned int, std::vector<std::string *>> *wordMap = nullptr;
+    /** @attention Do not delete/destruct this instance ("tbbMap") until you are done with the avl_tree instance that contains pointers to the values of "tbbMap" */
+    tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
 
     TableBundle *tableBundle;
 
-    /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::wordMap" */
-    avl_tree<unsigned int, std::vector<std::string *> *> *wordTree = nullptr;
-    int wordsConverted;
+    /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::tbbMap" */
+    avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
+    std::mutex *wordTreeMutex;
+    std::atomic<int> wordsConverted;
     int totalWords = 0;
 
     void fillArticle(const Article &article);
@@ -44,22 +46,31 @@ private:
 
     void fillAuthors(const std::string &authors, const std::string &uuid);
 
-    void fillQueue(const std::string &folderName);
+    void fillQueue(std::string folderName);
 
     void process();
 
+
+    bool safeIsEmpty();
+
 public:
-    explicit Processor(avl_tree<unsigned int, std::vector<std::string *> *> *tree);
+    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
+                       std::mutex *treeMut);
 
     ~Processor();
 
-    void convertToTree();
 
-    void generateIndex(const std::string &folderName);
+    std::string convertToTree();
+
+    std::string generateIndex(std::string folderName);
 
     double getProgress();
 
     double getConversionProgress();
+
+    void build_data_from(const std::string &fileDir);
+
+    void save_data_to(const std::string &fileDir);
 };
 
 

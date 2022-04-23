@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <tbb/concurrent_vector.h>
 
 template<class T, class U>
@@ -25,6 +26,31 @@ struct binary_node {
         right->data = value;
     }
 
+    void copy_subtree(const binary_node<T, U> *pNode) {
+        if (pNode == nullptr)
+            return;
+        key = pNode->key;
+        data = pNode->data;
+        maxHeight = pNode->maxHeight;
+        delete this->left;
+        if (pNode->left != nullptr) {
+            this->left = new binary_node<T, U>();
+            this->left->copy_subtree(pNode->left);
+            this->left->parent = this;
+        }
+        delete this->right;
+        if (pNode->right != nullptr) {
+            this->right = new binary_node<T, U>();
+            this->right->copy_subtree(pNode->right);       //stitch parents
+            this->right->parent = this;
+        }
+    }
+
+//    template<class Archive>
+//    void serialize(Archive & archive) {
+//        archive(key, data);
+//    }
+
     ~binary_node() {
         delete left;
         delete right;
@@ -38,9 +64,17 @@ struct binary_node {
     binary_node<T, U> *right = nullptr;
 };
 
+#include "../include/cereal/archives/json.hpp"
+#include "../include/cereal/archives/binary.hpp"
+#include "../include/cereal/types/vector.hpp"
+#include "../include/cereal/types/string.hpp"
+#include "../include/cereal/types/utility.hpp"
+
 template<class T, class U>
 class avl_tree {
 public:
+
+
     avl_tree() = default;
 
     avl_tree(const avl_tree &);
@@ -48,35 +82,41 @@ public:
     avl_tree &operator=(const avl_tree &);
 
     /**
-     * @brief Returns true if the passed key is within the tree, otherwise returns false. O(lg n).
+     * @brief Returns true if the passed key is within the tree, otherwise returns false.
      * @param pKey This is the value that will be searched for within the avl_tree
+     * @attention O(lg n)
      * @attention Uses "==", "<", and ">" operators.
      * */
     bool contains(const T &pKey);
 
     /**
-     * @brief Returns the value bound to the passed key by reference. O(lg n).
+     * @brief Returns the value bound to the passed key by reference.
      * @param pKey This is the value that will be searched for within the avl_tree, in order to get the value associated with it.
+     * @attention O(lg n)
      * @attention Uses "==", "<", and ">" operators.
      * */
-    U &get_at(const T &pKey);
+    U &operator[](const T &pKey);
 
     unsigned int size() { return nodeCount; }
+
+    bool is_empty() { return nodeCount == 0; }
 
     /**
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the passed append function will be used to append the passed value to the original value within that pre-existing node.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
      * @param append This is the function that will be used in the case where a node with a key equal to the passed key already exist. This is where the funciton will "append" the passed value to the original value within that pre-existing node.
+     * @attention O(lg n)
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
-    avl_tree &insert(const T &pKey, U &pValue,
-                     void (*append)(U &, const U &));   //O(n lg n)
+    avl_tree &
+    insert(const T &pKey, const U &pValue, void (*append)(U &, const U &));
 
     /**
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "+=" operator will be called to append the passed value into the original value within that pre-existing node.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention O(lg n)
      * @attention Uses "=", "+=", "==", "<", and ">" operators.
      * */
     avl_tree &insert(const T &pKey, const U &pValue);
@@ -85,20 +125,28 @@ public:
      * @brief Places the passed key/value pair into the avl_tree. If the passed key is already found within this avl_tree, then the "=" operator will be called to overwrite the original value within that pre-existing node with the passed value.
      * @param pKey This is the value that will be referenced for placement position within the avl_tree, and it will be the key that is paired/bound with the passed value parameter.
      * @param pValue This is the value that will be placed into the newly created avl_tree node.
+     * @attention O(lg n)
      * @attention Uses "=", "==", "<", and ">" operators.
      * */
     avl_tree &insert_overwriting(const T &pKey, const U &pValue);
 
-    /**
-     * @brief Prints the tree in value-specific_ascending order via the "in-order" recursive algorithm.
-     */
-    void print_tree_inorder() { print_inorder(root); }
-
     bool is_balanced();
+
+    avl_tree &delete_node(const T &pKey);
+
+    avl_tree &clear() {
+        delete root;
+        root = nullptr;
+        nodeCount = 0;
+        return *this;
+    }
+
+    void archive_tree(std::string filename);
 
     ~avl_tree();
 
-private:
+protected:
+
     enum INSERT_OPERATION {
         INSERTED, MASKED
     };
@@ -124,22 +172,24 @@ private:
 
     binary_node<T, U> *unbalanced_insert_overwriting(const T &pKey, const U &pValue, INSERT_OPERATION &operation);
 
-    static int node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode);
+    int node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode);
 
     static int node_height(binary_node<T, U> *node);
 
     int update_height_of_subtree(binary_node<T, U> *node);
 
-    void print_inorder(binary_node<T, U> *&node);
-
     bool check_balance(binary_node<T, U> *&node);
+
+    binary_node<T, U> *find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &);
+
+    void archive_current_level(cereal::BinaryOutputArchive& archive , binary_node<T, U> *&node, int level);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
 };
 
 template<class T, class U>
-avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, U &pValue,
+avl_tree<T, U> &avl_tree<T, U>::insert(const T &pKey, const U &pValue,
                                        void (*append)(U &, const U &)) {
     INSERT_OPERATION operation = INSERTED;
     binary_node<T, U> *curNode = unbalanced_insert(pKey, pValue, operation, append);        //O(lg n)
@@ -173,15 +223,15 @@ avl_tree<T, U>::unbalanced_insert(const T &pKey, const U &pValue, INSERT_OPERATI
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey < temp->key) {
-            temp = temp->left;
-            leftBranch = -1;
-        } else if (pKey > temp->key) {
-            temp = temp->right;
-            leftBranch = 1;
-        } else {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
+        } else if (pKey < temp->key) {
+            temp = temp->left;
+            leftBranch = -1;
+        } else {
+            temp = temp->right;
+            leftBranch = 1;
         }
     }
 
@@ -363,7 +413,7 @@ avl_tree<T, U>::~avl_tree() {
 }
 
 template<class T, class U>
-inline int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode) {
+int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, binary_node<T, U> *rightNode) {
     int leftDiff = -1;
     int rightDiff = -1;
     if (leftNode != nullptr)
@@ -375,7 +425,7 @@ inline int avl_tree<T, U>::node_height_difference(binary_node<T, U> *leftNode, b
 }
 
 template<class T, class U>
-U &avl_tree<T, U>::get_at(const T &pKey) {
+U &avl_tree<T, U>::operator[](const T &pKey) {
     binary_node<T, U> *temp = root;
     while (temp != nullptr) {
         if (pKey == temp->key) {
@@ -388,7 +438,7 @@ U &avl_tree<T, U>::get_at(const T &pKey) {
     }
 
     throw std::invalid_argument(
-            "Error in \"U &avl_tree<T, U>::get_at(const T&)\" | Passed value cannot be found within tree.");
+            "Error in \"U &avl_tree<T, U>::operator[](const T&)\" | Passed key cannot be found within tree.");
 }
 
 template<class T, class U>
@@ -424,15 +474,15 @@ avl_tree<T, U>::unbalanced_insert_appending(const T &pKey, const U &pValue, INSE
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey < temp->key) {
-            temp = temp->left;
-            leftBranch = -1;
-        } else if (pKey > temp->key) {
-            temp = temp->right;
-            leftBranch = 1;
-        } else {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
+        } else if (pKey < temp->key) {
+            temp = temp->left;
+            leftBranch = -1;
+        } else {
+            temp = temp->right;
+            leftBranch = 1;
         }
     }
 
@@ -493,15 +543,15 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, IN
 
     while (temp != nullptr) {
         y = temp;
-        if (pKey < temp->key) {
-            temp = temp->left;
-            leftBranch = -1;
-        } else if (pKey > temp->key) {
-            temp = temp->right;
-            leftBranch = 1;
-        } else {
+        if (pKey == temp->key) {
             leftBranch = 0;
             break;
+        } else if (pKey < temp->key) {
+            temp = temp->left;
+            leftBranch = -1;
+        } else {
+            temp = temp->right;
+            leftBranch = 1;
         }
     }
 
@@ -526,15 +576,6 @@ avl_tree<T, U>::unbalanced_insert_overwriting(const T &pKey, const U &pValue, IN
         y->emplace_right(pKey, pValue);
         y->right->parent = y;
         return y->right;
-    }
-}
-
-template<class T, class U>
-void avl_tree<T, U>::print_inorder(binary_node<T, U> *&node) {
-    if (node != nullptr) {
-        print_inorder(node->left);
-        std::cout << node->key << std::endl;
-        print_inorder(node->right);
     }
 }
 
@@ -567,6 +608,155 @@ bool avl_tree<T, U>::check_balance(binary_node<T, U> *&node) {
             return false;
     }
     return true;
+}
+
+template<class T, class U>
+avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &pKey) {
+    if (nodeCount == 0)
+        throw std::invalid_argument(
+                "Error in \"avl_tree<T, U> &avl_tree<T, U>::delete_node(const T &)\" | avl tree is empty.");
+
+    DIRECTION stitchDir = LEFT;
+    binary_node<T, U> *place = find_place_of_from(root, pKey, stitchDir);    //O(lg n)
+    binary_node<T, U> *node = nullptr;
+
+    if ((place->left == nullptr) || (place->right == nullptr)) {
+        binary_node<T, U> *temp = place->left != nullptr ? place->left : place->right;
+
+        // No child case
+        if (temp == nullptr) {
+            temp = place;
+            node = place->parent;
+            if (node != nullptr) {
+                if (stitchDir == LEFT)
+                    node->left = nullptr;
+                else
+                    node->right = nullptr;
+            }
+            if (place == root)
+                root = node;
+            place = nullptr;
+        } else { // One child case
+            place->key = temp->key;
+            place->data = temp->data;
+            place->left = temp->left;
+            place->right = temp->right;
+            place->maxHeight = std::max(node_height(place->left), node_height(place->right)) + 1;
+            if (temp->left != nullptr)
+                temp->left->parent = place;
+            if (temp->right != nullptr)
+                temp->right->parent = place;
+            node = place;
+        }
+
+        nodeCount--;
+        temp->left = nullptr;
+        temp->right = nullptr;
+        temp->parent = nullptr;
+        delete temp;
+
+        binary_node<T, U> *prev = node;
+        while (node != nullptr) {
+            node->maxHeight = std::max(node_height(node->left), node_height(node->right)) + 1;
+            if (balance_alpha(node)) {
+                node = prev;
+                continue;
+            }
+
+            prev = node;
+            node = node->parent;
+        }
+
+        return *this;
+    }
+
+    binary_node<T, U> *successor = place->right;
+    while (successor->left != nullptr)
+        successor = successor->left;
+
+    T succKey = successor->key;
+    U succData = successor->data;
+
+    delete_node(succKey);
+
+    place->key = succKey;
+    place->data = succData;
+
+    return *this;
+}
+
+template<class T, class U>
+binary_node<T, U> *avl_tree<T, U>::find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &stitchDir) {
+    binary_node<T, U> *temp = node;
+    while (temp != nullptr) {
+        if (pKey > temp->key) {
+            temp = temp->right;
+            stitchDir = RIGHT;
+        } else if (pKey < temp->key) {
+            temp = temp->left;
+            stitchDir = LEFT;
+        } else {
+            return temp;
+        }
+    }
+    throw std::invalid_argument(
+            "Error in \"binary_node<T, U> *avl_tree<T, U>::find_place_of_from(const T &pKey, DIRECTION &stitchDir)\" | Passed value cannot be found within tree.");
+}
+
+template<class T, class U>
+avl_tree<T, U>::avl_tree(const avl_tree &toCopy) {
+    if (toCopy.root != nullptr) {
+        root = new binary_node<T, U>();
+        root->copy_subtree(toCopy.root);
+    }
+    nodeCount = toCopy.nodeCount;
+}
+
+template<class T, class U>
+avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
+    if (this == &toAssign)
+        return *this;
+
+    delete root;
+    root = nullptr;
+
+    if (toAssign.root != nullptr) {
+        root = new binary_node<T, U>();
+        root->copy_subtree(toAssign.root);
+    }
+    nodeCount = toAssign.nodeCount;
+    return *this;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::archive_tree(std::string filename){
+    std::ofstream outFile;
+    outFile.open(filename);
+    if (!outFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void avl_tree_io<T, U>::archive_tree(std::string filename)\" | Could not open " + filename);
+
+    std::cout << "now archiving" << std::endl;
+
+    cereal::BinaryOutputArchive ar(outFile);
+    int height = nodeCount;
+    for (int i = 0; i < height; ++i) {
+        archive_current_level(ar, root, i);
+    }
+
+    std::cout << "done archiving" << std::endl;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::archive_current_level(cereal::BinaryOutputArchive& archive, binary_node<T, U> *&node, int level) {
+    if (node == nullptr)
+        return;
+    if (level == 1) {
+        archive(cereal::make_nvp(node->key, node->data));
+    } else if (level > 1) {
+        archive_current_level(archive, node->left, level - 1);
+        archive_current_level(archive, node->right, level - 1);
+    }
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

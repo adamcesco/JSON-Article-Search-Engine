@@ -9,7 +9,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <stack>
 #include "Processor.h"
 #include "hash_table/hash_table.h"
 #include "./TableBundle.h"
@@ -21,7 +20,8 @@ private:
 
     Processor *processor = nullptr;
     TableBundle *tables = nullptr;
-    avl_tree<unsigned int, std::vector<std::string *> *> *wordTree = nullptr;
+    avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
+    std::mutex *wordTreeMutex = nullptr;
 
 public:
     /**
@@ -37,6 +37,10 @@ public:
     void generateIndex();
 
     std::vector<std::string> speedSearchFor(const std::string &term);
+
+    void cacheTree();
+
+    void buildTreeFromCache();
 
     ~SearchEngine();
 };

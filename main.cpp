@@ -1,9 +1,7 @@
-#pragma GCC optimize("Ofast")
-
 #include <iostream>
 #include "catch_setup.h"
 #include "SearchEngine.h"
-#include <fstream>
+
 
 int main(int argc, char **argv) {
     if (argc == 1) {
@@ -11,8 +9,15 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[2]);
+//        engine.buildTreeFromCache();
         engine.generateIndex();
-        engine.testFindWord(argv[1]);
+        try {
+            engine.testFindWord("dogs");
+        } catch (std::exception &e) {
+            std::cout << e.what() << std::endl;
+        }
+//        engine.cacheTree();
+        engine.buildTreeFromCache();
     }
     return 0;
 }

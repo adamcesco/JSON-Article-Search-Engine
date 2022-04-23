@@ -9,21 +9,29 @@
 #include "./include/termcolor/termcolor.hpp"
 #include "./TableBundle.h"
 #include <iomanip>      // std::setprecision
-#include <fstream>
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
-    this->wordTree = new avl_tree<unsigned int, std::vector<std::string *> *>();
-    this->processor = new Processor(this->wordTree);
+
+    this->tables = new TableBundle();
+    this->tables->orgs = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+    this->tables->authors = new tbb::concurrent_unordered_map<std::string, std::vector<std::string>>();
+    this->tables->articles = new tbb::concurrent_unordered_map<std::string, Article>();
+
+    this->wordTree = new avl_tree<std::string, std::vector<std::pair<std::string, double>>>();
+    this->wordTreeMutex = new std::mutex();
+
+    this->processor = new Processor(this->tables, this->wordTree,
+                                    this->wordTreeMutex);
 }
 
 SearchEngine::~SearchEngine() {
-//    delete this->processor;
-//    delete this->tables;
-//    delete this->wordTree;
-//    delete this->wordTreeMutex;
+    delete this->processor;
+    delete this->tables;
+    delete this->wordTree;
+    delete this->wordTreeMutex;
 }
 
 void printProgressBar(double progress) {
@@ -43,65 +51,58 @@ void printProgressBar(double progress) {
  * Loads the data from the data folder into the tables and AVL tree.
  */
 void SearchEngine::generateIndex() {
-    processor->generateIndex(data_folder);
-}
+    // Start clock
+    auto start = std::chrono::high_resolution_clock::now();
+    // Call generateIndex on the processor asynchronously so that we can show a progress bar
+    std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
+                                              this->data_folder);
 
-unsigned int hasher(const std::string &str) {
-    unsigned int hashed = 1;
-    for (const char &cc: str) {
-        if (std::isalpha(cc)) {
-            hashed *= 16777619;
-            hashed = hashed ^ (cc & 31);
+    // Poll the progress of the processor's filename stack every 400 milliseconds
+    while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
+        double progress = this->processor->getProgress();
+        if (progress > 0) {
+            printProgressBar(progress);
         }
     }
-    return hashed;
+    printProgressBar(1);
+    std::cout << std::endl;
+
+
+    this->processor->convertToTree();
+    // End clock
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
+    std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
+
 }
 
+/**
+ * @deprecated
+ */
 void SearchEngine::testFindWord(std::string word) {
-    std::vector<std::vector<std::string *> *> results;
     Porter2Stemmer::stem(word);
-    unsigned int hash = hasher(word);
-    bool found = false;
-    std::ifstream inverseStemFile("../data/hashed-inverse-stemmed.txt");
-    while (inverseStemFile.good()) {
-        unsigned int cell;
-        inverseStemFile >> cell;
-        std::string row;
-        getline(inverseStemFile, row);
+    std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
+    std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
+    for (auto& article: result) {
+        std::cout << article.first << " | " << article.second << " | ";
+        Article doc =  this->tables->articles->operator[](article.first);
+        std::cout << doc.filename << std::endl;
 
-        if (cell != hash)
-            continue;
-        else {
-            found = true;
-            results.push_back(this->wordTree->get_at(cell));
-            std::istringstream rowStream(row);
-            while (rowStream) {
-                rowStream >> cell;
-                try {
-                    results.push_back(this->wordTree->get_at(cell));
-                } catch (const std::invalid_argument &e) {
-                    continue;
-                }
-            }
-            break;
-        }
     }
-    inverseStemFile.close();
-    if (!found)
-        results.push_back(this->wordTree->get_at(hash));
 
-    std::cout << "Top-five articles containing the word " << word << ':' << std::endl;
+}
 
-    std::string *prev = nullptr;
-    int size = results.size() == 1 ? results.size() : results.size() - 1;
-    for (int i = 0; i < size; ++i) {
-//        std::cout << results[i]->size() << std::endl;
-        prev = nullptr;
-        for (std::string *article: *results[i]) {
-            if (prev != article) {
-                std::cout << *article << std::endl;
-            }
-            prev = article;
-        }
-    }
+std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
+    // TODO
+    return std::vector<std::string>();
+}
+
+void SearchEngine::cacheTree() {
+    this->processor->save_data_to("../tree-cache.txt");
+}
+
+void SearchEngine::buildTreeFromCache() {
+    this->wordTree->archive_tree("../tree-cache.txt");
+//    this->processor->build_data_from("../tree-cache.txt");
 }

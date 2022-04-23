@@ -243,14 +243,14 @@ TEST_CASE("Testing appending-type methods", "[hash_table]") {
         testDummy.emplace_pair(key, 1);
     }
 
-    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::merge_with(const hash_table<T, U> & passedMap)\"") {
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> & passedMap)\"") {
         hash_table<char, int> homChar;
         homChar.emplace_pair('A', -2);
         homChar.emplace_pair('B', 10);
         homChar.emplace_pair('Y', -3);
         homChar.emplace_pair('Z', -4);
 
-        homChar.merge_with(testDummy);
+        homChar.emplace_merge(testDummy);
         REQUIRE(testDummy.contains('A') == true);
         REQUIRE(homChar.contains('A') == true);
         REQUIRE(homChar.read_at('A') == -1);
@@ -271,14 +271,14 @@ TEST_CASE("Testing appending-type methods", "[hash_table]") {
         REQUIRE(homChar.read_at('Z') == -4);
     }
 
-    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::overlap_with(const hash_table<T, U> & passedMap)\"") {
+    SECTION("Testing \"hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> & passedMap)\"") {
         hash_table<char, int> homChar;
         homChar.emplace_pair('A', -2);
         homChar.emplace_pair('B', 10);
         homChar.emplace_pair('Y', -3);
         homChar.emplace_pair('Z', -4);
 
-        homChar.overlap_with(testDummy);
+        homChar.emplace_mask(testDummy);
         REQUIRE(testDummy.contains('A') == true);
         REQUIRE(homChar.contains('A') == true);
         REQUIRE(homChar.read_at('A') == 1);
@@ -297,5 +297,24 @@ TEST_CASE("Testing appending-type methods", "[hash_table]") {
         REQUIRE(testDummy.contains('Z') == false);
         REQUIRE(homChar.contains('Z') == true);
         REQUIRE(homChar.read_at('Z') == -4);
+    }
+}
+
+TEST_CASE("Testing hash_table iterator class", "[hash_map]") {
+    hash_table<char, int> testDummy;
+    SECTION("Testing a hash_table of greater size") {
+        for (int i = 0; i < 26; ++i) {
+            char key = i + 'A';
+            int randNum = rand();
+            testDummy.emplace_pair(key, randNum);
+        }
+        REQUIRE(testDummy.size() == 26);
+
+        int counter = 0;
+        for (auto &it: testDummy) {
+            counter++;
+        }
+        REQUIRE(testDummy.size() == counter);
+        REQUIRE(testDummy.size() == 26);
     }
 }

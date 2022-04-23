@@ -12,11 +12,10 @@ int main(int argc, char **argv) {
         engine.buildTreeFromCache();
 //        engine.generateIndex();
         try {
-            engine.testFindWord("dogs");
+            engine.testFindWord("global");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }
-
 //        engine.cacheTree();
     }
     return 0;

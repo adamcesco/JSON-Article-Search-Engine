@@ -127,6 +127,7 @@ public:
         delete root;
         root = nullptr;
         nodeCount = 0;
+        return *this;
     }
 
     ~avl_tree();

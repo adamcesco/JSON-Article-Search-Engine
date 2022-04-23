@@ -20,7 +20,7 @@ private:
 
     Processor *processor = nullptr;
     TableBundle *tables = nullptr;
-    avl_tree<std::string, tbb::concurrent_vector<std::string> *> *wordTree = nullptr;
+    avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
 
 public:

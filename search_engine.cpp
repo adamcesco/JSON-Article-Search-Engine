@@ -28,10 +28,10 @@ SearchEngine::SearchEngine(std::string data_folder) {
 }
 
 SearchEngine::~SearchEngine() {
-//    delete this->processor;
-//    delete this->tables;
-//    delete this->wordTree;
-//    delete this->wordTreeMutex;
+    delete this->processor;
+    delete this->tables;
+    delete this->wordTree;
+    delete this->wordTreeMutex;
 }
 
 void printProgressBar(double progress) {
@@ -85,7 +85,7 @@ void SearchEngine::testFindWord(std::string word) {
     std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
     std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
     for (auto& article: result) {
-        std::cout << article.first << " | " << article.second;
+        std::cout << article.first << " | " << article.second << " | ";
         Article doc =  this->tables->articles->operator[](article.first);
         std::cout << doc.filename << std::endl;
 
@@ -103,5 +103,6 @@ void SearchEngine::cacheTree() {
 }
 
 void SearchEngine::buildTreeFromCache() {
-    this->processor->build_data_from("../tree-cache.txt");
+    this->wordTree->archive_tree("../tree-cache.txt");
+//    this->processor->build_data_from("../tree-cache.txt");
 }

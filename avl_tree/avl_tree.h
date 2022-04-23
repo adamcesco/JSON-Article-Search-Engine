@@ -46,6 +46,11 @@ struct binary_node {
         }
     }
 
+//    template<class Archive>
+//    void serialize(Archive & archive) {
+//        archive(key, data);
+//    }
+
     ~binary_node() {
         delete left;
         delete right;
@@ -58,6 +63,12 @@ struct binary_node {
     binary_node<T, U> *left = nullptr;
     binary_node<T, U> *right = nullptr;
 };
+
+#include "../include/cereal/archives/json.hpp"
+#include "../include/cereal/archives/binary.hpp"
+#include "../include/cereal/types/vector.hpp"
+#include "../include/cereal/types/string.hpp"
+#include "../include/cereal/types/utility.hpp"
 
 template<class T, class U>
 class avl_tree {
@@ -130,6 +141,8 @@ public:
         return *this;
     }
 
+    void archive_tree(std::string filename);
+
     ~avl_tree();
 
 protected:
@@ -168,6 +181,8 @@ protected:
     bool check_balance(binary_node<T, U> *&node);
 
     binary_node<T, U> *find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &);
+
+    void archive_current_level(cereal::BinaryOutputArchive& archive , binary_node<T, U> *&node, int level);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -711,6 +726,37 @@ avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
     }
     nodeCount = toAssign.nodeCount;
     return *this;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::archive_tree(std::string filename){
+    std::ofstream outFile;
+    outFile.open(filename);
+    if (!outFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void avl_tree_io<T, U>::archive_tree(std::string filename)\" | Could not open " + filename);
+
+    std::cout << "now archiving" << std::endl;
+
+    cereal::BinaryOutputArchive ar(outFile);
+    int height = nodeCount;
+    for (int i = 0; i < height; ++i) {
+        archive_current_level(ar, root, i);
+    }
+
+    std::cout << "done archiving" << std::endl;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::archive_current_level(cereal::BinaryOutputArchive& archive, binary_node<T, U> *&node, int level) {
+    if (node == nullptr)
+        return;
+    if (level == 1) {
+        archive(cereal::make_nvp(node->key, node->data));
+    } else if (level > 1) {
+        archive_current_level(archive, node->left, level - 1);
+        archive_current_level(archive, node->right, level - 1);
+    }
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

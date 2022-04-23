@@ -5,7 +5,7 @@
 #include <iostream>
 #include "Processor.h"
 #include <experimental/filesystem>
-#include "./include/rapidjson/document.h"
+#include "./include/cereal/external/rapidjson/document.h"
 #include "./include/termcolor/termcolor.hpp"
 #include <thread>
 #include "./include/porter2_stemmer/porter2_stemmer.h"
@@ -190,8 +190,21 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
 #include <math.h>
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
-    for (auto &word: *this->tbbMap) {
-        this->wordTree->insert_overwriting(word.first, &word.second);
+    for (auto &wordData: *this->tbbMap) {
+        std::string currentWord = wordData.first;
+        std::vector<std::pair<std::string, double>> toPush;
+        int numDocsThatContainWord = wordData.second.size();
+        double inverseDocumentFrequency = log10(double(this->totalFiles) / numDocsThatContainWord);
+
+        for (const auto &uuidData: wordData.second) {
+            toPush.emplace_back(std::pair<std::string, double>(uuidData.first, inverseDocumentFrequency * uuidData.second));
+        }
+
+        std::sort(toPush.begin(), toPush.end(), [](const std::pair<std::string, double>& a, const std::pair<std::string, double>& b) {
+            return a.second > b.second;
+        });
+
+        this->wordTree->insert_overwriting(wordData.first, toPush);
 
         this->wordsConverted++;
     }
@@ -213,14 +226,16 @@ void Processor::build_data_from(const std::string &fileDir) {
 
     while (inFile.good()) {
         std::string key;
-        std::string element;
+        std::string uuid;
+        double count;
         std::string row;
         inFile >> key;
         getline(inFile, row);
         std::stringstream rowStream(row);
         while (rowStream.good()) {
-            rowStream >> element;
-            this->tbbMap->operator[](key).push_back(element);
+            rowStream >> uuid;
+            rowStream >> count;
+            this->tbbMap->operator[](key).emplace(uuid, count);
         }
     }
     inFile.close();
@@ -237,7 +252,8 @@ void Processor::save_data_to(const std::string &fileDir) {
     for (auto &word: *this->tbbMap) {
         outFile << word.first;
         for (auto &element: word.second) {
-            outFile << ' ' << element;
+            outFile << ' ' << element.first;
+            outFile << ' ' << element.second;
         }
         outFile << std::endl;
     }

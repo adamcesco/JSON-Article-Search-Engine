@@ -84,25 +84,19 @@ void SearchEngine::testFindWord(std::string word) {
     Porter2Stemmer::stem(word);
     std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
     std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
-    for (auto& article: result) {
+    for (auto &article: result) {
         std::cout << article.first << " | " << article.second << " | ";
-        Article doc =  this->tables->articles->operator[](article.first);
+        Article doc = this->tables->articles->operator[](article.first);
         std::cout << doc.filename << std::endl;
 
     }
 
 }
 
-std::vector<std::string> SearchEngine::speedSearchFor(const std::string &term) {
-    // TODO
-    return std::vector<std::string>();
-}
-
 void SearchEngine::cacheTree() {
-    this->processor->save_data_to("../tree-cache.txt");
+    this->wordTree->archive_tree("../tree-cache.txt");
 }
 
 void SearchEngine::buildTreeFromCache() {
-    this->wordTree->archive_tree("../tree-cache.txt");
-//    this->processor->build_data_from("../tree-cache.txt");
+    this->wordTree->load_from_archive("../tree-cache.txt");
 }

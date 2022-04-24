@@ -43,4 +43,14 @@ void cleanStr(std::string &str) {
     str = clean;
 }
 
+unsigned int custom_string_hash(const std::string &str) {
+    unsigned int hashed = 1;
+    for (const char &cc: str)
+        if (std::isalpha(cc)) {
+            hashed *= 16777619;
+            hashed = hashed ^ (cc & 31);
+        }
+    return hashed;
+}
+
 #endif //INC_22S_FINAL_PROJ_UTILS_H

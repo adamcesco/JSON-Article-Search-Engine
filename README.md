@@ -1,13 +1,5 @@
 # Spring 2022 Final Project
 
-## SUPER IMPORTANT!!!!
-
-This repository contains submodules. You need to clone the submodules to your local machine before you can run the code.
-
-```text
-git submodule update --init --recursive
-```
-
 ## Important:
 
 - You DO NOT need to implement GitHub Actions for the final project.

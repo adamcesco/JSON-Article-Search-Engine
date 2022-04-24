@@ -54,7 +54,8 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
+    explicit Processor(TableBundle *tableBundle,
+                       avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                        std::mutex *treeMut);
 
     ~Processor();
@@ -67,10 +68,6 @@ public:
     double getProgress();
 
     double getConversionProgress();
-
-    void build_data_from(const std::string &fileDir);
-
-    void save_data_to(const std::string &fileDir);
 };
 
 

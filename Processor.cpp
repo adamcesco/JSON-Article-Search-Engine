@@ -186,8 +186,8 @@ Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector
 }
 
 
-
 #include <math.h>
+
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     for (auto &wordData: *this->tbbMap) {
@@ -197,12 +197,14 @@ std::string Processor::convertToTree() {
         double inverseDocumentFrequency = log10(double(this->totalFiles) / numDocsThatContainWord);
 
         for (const auto &uuidData: wordData.second) {
-            toPush.emplace_back(std::pair<std::string, double>(uuidData.first, inverseDocumentFrequency * uuidData.second));
+            toPush.emplace_back(
+                    std::pair<std::string, double>(uuidData.first, inverseDocumentFrequency * uuidData.second));
         }
 
-        std::sort(toPush.begin(), toPush.end(), [](const std::pair<std::string, double>& a, const std::pair<std::string, double>& b) {
-            return a.second > b.second;
-        });
+        std::sort(toPush.begin(), toPush.end(),
+                  [](const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) {
+                      return a.second > b.second;
+                  });
 
         this->wordTree->insert_overwriting(wordData.first, toPush);
 
@@ -214,49 +216,5 @@ std::string Processor::convertToTree() {
 
 double Processor::getConversionProgress() {
     return (double) this->wordsConverted.load() / (double) this->totalWords;
-}
-
-void Processor::build_data_from(const std::string &fileDir) {
-    std::ifstream inFile(fileDir);
-    if (!inFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void Processor::build_data_from(const std::string &fileDir)\" | Could not open " + fileDir);
-
-    this->tbbMap->clear();
-
-    while (inFile.good()) {
-        std::string key;
-        std::string uuid;
-        double count;
-        std::string row;
-        inFile >> key;
-        getline(inFile, row);
-        std::stringstream rowStream(row);
-        while (rowStream.good()) {
-            rowStream >> uuid;
-            rowStream >> count;
-            this->tbbMap->operator[](key).emplace(uuid, count);
-        }
-    }
-    inFile.close();
-    
-    convertToTree();
-}
-
-void Processor::save_data_to(const std::string &fileDir) {
-    std::ofstream outFile(fileDir);
-    if (!outFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void Processor::save_data_to(const std::string &fileDir)\" | Could not open " + fileDir);
-
-    for (auto &word: *this->tbbMap) {
-        outFile << word.first;
-        for (auto &element: word.second) {
-            outFile << ' ' << element.first;
-            outFile << ' ' << element.second;
-        }
-        outFile << std::endl;
-    }
-    outFile.close();
 }
 

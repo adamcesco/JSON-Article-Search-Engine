@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
         engine.buildTreeFromCache();
 //        engine.generateIndex();
         try {
-            engine.testFindWord("global");
+            engine.testFindWord("grape");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }

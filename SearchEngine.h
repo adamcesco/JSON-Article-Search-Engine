@@ -36,8 +36,6 @@ public:
      */
     void generateIndex();
 
-    std::vector<std::string> speedSearchFor(const std::string &term);
-
     void cacheTree();
 
     void buildTreeFromCache();

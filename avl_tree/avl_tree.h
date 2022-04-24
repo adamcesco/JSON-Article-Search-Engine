@@ -772,11 +772,11 @@ void avl_tree<T, U>::load_from_archive(std::string filename) {
                 "Error in \"void avl_tree<T, U>::load_from_archive(std::string filename)\" | Could not open " +
                 filename);
 
-    int total;
-    inFile >> total;
+    int totalNodes;
+    inFile >> totalNodes;
 
     cereal::JSONInputArchive ar(inFile);
-    for (int i = 0; i < total; ++i) {
+    for (int i = 0; i < totalNodes; ++i) {
         T inKey;
         U inData;
         ar(inKey, inData);

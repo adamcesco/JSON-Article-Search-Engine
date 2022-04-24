@@ -141,6 +141,10 @@ public:
         return *this;
     }
 
+    void print_keys_in_order() { in_order_backbone(avl_tree<T, U>::root); }
+
+    void print_keys_level_order();
+
     void archive_tree(std::string filename);
 
     void load_from_archive(std::string filename);
@@ -183,6 +187,10 @@ protected:
     bool check_balance(binary_node<T, U> *&node);
 
     binary_node<T, U> *find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &);
+
+    void in_order_backbone(binary_node<T, U> *&node);
+
+    void print_console_current_level(binary_node<T, U> *&node, int level);
 
     void archive_current_level(cereal::JSONOutputArchive &archive, binary_node<T, U> *&node, int level);
 
@@ -728,6 +736,35 @@ avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
     }
     nodeCount = toAssign.nodeCount;
     return *this;
+}
+
+template<class T, class U>
+void avl_tree<T, U>::in_order_backbone(binary_node<T, U> *&node) {
+    if (node != nullptr) {
+        in_order_backbone(node->left);
+        std::cout << node->key << std::endl;
+        in_order_backbone(node->right);
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_keys_level_order() {
+    int height = avl_tree<T, U>::nodeCount;
+    for (int i = 0; i < height; ++i) {
+        print_console_current_level(avl_tree<T, U>::root, i);
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::print_console_current_level(binary_node<T, U> *&node, int level) {
+    if (node == nullptr)
+        return;
+    if (level == 1) {
+        std::cout << node->key << std::endl;
+    } else if (level > 1) {
+        print_console_current_level(node->left, level - 1);
+        print_console_current_level(node->right, level - 1);
+    }
 }
 
 template<class T, class U>

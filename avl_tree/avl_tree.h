@@ -143,6 +143,8 @@ public:
 
     void archive_tree(std::string filename);
 
+    void load_from_archive(std::string filename);
+
     ~avl_tree();
 
 protected:
@@ -182,7 +184,7 @@ protected:
 
     binary_node<T, U> *find_place_of_from(binary_node<T, U> *&node, const T &pKey, DIRECTION &);
 
-    void archive_current_level(cereal::BinaryOutputArchive& archive , binary_node<T, U> *&node, int level);
+    void archive_current_level(cereal::JSONOutputArchive &archive, binary_node<T, U> *&node, int level);
 
     binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
@@ -729,16 +731,18 @@ avl_tree<T, U> &avl_tree<T, U>::operator=(const avl_tree &toAssign) {
 }
 
 template<class T, class U>
-void avl_tree<T, U>::archive_tree(std::string filename){
+void avl_tree<T, U>::archive_tree(std::string filename) {
     std::ofstream outFile;
-    outFile.open(filename);
+    outFile.open(filename, std::ios::binary);
     if (!outFile.is_open())
         throw std::invalid_argument(
                 "Error in \"void avl_tree_io<T, U>::archive_tree(std::string filename)\" | Could not open " + filename);
 
     std::cout << "now archiving" << std::endl;
+    outFile << nodeCount << std::endl;
 
-    cereal::BinaryOutputArchive ar(outFile);
+    cereal::JSONOutputArchive ar(outFile);
+
     int height = nodeCount;
     for (int i = 0; i < height; ++i) {
         archive_current_level(ar, root, i);
@@ -748,14 +752,35 @@ void avl_tree<T, U>::archive_tree(std::string filename){
 }
 
 template<class T, class U>
-void avl_tree<T, U>::archive_current_level(cereal::BinaryOutputArchive& archive, binary_node<T, U> *&node, int level) {
+void avl_tree<T, U>::archive_current_level(cereal::JSONOutputArchive &archive, binary_node<T, U> *&node, int level) {
     if (node == nullptr)
         return;
     if (level == 1) {
-        archive(cereal::make_nvp(node->key, node->data));
+        archive(node->key, node->data);
     } else if (level > 1) {
         archive_current_level(archive, node->left, level - 1);
         archive_current_level(archive, node->right, level - 1);
+    }
+}
+
+template<class T, class U>
+void avl_tree<T, U>::load_from_archive(std::string filename) {
+    std::ifstream inFile;
+    inFile.open(filename, std::ios::binary);
+    if (!inFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void avl_tree<T, U>::load_from_archive(std::string filename)\" | Could not open " +
+                filename);
+
+    int total;
+    inFile >> total;
+
+    cereal::JSONInputArchive ar(inFile);
+    for (int i = 0; i < total; ++i) {
+        T inKey;
+        U inData;
+        ar(inKey, inData);
+        insert_overwriting(inKey, inData);
     }
 }
 

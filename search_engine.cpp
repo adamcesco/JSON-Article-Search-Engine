@@ -77,9 +77,6 @@ void SearchEngine::generateIndex() {
 
 }
 
-/**
- * @deprecated
- */
 void SearchEngine::testFindWord(std::string word) {
     Porter2Stemmer::stem(word);
     std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
@@ -93,10 +90,122 @@ void SearchEngine::testFindWord(std::string word) {
 
 }
 
-void SearchEngine::cacheTree() {
-    this->wordTree->archive_tree("../tree-cache.txt");
+#include "include/cereal/archives/json.hpp"
+#include "include/cereal/archives/binary.hpp"
+#include "include/cereal/types/vector.hpp"
+#include "include/cereal/types/string.hpp"
+#include "include/cereal/types/utility.hpp"
+
+void SearchEngine::cache() {
+    if (this->wordTree != nullptr)
+        this->wordTree->archive_tree("../tree-cache.txt");
+
+    //cache tables
+    if (this->tables == nullptr)
+        return;
+
+    if (this->tables->authors != nullptr) {
+        std::ofstream authorFile("../author-cache.txt", std::ios::binary);
+        if (!authorFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::cache()\" | Could not open file ../author-cache.txt");
+
+        cereal::JSONOutputArchive authorArchive(authorFile);
+        authorFile << this->tables->authors->size() << std::endl;
+        for (auto &it: *this->tables->authors) {
+            authorArchive(it.first, it.second);
+        }
+    }
+
+    if (this->tables->orgs != nullptr) {
+        std::ofstream orgFile("../org-cache.txt", std::ios::binary);
+        if (!orgFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::cache()\" | Could not open file ../org-cache.txt");
+
+        cereal::JSONOutputArchive orgArchive(orgFile);
+        orgFile << this->tables->orgs->size() << std::endl;
+        for (auto &it: *this->tables->orgs) {
+            orgArchive(it.first, it.second);
+        }
+    }
+
+    if (this->tables->articles != nullptr) {
+        std::ofstream artFile("../art-cache.txt", std::ios::binary);
+        if (!artFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::cache()\" | Could not open file ../art-cache.txt");
+
+        cereal::JSONOutputArchive artArchive(artFile);
+        artFile << this->tables->articles->size() << std::endl;
+        for (auto &it: *this->tables->articles) {
+            artArchive(it.first, it.second);
+        }
+    }
 }
 
-void SearchEngine::buildTreeFromCache() {
-    this->wordTree->load_from_archive("../tree-cache.txt");
+void SearchEngine::buildFromCache() {
+    if (this->wordTree != nullptr)
+        this->wordTree->load_from_archive("../tree-cache.txt");
+
+    //load cache of tables
+    if (this->tables == nullptr)
+        return;
+
+    if (this->tables->authors != nullptr) {
+        std::ifstream authorFile("../author-cache.txt", std::ios::binary);
+        if (!authorFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::buildFromCache()\" | Could not open file ../author-cache.txt");
+
+        int size;
+        authorFile >> size;
+        cereal::JSONInputArchive authorArchive(authorFile);
+        if (size > 0) {
+            for (int i = 0; i < size; ++i) {
+                std::string str;
+                std::vector<std::string> vect;
+                authorArchive(str, vect);
+                this->tables->authors->operator[](str) = vect;
+            }
+        }
+    }
+
+    if (this->tables->orgs != nullptr) {
+        std::ifstream orgFile("../org-cache.txt", std::ios::binary);
+        if (!orgFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::buildFromCache()\" | Could not open file ../org-cache.txt");
+
+        int size;
+        orgFile >> size;
+        if (size > 0) {
+            cereal::JSONInputArchive orgArchive(orgFile);
+            for (int i = 0; i < size; ++i) {
+                std::string str;
+                std::vector<std::string> vect;
+                orgArchive(str, vect);
+                this->tables->orgs->operator[](str) = vect;
+            }
+        }
+    }
+
+    if (this->tables->articles != nullptr) {
+        std::ifstream artFile("../art-cache.txt", std::ios::binary);
+        if (!artFile.is_open())
+            throw std::invalid_argument(
+                    "Error in \"void SearchEngine::buildFromCache()\" | Could not open file ../art-cache.txt");
+
+        int size;
+        artFile >> size;
+        if (size > 0) {
+            cereal::JSONInputArchive artArchive(artFile);
+            for (int i = 0; i < size; ++i) {
+                std::string str;
+                Article arti;
+                artArchive(str, arti);
+                this->tables->articles->operator[](str) = arti;
+            }
+        }
+    }
 }

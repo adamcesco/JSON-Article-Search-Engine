@@ -9,14 +9,14 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[2]);
-        engine.buildTreeFromCache();
-//        engine.generateIndex();
+//        engine.buildFromCache();
+        engine.generateIndex();
         try {
-            engine.testFindWord("grape");
+            engine.testFindWord("global");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }
-//        engine.cacheTree();
+        engine.cache();
     }
     return 0;
 }

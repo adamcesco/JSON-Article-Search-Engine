@@ -6,3 +6,6 @@ cmake-build-release/
 !data/small_articles
 tree-cache.txt
 cmake-build-*
+/art-cache.txt
+/author-cache.txt
+/org-cache.txt

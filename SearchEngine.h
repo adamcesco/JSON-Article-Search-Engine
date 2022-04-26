@@ -36,9 +36,9 @@ public:
      */
     void generateIndex();
 
-    void cacheTree();
+    void cache();
 
-    void buildTreeFromCache();
+    void buildFromCache();
 
     ~SearchEngine();
 };

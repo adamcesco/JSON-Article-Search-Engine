@@ -76,8 +76,8 @@ void Processor::process() {
         Article art = {
                 .uuid = uuid,
                 .filename = filename,
-                .orgList = orgs,
                 .author = author,
+                .orgList = orgs,
         };
 
         std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);

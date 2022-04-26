@@ -9,12 +9,19 @@
 #include <mutex>
 #include <vector>
 #include <tbb/concurrent_unordered_map.h>
+#include <fstream>
+#include "include/cereal/archives/json.hpp"
+#include "include/cereal/archives/binary.hpp"
+#include "include/cereal/types/vector.hpp"
+#include "include/cereal/types/string.hpp"
+#include "include/cereal/types/utility.hpp"
+#include "include/cereal/types/memory.hpp"
 
 struct Article {
     std::string uuid;
     std::string filename;
-    std::vector<std::string> orgList;
     std::string author;
+    std::vector<std::string> orgList;
 
     // Overloaded stream insertion operator
     friend std::ostream &operator<<(std::ostream &os, const Article &article) {
@@ -23,6 +30,11 @@ struct Article {
             os << org << " ";
         }
         return os;
+    }
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(uuid, filename, author, orgList);
     }
 };
 

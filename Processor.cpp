@@ -67,10 +67,11 @@ void Processor::process() {
         std::string uuid = document["uuid"].GetString();
         std::string author = document["author"].GetString();
 
-        std::vector<std::string> orgs = {};
+        std::vector<std::string> orgs;
         // Check if array empty
-        for (auto &org: document["organizations"].GetArray()) {
-            orgs.emplace_back(org.GetString());
+        for (auto &org: document["entities"]["organizations"].GetArray()) {
+            std::cout << 1 << std::endl;
+            orgs.emplace_back(org["name"].GetString());
         }
 
         Article art = {

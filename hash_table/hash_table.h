@@ -65,7 +65,7 @@ private:
         Iterator &operator++() {
             ++dataPtr;
             ++i;
-            while (i < max && dataPtr->value == nullptr) {
+            while (i < max && dataPtr->key == nullptr) {
                 ++dataPtr;
                 ++i;
             }
@@ -76,7 +76,7 @@ private:
             Iterator temp = *this;
             ++dataPtr;
             ++i;
-            while (i < max && dataPtr->value == nullptr) {
+            while (i < max && dataPtr->key == nullptr) {
                 ++dataPtr;
                 ++i;
             }
@@ -99,6 +99,10 @@ private:
     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
     int increase_max_cap(unsigned int hashIndex);
 
+    float read_load_factor() {
+        return float(ele_count) / max_cap;
+    }
+
     inline static unsigned int hasher(const T &pKey) {
         std::hash<T> hashObj;
         return hashObj(pKey);
@@ -113,8 +117,8 @@ public:
 
     Iterator begin() {
         HashPair *dataPtr = data;
-        int i = max_cap;
-        while (i < max_cap && dataPtr->value == nullptr) {
+        int i = 0;
+        while (i < max_cap && dataPtr->key == nullptr) {
             ++dataPtr;
             ++i;
         }
@@ -135,8 +139,8 @@ public:
     //resets all *this contents/key
     hash_table<T, U> &clear() {
         delete[] data;
-        data = new HashPair[20];
-        max_cap = 20;
+        data = new HashPair[500];
+        max_cap = 500;
         ele_count = 0;
         return *this;
     }
@@ -169,8 +173,8 @@ public:
 
 template<class T, class U>
 hash_table<T, U>::hash_table() {
-    data = new HashPair[20];
-    max_cap = 20;
+    data = new HashPair[500];
+    max_cap = 500;
 }
 
 template<class T, class U>
@@ -217,14 +221,14 @@ U &hash_table<T, U>::operator[](const T &pKey) {
 
     data[index_clean].hash = index;
 
-    if (data[index_clean].key == nullptr)
+    if (data[index_clean].key == nullptr) {
         data[index_clean].key = new T();
-    *data[index_clean].key = pKey;
-
-    if (data[index_clean].value == nullptr) {
-        data[index_clean].value = new U();
         ++ele_count;
     }
+    *data[index_clean].key = pKey;
+
+    if (data[index_clean].value == nullptr)
+        data[index_clean].value = new U();
 
     return *data[index_clean].value;
 }
@@ -249,7 +253,7 @@ template<class T, class U>
 //pass and return index values because all index values are going to be changed due to their dependence on "max_cap"
 int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     int mcCopy = max_cap;
-    max_cap *= 2;
+    max_cap *= 10;
     auto *dataCopy = new HashPair[max_cap];
     for (int i = 0; i < mcCopy; ++i) {
         if (data[i].hash == 0)

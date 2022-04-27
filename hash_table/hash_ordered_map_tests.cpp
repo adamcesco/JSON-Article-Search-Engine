@@ -317,6 +317,7 @@ TEST_CASE("Testing hash_table iterator class", "[hash_map]") {
 
         int counter = 0;
         for (auto &it: testDummy) {
+            REQUIRE(it.key != nullptr);
             counter++;
         }
         REQUIRE(testDummy.size() == counter);

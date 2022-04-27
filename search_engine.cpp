@@ -10,6 +10,7 @@
 #include "./Article.h"
 #include <iomanip>      // std::setprecision
 #include "./include/porter2_stemmer/porter2_stemmer.h"
+#include "./include/termcolor/termcolor.hpp"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -121,7 +122,9 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
         bool invalid;
         int intInput;
         do {
-            std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";  //make colorful
+            std::cout << termcolor::bright_blue
+                      << "22s-final-project-fair-game / console-interface / " << termcolor::bright_green
+                      << "search-engine > " << termcolor::white;
             std::string input;
             std::cin >> input;
 
@@ -162,7 +165,9 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
                     std::cout << "2. No" << std::endl;
                     std::cout << std::endl;
                     do {
-                        std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";
+                        std::cout << termcolor::bright_blue
+                                  << "22s-final-project-fair-game / console-interface / " << termcolor::bright_green
+                                  << "search-engine > " << termcolor::white;
                         std::string input;
                         std::cin >> input;
 
@@ -186,7 +191,7 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
             case 8 : {
                 if (this->wordTree != nullptr)
                     this->wordTree->clear();
-                
+
                 if (this->articles != nullptr)
                     this->articles->clear();
 
@@ -237,13 +242,15 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
         int intInput;
         do {
             std::cout
-                    << "22s-final-project-fair-game / console-interface / search-engine / avl-cache-manager > "; //make colorful
+                    << termcolor::bright_blue
+                    << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
+                    << "avl-cache-manager > " << termcolor::white;
             std::string input;
             std::cin >> input;
 
             intInput = input[0] & 15;
             invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
-                       (intInput == 1 && this->is_empty()));
+                       (intInput == 1 && this->wordTree->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
@@ -288,13 +295,15 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
         int intInput;
         do {
             std::cout
-                    << "22s-final-project-fair-game / console-interface / search-engine / article-cache-manager > "; //make colorful
+                    << termcolor::bright_blue
+                    << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
+                    << "article-cache-manager > " << termcolor::white;
             std::string input;
             std::cin >> input;
 
             intInput = input[0] & 15;
             invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
-                       (intInput == 1 && this->is_empty()));
+                       (intInput == 1 && this->articles->empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }

@@ -23,6 +23,10 @@ private:
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
 
+    void AvlCacheConsoleManager();
+
+    void ArticleCacheConsoleManager();
+
 public:
     /**
      * @param data_folder The folder containing the data files
@@ -36,9 +40,17 @@ public:
      */
     void generateIndex();
 
-    void cache();
+    void cacheAvlTree();
 
     void buildFromCache();
+
+    int ConsolePrintEngineState();
+
+    void InitiateConsoleInterface();
+
+    bool is_empty() {
+        return (this->wordTree == nullptr || this->wordTree->is_empty());
+    }
 
     ~SearchEngine();
 };

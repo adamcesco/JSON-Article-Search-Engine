@@ -127,6 +127,7 @@ TEST_CASE("Testing hash_table filling and reading methods", "[hash_table]") {
 
         for (const auto &it: wordFreqCounterCUSTOM) {
             REQUIRE(it.key != nullptr);
+            REQUIRE(it.value != nullptr);
         }
     }
 }

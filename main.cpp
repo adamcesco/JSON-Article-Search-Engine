@@ -9,14 +9,15 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[2]);
+        engine.InitiateConsoleInterface();
 //        engine.buildFromCache();
-        engine.generateIndex();
+//        engine.generateIndex();
         try {
             engine.testFindWord("global");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }
-        engine.cache();
+//        engine.cacheAvlTree();
     }
     return 0;
 }

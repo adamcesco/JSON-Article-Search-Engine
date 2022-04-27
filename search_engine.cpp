@@ -92,9 +92,9 @@ void SearchEngine::testFindWord(std::string word) {
 #include "include/cereal/types/string.hpp"
 #include "include/cereal/types/utility.hpp"
 
-void SearchEngine::cache() {
-//    if (this->wordTree != nullptr)
-//        this->wordTree->archive_tree("../tree-cache.txt");
+void SearchEngine::cacheAvlTree() {
+    if (this->wordTree != nullptr)
+        this->wordTree->archive_tree("../tree-cache.txt");
 
     //cache articles
     if (this->articles == nullptr)
@@ -138,4 +138,132 @@ void SearchEngine::buildFromCache() {
         }
     }
 
+}
+
+void SearchEngine::InitiateConsoleInterface() {
+    while (true) {
+        std::cout << std::endl;
+        std::cout << "enter a number: " << std::endl;
+        std::cout << "1. populate avl tree by parsing JSON documents" << std::endl;
+        std::cout << "2. populate avl tree from cache" << std::endl;
+        std::cout << "3. manage avl tree cache" << std::endl;
+        std::cout << "4. manage article cache" << std::endl;
+        std::cout << "5. enter boolean search query" << std::endl;
+        std::cout << "6. print search engine statistics" << std::endl;
+        std::cout << "7. end program" << std::endl << std::endl;
+
+        bool invalid;
+        int intInput;
+        do {
+            std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";
+            std::string input;
+            std::cin >> input;
+
+            intInput = input[0] & 15;
+            invalid = (input.length() != 1 || intInput > 7 || intInput < 1 || (intInput == 5 && this->is_empty()));
+            if (invalid) {
+                std::cout << "incorrect input" << std::endl;
+            }
+        } while (invalid);
+
+        switch (intInput) {
+            case 1 :
+                this->generateIndex();
+                break;
+
+            case 2 :
+                this->buildFromCache();
+                break;
+
+            case 3 :
+                this->AvlCacheConsoleManager();
+                break;
+
+            case 4 :
+
+                break;
+
+            case 5 :
+                //query here
+                break;
+
+            case 6 :
+                this->ConsolePrintEngineState();
+                break;
+
+            case 7 :
+                return;
+                break;
+        }
+    }
+}
+
+int SearchEngine::ConsolePrintEngineState() {
+    int avlSize = 0;
+    std::cout << std::endl;
+    std::cout << "Search Engine Statistics:" << std::endl;
+    if (this->wordTree != nullptr) {
+        std::cout << "avl tree size\t\t" << this->wordTree->size() << std::endl;
+        avlSize = this->wordTree->size();
+    } else {
+        std::cout << "avl tree size\t\t0" << std::endl;
+    }
+
+    if (this->articles != nullptr) {
+        std::cout << "articles compiled\t" << this->articles->size() << std::endl;
+    } else {
+        std::cout << "articles compiled\t0" << std::endl;
+    }
+    std::cout << std::endl;
+
+    return avlSize;
+}
+
+void SearchEngine::AvlCacheConsoleManager() {
+    while (true) {
+        std::cout << std::endl;
+        std::cout << "enter a number: " << std::endl;
+        std::cout << "1. populate avl-cache with current avl tree data" << std::endl;
+        std::cout << "2. populate avl tree from cache" << std::endl;
+        std::cout << "3. clear avl-cache" << std::endl;
+        std::cout << "4. view cavl-ache statistics" << std::endl;
+        std::cout << "5. exit to main menu" << std::endl << std::endl;
+
+        bool invalid;
+        int intInput;
+        do {
+            std::cout
+                    << "22s-final-project-fair-game / console-interface / search-engine / avl-cache-manager > ";
+            std::string input;
+            std::cin >> input;
+
+            intInput = input[0] & 15;
+            invalid = (input.length() != 1 || intInput > 5 || intInput < 1 || (intInput == 1 && this->is_empty()));
+            if (invalid) {
+                std::cout << "incorrect input" << std::endl;
+            }
+        } while (invalid);
+
+        switch (intInput) {
+            case 1 :
+                this->cacheAvlTree();
+                break;
+
+            case 2 :
+                this->buildFromCache();
+                break;
+
+            case 3 :
+
+                break;
+
+            case 4 :
+
+                break;
+
+            case 5 :
+                return;
+                break;
+        }
+    }
 }

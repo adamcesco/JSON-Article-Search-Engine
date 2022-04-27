@@ -124,6 +124,10 @@ TEST_CASE("Testing hash_table filling and reading methods", "[hash_table]") {
             REQUIRE(wordFreqCounterCUSTOM.contains(it.first) == true);
             REQUIRE(wordFreqCounterCUSTOM.read_at(it.first) == it.second);
         }
+
+        for (const auto &it: wordFreqCounterCUSTOM) {
+            REQUIRE(it.key != nullptr);
+        }
     }
 }
 

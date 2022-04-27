@@ -15,28 +15,40 @@ private:
     struct HashPair {    //used to store the hash value of each key, and the value of each key
         HashPair() = default;
 
-        HashPair(unsigned int hashNum, const U &pValue) {
+        HashPair(unsigned int hashNum, const T &pData, const U &pValue) {
             hash = hashNum;
+            key = new T(pData);
             value = new U(pValue);
         }
 
         HashPair(const HashPair &toCopy) {
             hash = toCopy.hash;
+            if (toCopy.key != nullptr) { key = new T(*toCopy.key); }
             if (toCopy.value != nullptr) { value = new U(*toCopy.value); }
         }
 
         HashPair &operator=(const HashPair &toAssign) {
             if (this == &toAssign) { return *this; }
             hash = toAssign.hash;
+
+            delete key;
+            key = nullptr;
+            if (toAssign.key != nullptr) { key = new T(*toAssign.key); }
+
             delete value;
             value = nullptr;
             if (toAssign.value != nullptr) { value = new U(*toAssign.value); }
+
             return *this;
         }
 
-        ~HashPair() { delete value; }
+        ~HashPair() {
+            delete key;
+            delete value;
+        }
 
         unsigned int hash = 0;
+        T *key = nullptr;
         U *value = nullptr;
     };
 
@@ -46,8 +58,8 @@ private:
             max = pMax;
         }
 
-        U &operator*() const {
-            return *dataPtr->value;
+        HashPair &operator*() const {
+            return *dataPtr;
         }
 
         Iterator &operator++() {
@@ -92,9 +104,9 @@ private:
         return hashObj(pKey);
     }
 
-    HashPair *data = nullptr;   //holds data for *this
+    HashPair *data = nullptr;   //holds key for *this
     int ele_count = 0;          //element counter, used for size metric
-    int max_cap;                //used to document the maximum amount of elements "data" can hold, and documents the largest index possible of "data"
+    int max_cap;                //used to document the maximum amount of elements "key" can hold, and documents the largest index possible of "key"
     unsigned int (*hash_func)(const T &) = &hasher;
 
 public:
@@ -120,7 +132,7 @@ public:
 
     hash_table<T, U> &operator=(const hash_table<T, U> &);   //assignment operator overload
 
-    //resets all *this contents/data
+    //resets all *this contents/key
     hash_table<T, U> &clear() {
         delete[] data;
         data = new HashPair[20];
@@ -152,8 +164,6 @@ public:
 
     hash_table<T, U> &set_hash_function(unsigned int (*custom_hash_func)(const T &)) { hash_func = custom_hash_func; }
 
-    hash_table<T, U> &print_values();
-
     ~hash_table() { delete[] data; }  //destructor
 };
 
@@ -173,9 +183,9 @@ template<class T, class U>
 hash_table<T, U> &hash_table<T, U>::emplace_pair(const T &pKey, const U &pValue) {
     const unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    HashPair toInsert(index, pValue);
+    HashPair toInsert(index, pKey, pValue);
 
-    while (index_clean < max_cap && data[index_clean].value != nullptr) {
+    while (index_clean < max_cap && data[index_clean].key != nullptr) {
         if (data[index_clean].hash == index) {
             --ele_count;
             break;
@@ -197,7 +207,7 @@ template<class T, class U>
 U &hash_table<T, U>::operator[](const T &pKey) {
     const unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
         ++index_clean;
     }
 
@@ -206,6 +216,10 @@ U &hash_table<T, U>::operator[](const T &pKey) {
     }
 
     data[index_clean].hash = index;
+
+    if (data[index_clean].key == nullptr)
+        data[index_clean].key = new T();
+    *data[index_clean].key = pKey;
 
     if (data[index_clean].value == nullptr) {
         data[index_clean].value = new U();
@@ -219,11 +233,11 @@ template<class T, class U>
 U hash_table<T, U>::read_at(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].value == nullptr) {
+    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
         throw std::invalid_argument(
                 "Error in \"U hash_table<T, U>::read_at(const T &pKey) const\" | pKey not found");
     }
@@ -238,13 +252,13 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     max_cap *= 2;
     auto *dataCopy = new HashPair[max_cap];
     for (int i = 0; i < mcCopy; ++i) {
-        if (data[i].value == nullptr)
+        if (data[i].hash == 0)
             continue;
         const unsigned int index = data[i].hash;
         int index_clean = index % max_cap;
-        HashPair toInsert(index, *data[i].value);
+        HashPair toInsert(index, *data[i].key, *data[i].value);
 
-        while (index_clean < max_cap && dataCopy[index_clean].value != nullptr) {
+        while (index_clean < max_cap && dataCopy[index_clean].key != nullptr) {
             if (dataCopy[index_clean].hash == index) {
                 break;
             }
@@ -255,9 +269,9 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     delete[] data;
     data = dataCopy;
 
-    int index_clean = hashIndex %
-                      max_cap;    //now that "data" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
-    while (index_clean < max_cap && data[index_clean].value != nullptr) {
+    //now that "key" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
+    int index_clean = hashIndex % max_cap;
+    while (index_clean < max_cap && data[index_clean].key != nullptr) {
         if (data[index_clean].hash == hashIndex) {
             break;
         }
@@ -271,18 +285,23 @@ template<class T, class U>
 hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &pKey) {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].value == nullptr) {
+    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
         throw std::invalid_argument(
                 "Error in \"hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &pKey)\" | passed key was not found.");
     }
 
     data[index_clean].hash = 0;
+
+    delete data[index_clean].key;
+    data[index_clean].key = nullptr;
+
     delete data[index_clean].value;
     data[index_clean].value = nullptr;
+
     --ele_count;
 
     return *this;
@@ -322,11 +341,11 @@ template<class T, class U>
 bool hash_table<T, U>::contains(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].value == nullptr) {
+    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
         return false;
     }
 
@@ -336,12 +355,12 @@ bool hash_table<T, U>::contains(const T &pKey) const {
 template<class T, class U>
 hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) {
     for (int i = 0; i < pMap.max_cap; ++i) {
-        if (pMap.data[i].value == nullptr)
+        if (pMap.data[i].hash == 0)
             continue;
 
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
-        while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+        while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
             ++index_clean;
         }
 
@@ -351,10 +370,16 @@ hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) 
 
         data[index_clean].hash = index;
 
+        if (data[index_clean].key == nullptr) {
+            data[index_clean].key = new T();
+            *data[index_clean].key = *pMap.data[i].key;
+            ++ele_count;
+        } else
+            *data[index_clean].key = *pMap.data[i].key;
+
         if (data[index_clean].value == nullptr) {
             data[index_clean].value = new U();
             *data[index_clean].value = *pMap.data[i].value;
-            ++ele_count;
         } else
             *data[index_clean].value += *pMap.data[i].value;   //adds the two "value"s together
     }
@@ -370,7 +395,7 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
 
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
-        while (index_clean < max_cap && data[index_clean].value != nullptr && data[index_clean].hash != index) {
+        while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
             ++index_clean;
         }
 
@@ -380,23 +405,19 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
 
         data[index_clean].hash = index;
 
-        if (data[index_clean].value == nullptr) {
-            data[index_clean].value = new U();
+        if (data[index_clean].key == nullptr) {
+            data[index_clean].key = new T();
             ++ele_count;
         }
 
-        *data[index_clean].value = *pMap.data[i].value;    //overwrites *this' version of "value" with the "pMap" version of "value"
+        if (data[index_clean].value == nullptr) {
+            data[index_clean].value = new U();
+        }
+
+        *data[index_clean].key = *pMap.data[i].key;    //overwrites *this' version of "value" with the "pMap" version of "value"
+        *data[index_clean].value = *pMap.data[i].value;
     }
 
-    return *this;
-}
-
-template<class T, class U>
-hash_table<T, U> &hash_table<T, U>::print_values() {
-    for (int i = 0; i < max_cap; ++i) {
-        if (data[i].value != nullptr)
-            std::cout << *data[i].value << std::endl;
-    }
     return *this;
 }
 

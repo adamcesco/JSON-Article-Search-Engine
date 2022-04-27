@@ -19,7 +19,7 @@ private:
     std::string data_folder;
 
     Processor *processor = nullptr;
-    TableBundle *tables = nullptr;
+    tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
 
@@ -32,7 +32,7 @@ public:
     void testFindWord(std::string word);
 
     /**
-     * Populates the tables and the inverse index with the articles
+     * Populates the articles and the inverse index with the articles
      */
     void generateIndex();
 

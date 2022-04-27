@@ -39,17 +39,9 @@ struct Article {
 };
 
 struct TableBundle {
-    // Authors to uuids
-    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *authors;
-    // Orgs to uuids
-    tbb::concurrent_unordered_map<std::string, std::vector<std::string>> *orgs;
     tbb::concurrent_unordered_map<std::string, Article> *articles;
 
-    ~TableBundle() {
-        delete authors;
-        delete orgs;
-        delete articles;
-    }
+    ~TableBundle() { delete articles; }
 };
 
 

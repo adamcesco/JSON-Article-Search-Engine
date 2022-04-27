@@ -65,26 +65,21 @@ void Processor::process() {
         file.close();
 
         std::string uuid = document["uuid"].GetString();
+
         std::string author = document["author"].GetString();
 
+        const auto arr = document["entities"]["organizations"].GetArray();
         std::vector<std::string> orgs;
-        // Check if array empty
-        for (auto &org: document["entities"]["organizations"].GetArray()) {
-            std::cout << 1 << std::endl;
+        for (const auto &org: arr) {
             orgs.emplace_back(org["name"].GetString());
         }
 
-        Article art = {
+        this->articles->operator[](uuid) = {
                 .uuid = uuid,
                 .filename = filename,
                 .author = author,
                 .orgList = orgs,
         };
-
-        std::thread tableFillAuthorThread(&Processor::fillAuthors, this, uuid, author);
-        std::thread tableFillOrgsThread(&Processor::fillOrganization, this, orgs, uuid);
-        std::thread tableFillArticlesThread(&Processor::fillArticle, this, art);
-
 
         std::string text = document["text"].GetString();
         std::istringstream iss(text);
@@ -104,9 +99,6 @@ void Processor::process() {
                 }
             }
         } while (iss);
-        tableFillAuthorThread.join();
-        tableFillOrgsThread.join();
-        tableFillArticlesThread.join();
 
         filesProcessed++;
     }
@@ -158,24 +150,10 @@ Processor::~Processor() {
     delete this->tbbMap;
 }
 
-void Processor::fillArticle(const Article &article) {
-    this->tableBundle->articles->operator[](article.uuid) = article;
-}
-
-void Processor::fillOrganization(const std::vector<std::string> &organizations, const std::string &uuid) {
-    for (auto &org: organizations) {
-        this->tableBundle->orgs->operator[](org).push_back(uuid);
-    }
-}
-
-void Processor::fillAuthors(const std::string &authors, const std::string &uuid) {
-    this->tableBundle->authors->operator[](authors).push_back(uuid);
-}
-
-
-Processor::Processor(TableBundle *tableBundle, avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
+Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
+                     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                      std::mutex *treeMut) {
-    this->tableBundle = tableBundle;
+    this->articles = pArticles;
     this->stopWords = StopWords();
     this->wordTree = tree;
     this->wordTreeMutex = treeMut;

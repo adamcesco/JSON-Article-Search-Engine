@@ -32,7 +32,7 @@ private:
     /** @attention Do not delete/destruct this instance ("tbbMap") until you are done with the avl_tree instance that contains pointers to the values of "tbbMap" */
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
 
-    TableBundle *tableBundle;
+    tbb::concurrent_unordered_map<std::string, Article> *articles;
 
     /** @attention Note that the values of this tree are pointers, but these pointers do not need to be deleted, because their memory is not allocated on the heap. There memory is handled by "Processor::tbbMap" */
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
@@ -54,7 +54,7 @@ private:
     bool safeIsEmpty();
 
 public:
-    explicit Processor(TableBundle *tableBundle,
+    explicit Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
                        avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                        std::mutex *treeMut);
 

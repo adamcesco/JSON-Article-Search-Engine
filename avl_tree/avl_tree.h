@@ -775,7 +775,6 @@ void avl_tree<T, U>::archive_tree(std::string filename) {
         throw std::invalid_argument(
                 "Error in \"void avl_tree_io<T, U>::archive_tree(std::string filename)\" | Could not open " + filename);
 
-    std::cout << "now archiving" << std::endl;
     outFile << nodeCount << std::endl;
 
     cereal::JSONOutputArchive ar(outFile);
@@ -784,8 +783,6 @@ void avl_tree<T, U>::archive_tree(std::string filename) {
     for (int i = 0; i < height; ++i) {
         archive_current_level(ar, root, i);
     }
-
-    std::cout << "done archiving" << std::endl;
 }
 
 template<class T, class U>
@@ -812,12 +809,14 @@ void avl_tree<T, U>::load_from_archive(std::string filename) {
     int totalNodes;
     inFile >> totalNodes;
 
-    cereal::JSONInputArchive ar(inFile);
-    for (int i = 0; i < totalNodes; ++i) {
-        T inKey;
-        U inData;
-        ar(inKey, inData);
-        insert_overwriting(inKey, inData);
+    if (totalNodes > 0) {
+        cereal::JSONInputArchive ar(inFile);
+        for (int i = 0; i < totalNodes; ++i) {
+            T inKey;
+            U inData;
+            ar(inKey, inData);
+            insert_overwriting(inKey, inData);
+        }
     }
 }
 

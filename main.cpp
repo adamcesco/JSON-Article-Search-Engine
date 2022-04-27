@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[2]);
         engine.InitiateConsoleInterface();
-//        engine.buildFromCache();
+//        engine.buildAvlTreeFromCache();
 //        engine.generateIndex();
         try {
             engine.testFindWord("global");

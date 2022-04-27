@@ -169,6 +169,7 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
+    this->wordTree->clear();
     for (auto &wordData: *this->tbbMap) {
         std::string currentWord = wordData.first;
         std::vector<std::pair<std::string, double>> toPush;

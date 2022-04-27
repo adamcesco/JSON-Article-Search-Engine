@@ -42,7 +42,11 @@ public:
 
     void cacheAvlTree();
 
-    void buildFromCache();
+    void cacheArticles();
+
+    void buildAvlTreeFromCache();
+
+    void buildArticlesFromCache();
 
     int ConsolePrintEngineState();
 

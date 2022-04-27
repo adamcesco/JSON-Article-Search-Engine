@@ -95,72 +95,39 @@ void SearchEngine::testFindWord(std::string word) {
 void SearchEngine::cacheAvlTree() {
     if (this->wordTree != nullptr)
         this->wordTree->archive_tree("../tree-cache.txt");
-
-    //cache articles
-    if (this->articles == nullptr)
-        return;
-
-    std::ofstream artFile("../article-cache.txt", std::ios::binary);
-    if (!artFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void SearchEngine::cache()\" | Could not open file ../article-cache.txt");
-
-    cereal::JSONOutputArchive artArchive(artFile);
-    artFile << this->articles->size() << std::endl;
-    for (auto &it: *this->articles) {
-        artArchive(it.first, it.second);
-    }
-
 }
 
-void SearchEngine::buildFromCache() {
-    if (this->wordTree != nullptr)
+void SearchEngine::buildAvlTreeFromCache() {
+    if (this->wordTree != nullptr) {
+        this->wordTree->clear();
         this->wordTree->load_from_archive("../tree-cache.txt");
-
-    //load cache of articles
-    if (this->articles == nullptr)
-        return;
-
-    std::ifstream artFile("../article-cache.txt", std::ios::binary);
-    if (!artFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void SearchEngine::buildFromCache()\" | Could not open file ../article-cache.txt");
-
-    int size;
-    artFile >> size;
-    if (size > 0) {
-        cereal::JSONInputArchive artArchive(artFile);
-        for (int i = 0; i < size; ++i) {
-            std::string str;
-            Article arti;
-            artArchive(str, arti);
-            this->articles->operator[](str) = arti;
-        }
     }
-
 }
 
-void SearchEngine::InitiateConsoleInterface() {
+void SearchEngine::InitiateConsoleInterface() {     //needs query support
     while (true) {
         std::cout << std::endl;
         std::cout << "enter a number: " << std::endl;
-        std::cout << "1. populate avl tree by parsing JSON documents" << std::endl;
+        std::cout << "1. populate engine data by parsing JSON documents" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
-        std::cout << "3. manage avl tree cache" << std::endl;
-        std::cout << "4. manage article cache" << std::endl;
-        std::cout << "5. enter boolean search query" << std::endl;
-        std::cout << "6. print search engine statistics" << std::endl;
-        std::cout << "7. end program" << std::endl << std::endl;
+        std::cout << "3. populate articles from cache" << std::endl;
+        std::cout << "4. manage avl tree cache" << std::endl;
+        std::cout << "5. manage article cache" << std::endl;
+        std::cout << "6. enter boolean search query" << std::endl;
+        std::cout << "7. print search engine statistics" << std::endl;
+        std::cout << "8. clear engine data" << std::endl;
+        std::cout << "9. end program" << std::endl << std::endl;
 
         bool invalid;
         int intInput;
         do {
-            std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";
+            std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";  //make colorful
             std::string input;
             std::cin >> input;
 
             intInput = input[0] & 15;
-            invalid = (input.length() != 1 || intInput > 7 || intInput < 1 || (intInput == 5 && this->is_empty()));
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 9 || intInput < 1 ||
+                       (intInput == 6 && this->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
@@ -172,26 +139,64 @@ void SearchEngine::InitiateConsoleInterface() {
                 break;
 
             case 2 :
-                this->buildFromCache();
+                this->buildAvlTreeFromCache();
                 break;
 
             case 3 :
-                this->AvlCacheConsoleManager();
+                this->buildArticlesFromCache();
                 break;
 
             case 4 :
-
+                this->AvlCacheConsoleManager();
                 break;
 
             case 5 :
-                //query here
+                this->ArticleCacheConsoleManager();
                 break;
 
             case 6 :
-                this->ConsolePrintEngineState();
+                if (this->articles == nullptr || this->articles->empty()) {
+                    std::cout << std::endl;
+                    std::cout << "WARNING: article data is empty | do you want to continue?" << std::endl;
+                    std::cout << "1. Yes" << std::endl;
+                    std::cout << "2. No" << std::endl;
+                    std::cout << std::endl;
+                    do {
+                        std::cout << "22s-final-project-fair-game / console-interface / search-engine > ";
+                        std::string input;
+                        std::cin >> input;
+
+                        intInput = input[0] & 15;
+                        invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 2 || intInput < 1);
+                        if (invalid) {
+                            std::cout << "incorrect input" << std::endl;
+                        }
+                    } while (invalid);
+                    if (intInput == 2)
+                        break;
+                }
+
+                //query here
                 break;
 
             case 7 :
+                this->ConsolePrintEngineState();
+                break;
+
+            case 8 : {
+                if (this->wordTree != nullptr)
+                    this->wordTree->clear();
+                
+                if (this->articles != nullptr)
+                    this->articles->clear();
+
+                delete this->processor;
+                this->processor = new Processor(this->articles, this->wordTree,
+                                                this->wordTreeMutex);
+                break;
+            }
+
+            case 9 :
                 return;
                 break;
         }
@@ -219,26 +224,26 @@ int SearchEngine::ConsolePrintEngineState() {
     return avlSize;
 }
 
-void SearchEngine::AvlCacheConsoleManager() {
+void SearchEngine::AvlCacheConsoleManager() {   //completed
     while (true) {
         std::cout << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate avl-cache with current avl tree data" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
         std::cout << "3. clear avl-cache" << std::endl;
-        std::cout << "4. view cavl-ache statistics" << std::endl;
-        std::cout << "5. exit to main menu" << std::endl << std::endl;
+        std::cout << "4. exit to main menu" << std::endl << std::endl;
 
         bool invalid;
         int intInput;
         do {
             std::cout
-                    << "22s-final-project-fair-game / console-interface / search-engine / avl-cache-manager > ";
+                    << "22s-final-project-fair-game / console-interface / search-engine / avl-cache-manager > "; //make colorful
             std::string input;
             std::cin >> input;
 
             intInput = input[0] & 15;
-            invalid = (input.length() != 1 || intInput > 5 || intInput < 1 || (intInput == 1 && this->is_empty()));
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
+                       (intInput == 1 && this->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
@@ -250,20 +255,113 @@ void SearchEngine::AvlCacheConsoleManager() {
                 break;
 
             case 2 :
-                this->buildFromCache();
+                this->buildAvlTreeFromCache();
                 break;
 
-            case 3 :
-
+            case 3 : {
+                std::ofstream treeFile("../tree-cache.txt", std::ios::trunc);
+                if (!treeFile.is_open())
+                    throw std::invalid_argument(
+                            "Error in \"void SearchEngine::AvlCacheConsoleManager()\" | Could not open file ../tree-cache.txt");
+                treeFile << "0" << std::endl;
+                treeFile.close();
                 break;
+            }
 
-            case 4 :
-
-                break;
-
-            case 5 :
+            case 4:
                 return;
                 break;
+        }
+    }
+}
+
+void SearchEngine::ArticleCacheConsoleManager() {   //completed
+    while (true) {
+        std::cout << std::endl;
+        std::cout << "enter a number: " << std::endl;
+        std::cout << "1. populate article-cache with current article data" << std::endl;
+        std::cout << "2. populate articles from cache" << std::endl;
+        std::cout << "3. clear article-cache" << std::endl;
+        std::cout << "4. exit to main menu" << std::endl << std::endl;
+
+        bool invalid;
+        int intInput;
+        do {
+            std::cout
+                    << "22s-final-project-fair-game / console-interface / search-engine / article-cache-manager > "; //make colorful
+            std::string input;
+            std::cin >> input;
+
+            intInput = input[0] & 15;
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
+                       (intInput == 1 && this->is_empty()));
+            if (invalid) {
+                std::cout << "incorrect input" << std::endl;
+            }
+        } while (invalid);
+
+        switch (intInput) {
+            case 1 :
+                this->cacheArticles();
+                break;
+
+            case 2 :
+                this->buildArticlesFromCache();
+                break;
+
+            case 3 : {
+                std::ofstream artFile("../article-cache.txt", std::ios::trunc);
+                if (!artFile.is_open())
+                    throw std::invalid_argument(
+                            "Error in \"void SearchEngine::ArticleCacheConsoleManager()\" | Could not open file ../article-cache.txt");
+                artFile << "0" << std::endl;
+                artFile.close();
+                break;
+            }
+
+            case 4:
+                return;
+                break;
+        }
+    }
+}
+
+void SearchEngine::cacheArticles() {
+    if (this->articles == nullptr)
+        return;
+
+    std::ofstream artFile("../article-cache.txt", std::ios::binary);
+    if (!artFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void SearchEngine::cacheArticles()\" | Could not open file ../article-cache.txt");
+
+    cereal::JSONOutputArchive artArchive(artFile);
+    artFile << this->articles->size() << std::endl;
+    for (auto &it: *this->articles) {
+        artArchive(it.first, it.second);
+    }
+}
+
+void SearchEngine::buildArticlesFromCache() {
+    if (this->articles == nullptr)
+        return;
+
+    std::ifstream artFile("../article-cache.txt", std::ios::binary);
+    if (!artFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void SearchEngine::buildArticlesFromCache()\" | Could not open file ../article-cache.txt");
+
+    this->articles->clear();
+
+    int size;
+    artFile >> size;
+    if (size > 0) {
+        cereal::JSONInputArchive artArchive(artFile);
+        for (int i = 0; i < size; ++i) {
+            std::string str;
+            Article arti;
+            artArchive(str, arti);
+            this->articles->operator[](str) = arti;
         }
     }
 }

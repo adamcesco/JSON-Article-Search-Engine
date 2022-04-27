@@ -66,12 +66,12 @@ void Processor::process() {
 
         std::string uuid = document["uuid"].GetString();
 
-        std::string author = document["author"].GetString();
+        std::string author = cleanPronoun(document["author"].GetString());
 
         const auto arr = document["entities"]["organizations"].GetArray();
         std::vector<std::string> orgs;
         for (const auto &org: arr) {
-            orgs.emplace_back(org["name"].GetString());
+            orgs.emplace_back(cleanPronoun(org["name"].GetString()));
         }
 
         this->articles->operator[](uuid) = {

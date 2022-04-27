@@ -7,7 +7,7 @@
 #include "SearchEngine.h"
 #include <future>
 #include "./include/termcolor/termcolor.hpp"
-#include "./TableBundle.h"
+#include "./Article.h"
 #include <iomanip>      // std::setprecision
 #include "./include/porter2_stemmer/porter2_stemmer.h"
 
@@ -93,8 +93,8 @@ void SearchEngine::testFindWord(std::string word) {
 #include "include/cereal/types/utility.hpp"
 
 void SearchEngine::cache() {
-    if (this->wordTree != nullptr)
-        this->wordTree->archive_tree("../tree-cache.txt");
+//    if (this->wordTree != nullptr)
+//        this->wordTree->archive_tree("../tree-cache.txt");
 
     //cache articles
     if (this->articles == nullptr)

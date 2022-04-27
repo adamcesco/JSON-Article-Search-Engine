@@ -13,7 +13,7 @@ include_directories(${EXTERNAL_INSTALL_DIR}/include)
 #TBB
 link_libraries(tbb)
 
-add_executable(22s_final_proj main.cpp catch_setup.cpp hash_table/hash_table.h hash_table/hash_ordered_map_tests.cpp search_engine.cpp SearchEngine.h Processor.cpp StopWords.h TableBundle.h utils.h avl_tree/avl_tests.cpp include/porter2_stemmer/porter2_stemmer.cpp include/porter2_stemmer/porter2_stemmer.h include/porter2_stemmer/util/hash.h include/porter2_stemmer/util/string_view.h avl_tree/avl_tree_io.h)
+add_executable(22s_final_proj main.cpp catch_setup.cpp hash_table/hash_table.h hash_table/hash_ordered_map_tests.cpp search_engine.cpp SearchEngine.h Processor.cpp StopWords.h Article.h utils.h avl_tree/avl_tests.cpp include/porter2_stemmer/porter2_stemmer.cpp include/porter2_stemmer/porter2_stemmer.h include/porter2_stemmer/util/hash.h include/porter2_stemmer/util/string_view.h)
 
 ######################################################################
 # Build rules for tbb

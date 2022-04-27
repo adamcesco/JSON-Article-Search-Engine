@@ -2,8 +2,8 @@
 // Created by drewharris on 4/8/2022.
 //
 
-#ifndef INC_22S_FINAL_PROJ_TABLEBUNDLE_H
-#define INC_22S_FINAL_PROJ_TABLEBUNDLE_H
+#ifndef INC_22S_FINAL_PROJ_ARTICLE_H
+#define INC_22S_FINAL_PROJ_ARTICLE_H
 
 #include "./hash_table/hash_table.h"
 #include <mutex>
@@ -11,7 +11,6 @@
 #include <tbb/concurrent_unordered_map.h>
 #include <fstream>
 #include "include/cereal/archives/json.hpp"
-#include "include/cereal/archives/binary.hpp"
 #include "include/cereal/types/vector.hpp"
 #include "include/cereal/types/string.hpp"
 #include "include/cereal/types/utility.hpp"
@@ -38,11 +37,4 @@ struct Article {
     }
 };
 
-struct TableBundle {
-    tbb::concurrent_unordered_map<std::string, Article> *articles;
-
-    ~TableBundle() { delete articles; }
-};
-
-
-#endif //INC_22S_FINAL_PROJ_TABLEBUNDLE_H
+#endif //INC_22S_FINAL_PROJ_ARTICLE_H

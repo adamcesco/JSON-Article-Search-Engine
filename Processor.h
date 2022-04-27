@@ -12,7 +12,7 @@
 #include <mutex>
 #include <queue>
 #include "hash_table/hash_table.h"
-#include "./TableBundle.h"
+#include "./Article.h"
 #include "StopWords.h"
 #include "./avl_tree/avl_tree.h"
 #include <tbb/concurrent_hash_map.h>

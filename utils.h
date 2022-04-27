@@ -43,6 +43,18 @@ void cleanStr(std::string &str) {
     str = clean;
 }
 
+std::string cleanPronoun(const std::string &str) {
+    std::string clean;
+    for (const char &it: str) {
+        if (std::isalpha(it)) {
+            clean += tolower(it);
+        } else if (it == ' ') {
+            clean += '-';
+        }
+    }
+    return clean;
+}
+
 unsigned int custom_string_hash(const std::string &str) {
     unsigned int hashed = 1;
     for (const char &cc: str)

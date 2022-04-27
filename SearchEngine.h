@@ -11,7 +11,7 @@
 #include <vector>
 #include "Processor.h"
 #include "hash_table/hash_table.h"
-#include "./TableBundle.h"
+#include "./Article.h"
 #include "avl_tree/avl_tree.h"
 
 class SearchEngine {

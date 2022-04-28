@@ -13,14 +13,17 @@
 #include "hash_table/hash_table.h"
 #include "./Article.h"
 #include "avl_tree/avl_tree.h"
+#include "typedefs.h"
+#include "QueryBuilder.h"
 
 class SearchEngine {
 private:
     std::string data_folder;
 
     Processor *processor = nullptr;
-    tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
-    avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
+    QueryBuilder *query_builder = nullptr;
+    ArticleTable *articles = nullptr;
+    WordTree *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
 
     void AvlCacheConsoleManager();
@@ -34,6 +37,8 @@ public:
     explicit SearchEngine(std::string data_folder);
 
     void testFindWord(std::string word);
+
+    void testQuery(std::string query);
 
     /**
      * Populates the articles and the inverse index with the articles

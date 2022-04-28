@@ -23,6 +23,8 @@ SearchEngine::SearchEngine(std::string data_folder) {
 
     this->processor = new Processor(this->articles, this->wordTree,
                                     this->wordTreeMutex);
+    this->query_builder = new QueryBuilder(this->articles, this->wordTree,
+                                           this->wordTreeMutex);
 }
 
 SearchEngine::~SearchEngine() {
@@ -413,4 +415,9 @@ void SearchEngine::buildArticlesFromCache() {
             this->articles->operator[](str) = arti;
         }
     }
+}
+
+void SearchEngine::testQuery(std::string query) {
+    this->query_builder->buildQuery(query);
+    this->query_builder->executeQuery();
 }

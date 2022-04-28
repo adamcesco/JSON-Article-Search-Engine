@@ -9,11 +9,11 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[2]);
-        engine.InitiateConsoleInterface();
+//        engine.InitiateConsoleInterface();
 //        engine.buildAvlTreeFromCache();
-//        engine.generateIndex();
+        engine.generateIndex();
         try {
-            engine.testFindWord("global");
+            engine.testQuery("global");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }

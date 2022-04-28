@@ -23,8 +23,7 @@ SearchEngine::SearchEngine(std::string data_folder) {
 
     this->processor = new Processor(this->articles, this->wordTree,
                                     this->wordTreeMutex);
-    this->query_builder = new QueryBuilder(this->articles, this->wordTree,
-                                           this->wordTreeMutex);
+    this->query_builder = new QueryBuilder(this->articles, this->wordTree);
 }
 
 SearchEngine::~SearchEngine() {

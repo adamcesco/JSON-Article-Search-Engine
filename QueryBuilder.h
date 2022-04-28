@@ -58,11 +58,10 @@ class QueryBuilder {
 private:
     ArticleTable *articleTable = nullptr;
     WordTree *wordTree = nullptr;
-    std::mutex *treeMutex;
     QueryNode* root = nullptr;
 
 public:
-    QueryBuilder(ArticleTable *articleTable, WordTree *wordTree, std::mutex *pMutex);
+    QueryBuilder(ArticleTable *articleTable, WordTree *wordTree);
     void buildQuery(std::string query);
     std::vector<Article> executeQuery();
 

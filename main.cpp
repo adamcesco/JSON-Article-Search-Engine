@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 //        engine.buildAvlTreeFromCache();
         engine.generateIndex();
         try {
-            engine.testQuery("AND dogs airplane");
+            engine.testQuery("AND alligator");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }

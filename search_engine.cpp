@@ -376,3 +376,8 @@ void SearchEngine::buildArticlesFromCache() {
         }
     }
 }
+
+void SearchEngine::testQuery(std::string query) {
+    this->query_builder->buildQuery(query);
+    this->query_builder->executeQuery();
+}

@@ -38,6 +38,8 @@ public:
 
     void testFindWord(std::string word);
 
+    void testQuery(std::string query);
+
     /**
      * Populates the articles and the inverse index with the articles
      */

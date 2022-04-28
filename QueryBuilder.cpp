@@ -3,6 +3,7 @@
 //
 
 #include "QueryBuilder.h"
+#include "include/porter2_stemmer/porter2_stemmer.h"
 
 QueryBuilder::QueryBuilder(ArticleTable *articleTable, WordTree *wordTree, std::mutex *pMutex) {
     this->articleTable = articleTable;
@@ -43,7 +44,11 @@ std::vector<ScoredId> QueryBuilder::executeQuery() {
     if (this->root == nullptr) {
         return {};
     }
-    return this->root->execute();
+    std::vector<ScoredId> result = this->root->execute();
+    for (ScoredId& scored : result) {
+        std::cout << scored.first << " " << scored.second << std::endl;
+    }
+    return result;
 }
 
 QueryNode::QueryNode(ArticleTable *table, WordTree *tree) {
@@ -61,6 +66,9 @@ SingleWordNode::SingleWordNode(ArticleTable *table, WordTree *tree, std::string 
     this->word = word;
 }
 
+//TODO: Feels like something is missing
 std::vector<ScoredId> SingleWordNode::execute() {
-    return std::vector<ScoredId>();
+    Porter2Stemmer::stem(word);
+    std::vector<ScoredId> result = this->tree->operator[](word);
+    return result;
 }

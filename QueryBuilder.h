@@ -10,10 +10,11 @@
 
 class QueryNode {
 private:
-    ArticleTable *table = nullptr;
-    WordTree *tree = nullptr;
     std::vector<QueryNode*> children;
 
+protected:
+    WordTree *tree = nullptr;
+    ArticleTable *table = nullptr;
 public:
     QueryNode(ArticleTable *table, WordTree *tree);
 

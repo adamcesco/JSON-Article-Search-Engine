@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 //        engine.buildAvlTreeFromCache();
         engine.generateIndex();
         try {
-            engine.testFindWord("global");
+            engine.testQuery("global");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }

@@ -64,7 +64,7 @@ private:
 public:
     QueryBuilder(ArticleTable *articleTable, WordTree *wordTree, std::mutex *pMutex);
     void buildQuery(std::string query);
-    std::vector<ScoredId> executeQuery();
+    std::vector<Article> executeQuery();
 
     std::vector<std::string> split(std::string basicString, char i);
 };

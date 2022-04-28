@@ -93,15 +93,41 @@ std::vector<std::string> QueryBuilder::split(std::string basicString, char i) {
     return result;
 }
 
-std::vector<ScoredId> QueryBuilder::executeQuery() {
+std::vector<Article> QueryBuilder::executeQuery() {
     if (this->root == nullptr) {
         return {};
     }
     std::vector<ScoredId> result = this->root->execute();
+    // Compress the result by adding the scores
+    std::vector<ScoredId> compressedResult;
     for (ScoredId& scored : result) {
-        std::cout << scored.first << " " << scored.second << std::endl;
+        // Search compressedResult for the uuid
+        // If found : add the score to the existing score
+        // If not found : add the uuid and score to the compressed result
+        bool found = false;
+        for (ScoredId& compressed : compressedResult) {
+            if (compressed.first.compare(scored.first) == 0) {
+                compressed.second += scored.second;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            compressedResult.push_back(scored);
+        }
     }
-    return result;
+
+    // Sort the result by score
+    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId& a, ScoredId& b) {
+        return a.second > b.second;
+    });
+
+    // convert the result to a vector of articles
+    std::vector<Article> articles;
+    for (ScoredId& scored : compressedResult) {
+        articles.push_back(this->articleTable->operator[](scored.first));
+    }
+    return articles;
 }
 
 QueryNode::QueryNode(ArticleTable *table, WordTree *tree) {

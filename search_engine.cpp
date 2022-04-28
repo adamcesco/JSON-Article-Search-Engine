@@ -419,5 +419,8 @@ void SearchEngine::buildArticlesFromCache() {
 
 void SearchEngine::testQuery(std::string query) {
     this->query_builder->buildQuery(query);
-    this->query_builder->executeQuery();
+    std::vector<Article> result = this->query_builder->executeQuery();
+    for (auto &it: result) {
+        std::cout << it.title << " " << it.filename<< std::endl;
+    }
 }

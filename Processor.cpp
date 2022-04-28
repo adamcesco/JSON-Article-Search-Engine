@@ -79,6 +79,7 @@ void Processor::process() {
                 .filename = filename,
                 .author = author,
                 .orgList = orgs,
+                .title = document["title"].GetString(),
         };
 
         std::string text = document["text"].GetString();

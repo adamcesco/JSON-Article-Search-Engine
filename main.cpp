@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 //        engine.buildAvlTreeFromCache();
         engine.generateIndex();
         try {
-            engine.testQuery("global NOT LiveEngage");
+            engine.testQuery("AND dogs airplane");
         } catch (std::exception &e) {
             std::cout << e.what() << std::endl;
         }

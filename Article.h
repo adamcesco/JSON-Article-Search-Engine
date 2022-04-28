@@ -21,6 +21,7 @@ struct Article {
     std::string filename;
     std::string author;
     std::vector<std::string> orgList;
+    std::string title;
 
     // Overloaded stream insertion operator
     friend std::ostream &operator<<(std::ostream &os, const Article &article) {
@@ -33,7 +34,7 @@ struct Article {
 
     template<class Archive>
     void serialize(Archive &ar) {
-        ar(uuid, filename, author, orgList);
+        ar(uuid, filename, author, orgList, title);
     }
 };
 

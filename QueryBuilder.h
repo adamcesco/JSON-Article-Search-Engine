@@ -9,14 +9,14 @@
 #include "typedefs.h"
 
 class QueryNode {
-private:
-    std::vector<QueryNode*> children;
 
 protected:
     WordTree *tree = nullptr;
     ArticleTable *table = nullptr;
+    std::vector<QueryNode*> children;
 public:
     QueryNode(ArticleTable *table, WordTree *tree);
+    void addChild(QueryNode *child);
 
     virtual std::vector<ScoredId> execute() = 0;
     ~QueryNode();
@@ -28,6 +28,15 @@ private:
 
 public:
     SingleWordNode(ArticleTable *table, WordTree *tree, std::string word);
+    std::vector<ScoredId> execute() override;
+};
+
+class AndNode : public QueryNode {
+
+private:
+
+public:
+    AndNode(ArticleTable *table, WordTree *tree) : QueryNode(table, tree) {};
     std::vector<ScoredId> execute() override;
 };
 

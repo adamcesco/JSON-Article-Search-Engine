@@ -20,6 +20,7 @@ bool wordIsSpecial(std::string word) {
 
 void QueryBuilder::buildQuery(std::string query) {
     // Split query into words
+    std::cout << "BUILDING QUERY" << std::endl;
     std::vector<std::string> words = split(query, ' ');
     auto it = words.begin();
     while (it != words.end()) {
@@ -38,13 +39,45 @@ void QueryBuilder::buildQuery(std::string query) {
                 }
             }
         } else if (word == "OR") {
+            this->root = new OrNode(this->articleTable, this->wordTree);
+            it++;
+            if (it == words.end()) {
+                return;
+            }
+            while (!wordIsSpecial(*it)) {
+                this->root->addChild(new SingleWordNode(this->articleTable, this->wordTree, *it));
+                it++;
+                if (it == words.end()) {
+                    return;
+                }
+            }
+
+            // Special "Head nodes"
         } else if (word == "NOT") {
+            // replace the root with a not node and add the old root as a child
+            std::vector<std::string> wordsToAdd;
+            it++;
+            if (it == words.end() ) {
+                return;
+            }
+            while (!wordIsSpecial(*it)) {
+                wordsToAdd.push_back(*it);
+                // check if at end of vector
+                it++;
+                if (it == words.end()) {
+                    break;
+                }
+            }
+
+            QueryNode *oldRoot = this->root;
+            this->root = new NotNode(this->articleTable, this->wordTree, wordsToAdd);
+            this->root->addChild(oldRoot);
         } else if (word == "ORG"){
         } else if (word == "PERSON") {
         } else {
             this->root = new SingleWordNode(this->articleTable, this->wordTree,  word);
+            it++;
         }
-
     }
 
 
@@ -95,7 +128,12 @@ std::vector<ScoredId> SingleWordNode::execute() {
     std::cout << "Executing single word node: " << this->word << std::endl;
     Porter2Stemmer::stem(word);
     std::transform(word.begin(), word.end(), word.begin(), ::tolower);
-    std::vector<ScoredId> result = this->tree->operator[](word);
+    std::vector<ScoredId> result;
+    try {
+        result = this->tree->operator[](word);
+    } catch (std::exception &e) {
+        std::cout << "Word not found in tree" << std::endl;
+    }
     return result;
 }
 
@@ -123,4 +161,42 @@ std::vector<ScoredId> AndNode::execute() {
         }
     }
     return finalResult;
+}
+
+std::vector<ScoredId> OrNode::execute() {
+    // Execute children and merge results
+    std::vector<ScoredId> result;
+    for (auto & it : this->children) {
+        std::vector<ScoredId> childResult = it->execute();
+        result.insert(result.end(), childResult.begin(), childResult.end());
+    }
+    return result;
+}
+
+std::vector<ScoredId> NotNode::execute() {
+    std::cout << "Executing NOT" << std::endl;
+    // Gets result of children
+    if (this->children.size() != 1) {
+        std::cout << "NotNode only supports one child" << std::endl;
+        return {};
+    }
+    std::vector<ScoredId> result = this->children[0]->execute();
+    for (auto &word: this->words) {
+        Porter2Stemmer::stem(word);
+        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+        std::vector<ScoredId> toRemove;
+        try {
+            toRemove = this->tree->operator[](word);
+        } catch (std::exception &e) {
+            std::cout << "Word not found in tree" << std::endl;
+        }
+        for (ScoredId & scored : result) {
+            for (ScoredId & scored2 : toRemove) {
+                if (scored.first == scored2.first) {
+                    result.erase(std::remove(result.begin(), result.end(), scored), result.end());
+                }
+            }
+        }
+    }
+    return result;
 }

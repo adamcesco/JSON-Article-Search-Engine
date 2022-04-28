@@ -32,12 +32,26 @@ public:
 };
 
 class AndNode : public QueryNode {
-
-private:
-
 public:
     AndNode(ArticleTable *table, WordTree *tree) : QueryNode(table, tree) {};
     std::vector<ScoredId> execute() override;
+};
+
+class OrNode : public QueryNode {
+public:
+    OrNode(ArticleTable *table, WordTree *tree) : QueryNode(table, tree) {};
+    std::vector<ScoredId> execute() override;
+};
+
+class NotNode : public QueryNode {
+private:
+    std::vector<std::string> words;
+public:
+    NotNode(ArticleTable *table, WordTree *tree, std::vector<std::string>words) : QueryNode(table, tree) {
+        this->words = words;
+    };
+    std::vector<ScoredId> execute() override;
+
 };
 
 class QueryBuilder {

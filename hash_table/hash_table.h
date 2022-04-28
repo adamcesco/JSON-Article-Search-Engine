@@ -53,7 +53,8 @@ private:
     };
 
     struct Iterator {
-        Iterator(HashPair *pPtr, int pMax) {
+        Iterator(HashPair *pPtr, int pI, int pMax) {
+            i = pI;
             dataPtr = pPtr;
             max = pMax;
         }
@@ -65,7 +66,7 @@ private:
         Iterator &operator++() {
             ++dataPtr;
             ++i;
-            while (i < max && dataPtr->value == nullptr) {
+            while (i < max && dataPtr->key == nullptr) {
                 ++dataPtr;
                 ++i;
             }
@@ -76,7 +77,7 @@ private:
             Iterator temp = *this;
             ++dataPtr;
             ++i;
-            while (i < max && dataPtr->value == nullptr) {
+            while (i < max && dataPtr->key == nullptr) {
                 ++dataPtr;
                 ++i;
             }
@@ -99,6 +100,10 @@ private:
     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
     int increase_max_cap(unsigned int hashIndex);
 
+    float read_load_factor() {
+        return float(ele_count) / max_cap;
+    }
+
     inline static unsigned int hasher(const T &pKey) {
         std::hash<T> hashObj;
         return hashObj(pKey);
@@ -113,15 +118,15 @@ public:
 
     Iterator begin() {
         HashPair *dataPtr = data;
-        int i = max_cap;
-        while (i < max_cap && dataPtr->value == nullptr) {
+        int i = 0;
+        while (i < max_cap && dataPtr->key == nullptr) {
             ++dataPtr;
             ++i;
         }
-        return Iterator(dataPtr, max_cap);
+        return Iterator(dataPtr, i, max_cap);
     }
 
-    Iterator end() { return Iterator(data + max_cap, 0); }
+    Iterator end() { return Iterator(data + max_cap, 0, 0); }
 
     hash_table();
 
@@ -135,8 +140,8 @@ public:
     //resets all *this contents/key
     hash_table<T, U> &clear() {
         delete[] data;
-        data = new HashPair[20];
-        max_cap = 20;
+        data = new HashPair[500];
+        max_cap = 500;
         ele_count = 0;
         return *this;
     }
@@ -169,8 +174,8 @@ public:
 
 template<class T, class U>
 hash_table<T, U>::hash_table() {
-    data = new HashPair[20];
-    max_cap = 20;
+    data = new HashPair[500];
+    max_cap = 500;
 }
 
 template<class T, class U>
@@ -185,20 +190,21 @@ hash_table<T, U> &hash_table<T, U>::emplace_pair(const T &pKey, const U &pValue)
     int index_clean = index % max_cap;
     HashPair toInsert(index, pKey, pValue);
 
-    while (index_clean < max_cap && data[index_clean].key != nullptr) {
+    while (data[index_clean].key != nullptr) {
+        index_clean %= max_cap;
         if (data[index_clean].hash == index) {
             --ele_count;
             break;
         }
         ++index_clean;
     }
+    ++ele_count;
 
-    if (index_clean >= max_cap) {
+    if (int(read_load_factor() * 100) > 70) {
         index_clean = increase_max_cap(index);
     }
 
     data[index_clean] = toInsert;
-    ++ele_count;
 
     return *this;
 }
@@ -207,23 +213,24 @@ template<class T, class U>
 U &hash_table<T, U>::operator[](const T &pKey) {
     const unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+    while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        index_clean %= max_cap;
         ++index_clean;
-    }
-
-    if (index_clean >= max_cap) {
-        index_clean = increase_max_cap(index);
     }
 
     data[index_clean].hash = index;
 
-    if (data[index_clean].key == nullptr)
+    if (data[index_clean].key == nullptr) {
         data[index_clean].key = new T();
+        ++ele_count;
+    }
     *data[index_clean].key = pKey;
 
-    if (data[index_clean].value == nullptr) {
+    if (data[index_clean].value == nullptr)
         data[index_clean].value = new U();
-        ++ele_count;
+
+    if (int(read_load_factor() * 100) > 70) {
+        index_clean = increase_max_cap(index);
     }
 
     return *data[index_clean].value;
@@ -233,11 +240,12 @@ template<class T, class U>
 U hash_table<T, U>::read_at(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+    while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        index_clean %= max_cap;
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
+    if (data[index_clean].key == nullptr) {
         throw std::invalid_argument(
                 "Error in \"U hash_table<T, U>::read_at(const T &pKey) const\" | pKey not found");
     }
@@ -249,7 +257,7 @@ template<class T, class U>
 //pass and return index values because all index values are going to be changed due to their dependence on "max_cap"
 int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     int mcCopy = max_cap;
-    max_cap *= 2;
+    max_cap *= 10;
     auto *dataCopy = new HashPair[max_cap];
     for (int i = 0; i < mcCopy; ++i) {
         if (data[i].hash == 0)
@@ -258,7 +266,8 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
         int index_clean = index % max_cap;
         HashPair toInsert(index, *data[i].key, *data[i].value);
 
-        while (index_clean < max_cap && dataCopy[index_clean].key != nullptr) {
+        while (dataCopy[index_clean].key != nullptr) {
+            index_clean %= max_cap;
             if (dataCopy[index_clean].hash == index) {
                 break;
             }
@@ -271,7 +280,8 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
 
     //now that "key" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
     int index_clean = hashIndex % max_cap;
-    while (index_clean < max_cap && data[index_clean].key != nullptr) {
+    while (data[index_clean].key != nullptr) {
+        index_clean %= max_cap;
         if (data[index_clean].hash == hashIndex) {
             break;
         }
@@ -285,11 +295,12 @@ template<class T, class U>
 hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &pKey) {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+    while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        index_clean %= max_cap;
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
+    if (data[index_clean].key == nullptr) {
         throw std::invalid_argument(
                 "Error in \"hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &pKey)\" | passed key was not found.");
     }
@@ -341,11 +352,12 @@ template<class T, class U>
 bool hash_table<T, U>::contains(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
-    while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+    while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        index_clean %= max_cap;
         ++index_clean;
     }
 
-    if (index_clean >= max_cap || data[index_clean].key == nullptr) {
+    if (data[index_clean].key == nullptr) {
         return false;
     }
 
@@ -360,12 +372,9 @@ hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) 
 
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
-        while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+            index_clean %= max_cap;
             ++index_clean;
-        }
-
-        if (index_clean >= max_cap) {
-            index_clean = increase_max_cap(index);
         }
 
         data[index_clean].hash = index;
@@ -380,8 +389,13 @@ hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) 
         if (data[index_clean].value == nullptr) {
             data[index_clean].value = new U();
             *data[index_clean].value = *pMap.data[i].value;
-        } else
+        } else {
             *data[index_clean].value += *pMap.data[i].value;   //adds the two "value"s together
+        }
+
+        if (int(read_load_factor() * 100) > 70) {
+            increase_max_cap(index);
+        }
     }
 
     return *this;
@@ -395,12 +409,9 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
 
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
-        while (index_clean < max_cap && data[index_clean].key != nullptr && data[index_clean].hash != index) {
+        while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
+            index_clean %= max_cap;
             ++index_clean;
-        }
-
-        if (index_clean >= max_cap) {
-            index_clean = increase_max_cap(index);
         }
 
         data[index_clean].hash = index;
@@ -416,6 +427,10 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
 
         *data[index_clean].key = *pMap.data[i].key;    //overwrites *this' version of "value" with the "pMap" version of "value"
         *data[index_clean].value = *pMap.data[i].value;
+
+        if (int(read_load_factor() * 100) > 70) {
+            increase_max_cap(index);
+        }
     }
 
     return *this;

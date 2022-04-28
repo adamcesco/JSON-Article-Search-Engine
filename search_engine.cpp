@@ -238,7 +238,8 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
         std::cout << "1. populate avl-cache with current avl tree data" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
         std::cout << "3. clear avl-cache" << std::endl;
-        std::cout << "4. exit to main menu" << std::endl << std::endl;
+        std::cout << "4. view avl-cache statistics" << std::endl;
+        std::cout << "5. exit to main menu" << std::endl << std::endl;
 
         bool invalid;
         int intInput;
@@ -251,7 +252,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
             std::cin >> input;
 
             intInput = input[0] & 15;
-            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 5 || intInput < 1 ||
                        (intInput == 1 && this->wordTree->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
@@ -269,15 +270,34 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
             case 3 : {
                 std::ofstream treeFile("../tree-cache.txt", std::ios::trunc);
-                if (!treeFile.is_open())
-                    throw std::invalid_argument(
-                            "Error in \"void SearchEngine::AvlCacheConsoleManager()\" | Could not open file ../tree-cache.txt");
+                if (!treeFile.is_open()) {
+                    std::cout << "tree-cache file could not be opened" << std::endl;
+                    break;
+                }
                 treeFile << "0" << std::endl;
                 treeFile.close();
                 break;
             }
 
-            case 4:
+            case 4: {
+                std::cout << std::endl;
+                std::cout << "AVL-Tree Cache Statistics:" << std::endl;
+
+                std::ifstream cacheFile("../tree-cache.txt");
+                if (!cacheFile.is_open()) {
+                    std::cout << "tree-cache file could not be opened" << std::endl;
+                    break;
+                }
+                std::cout << "state\t\tfile is present" << std::endl;
+
+                int cacheSize = 0;
+                cacheFile >> cacheSize;
+                std::cout << "cache size\t" << cacheSize << " nodes in archive" << std::endl;
+                std::cout << std::endl;
+                break;
+            }
+
+            case 5:
                 return;
                 break;
         }
@@ -291,7 +311,8 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
         std::cout << "1. populate article-cache with current article data" << std::endl;
         std::cout << "2. populate articles from cache" << std::endl;
         std::cout << "3. clear article-cache" << std::endl;
-        std::cout << "4. exit to main menu" << std::endl << std::endl;
+        std::cout << "4. view article-cache statistics" << std::endl;
+        std::cout << "5. exit to main menu" << std::endl << std::endl;
 
         bool invalid;
         int intInput;
@@ -304,7 +325,7 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
             std::cin >> input;
 
             intInput = input[0] & 15;
-            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 4 || intInput < 1 ||
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 5 || intInput < 1 ||
                        (intInput == 1 && this->articles->empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
@@ -322,15 +343,34 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
 
             case 3 : {
                 std::ofstream artFile("../article-cache.txt", std::ios::trunc);
-                if (!artFile.is_open())
-                    throw std::invalid_argument(
-                            "Error in \"void SearchEngine::ArticleCacheConsoleManager()\" | Could not open file ../article-cache.txt");
+                if (!artFile.is_open()) {
+                    std::cout << "article-cache file could not be opened" << std::endl;
+                    break;
+                }
                 artFile << "0" << std::endl;
                 artFile.close();
                 break;
             }
 
-            case 4:
+            case 4: {
+                std::cout << std::endl;
+                std::cout << "Article Cache Statistics:" << std::endl;
+
+                std::ifstream cacheFile("../article-cache.txt");
+                if (!cacheFile.is_open()) {
+                    std::cout << "state\t\tfile could not be opened" << std::endl;
+                    break;
+                }
+                std::cout << "state\t\tfile is present" << std::endl;
+
+                int cacheSize = 0;
+                cacheFile >> cacheSize;
+                std::cout << "cache size\t" << cacheSize << " articles in archive" << std::endl;
+                std::cout << std::endl;
+                break;
+            }
+
+            case 5:
                 return;
                 break;
         }

@@ -23,8 +23,7 @@ SearchEngine::SearchEngine(std::string data_folder) {
 
     this->processor = new Processor(this->articles, this->wordTree,
                                     this->wordTreeMutex);
-    this->query_builder = new QueryBuilder(this->articles, this->wordTree,
-                                           this->wordTreeMutex);
+    this->query_builder = new QueryBuilder(this->articles, this->wordTree);
 }
 
 SearchEngine::~SearchEngine() {
@@ -109,7 +108,7 @@ void SearchEngine::buildAvlTreeFromCache() {
 
 void SearchEngine::InitiateConsoleInterface() {     //needs query support
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate engine data by parsing JSON documents" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
@@ -119,7 +118,8 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
         std::cout << "6. enter boolean search query" << std::endl;
         std::cout << "7. print search engine statistics" << std::endl;
         std::cout << "8. clear engine data" << std::endl;
-        std::cout << "9. end program" << std::endl << std::endl;
+        std::cout << "9. end program" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;
@@ -161,11 +161,11 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
 
             case 6 :
                 if (this->articles == nullptr || this->articles->empty()) {
-                    std::cout << std::endl;
+                    std::cout << termcolor::red << std::endl;
                     std::cout << "WARNING: article data is empty | do you want to continue?" << std::endl;
                     std::cout << "1. Yes" << std::endl;
                     std::cout << "2. No" << std::endl;
-                    std::cout << std::endl;
+                    std::cout << termcolor::white << std::endl;
                     do {
                         std::cout << termcolor::bright_blue
                                   << "22s-final-project-fair-game / console-interface / " << termcolor::bright_green
@@ -184,6 +184,7 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
                 }
 
                 //query here
+                QueryInterface();
                 break;
 
             case 7 :
@@ -210,6 +211,8 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
     }
 }
 
+
+
 int SearchEngine::ConsolePrintEngineState() {
     int avlSize = 0;
     std::cout << std::endl;
@@ -233,13 +236,14 @@ int SearchEngine::ConsolePrintEngineState() {
 
 void SearchEngine::AvlCacheConsoleManager() {   //completed
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate avl-cache with current avl tree data" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
         std::cout << "3. clear avl-cache" << std::endl;
         std::cout << "4. view avl-cache statistics" << std::endl;
-        std::cout << "5. exit to main menu" << std::endl << std::endl;
+        std::cout << "5. exit to main menu" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;
@@ -306,13 +310,14 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
 void SearchEngine::ArticleCacheConsoleManager() {   //completed
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate article-cache with current article data" << std::endl;
         std::cout << "2. populate articles from cache" << std::endl;
         std::cout << "3. clear article-cache" << std::endl;
         std::cout << "4. view article-cache statistics" << std::endl;
-        std::cout << "5. exit to main menu" << std::endl << std::endl;
+        std::cout << "5. exit to main menu" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;
@@ -419,5 +424,103 @@ void SearchEngine::buildArticlesFromCache() {
 
 void SearchEngine::testQuery(std::string query) {
     this->query_builder->buildQuery(query);
-    this->query_builder->executeQuery();
+    std::vector<Article> result = this->query_builder->executeQuery();
+    for (auto &it: result) {
+        std::cout << it.title << " " << it.filename<< std::endl;
+    }
+}
+
+void SearchEngine::QueryInterface() {
+    std::cout << termcolor::bright_green << std::endl;
+    std::cout << "Enter query: " << termcolor::white;
+    std::string query;
+    std::cin.ignore();
+    std::getline(std::cin, query);
+    std::cout << query << std::endl;
+    this->query_builder->buildQuery(query);
+    std::vector<Article> result = this->query_builder->executeQuery();
+
+
+    std::cout << std::endl;
+    std::cout << termcolor::bright_blue << "Results: " << std::endl;
+    // show first 15 results with a number in front of each
+    int i = 1;
+    for (auto &it: result) {
+        std::cout << i << ": " << it.title << std::endl;
+        i++;
+        if (i > 15)
+            break;
+    }
+    std::cout << termcolor::white;
+
+    do{
+        std::cout << termcolor::bright_green << std::endl;
+        std::cout << "enter a number" << std::endl;
+        std::cout << "1. enter another query" << std::endl;
+        std::cout << "2. view an article" << std::endl;
+        std::cout << "3. exit" << std::endl;
+        std::cout << termcolor::white;
+
+        std::cout << termcolor::bright_blue
+                  << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
+                  << "query-interface > " << termcolor::white;
+
+        int choice;
+        std::cin >> choice;
+        switch (choice) {
+            case 1: {
+                std::cout << termcolor::bright_green << std::endl;
+                std::cout << "Enter query: " << termcolor::white;
+                std::string query;
+                std::cin.ignore();
+                std::getline(std::cin, query);
+                std::cout << query << std::endl;
+                this->query_builder->buildQuery(query);
+                std::vector<Article> result = this->query_builder->executeQuery();
+
+
+                std::cout << std::endl;
+                std::cout << termcolor::bright_blue << "Results: " << std::endl;
+                // show first 15 results with a number in front of each
+                int i = 1;
+                for (auto &it: result) {
+                    std::cout << i << ": " << it.title << std::endl;
+                    i++;
+                    if (i > 15)
+                        break;
+                }
+                std::cout << termcolor::white;
+
+                break;
+            }
+            case 2:
+                // Prompt for a number to view
+                std::cout << "Enter a number to view an article: " << std::endl;
+                int num;
+                std::cin >> num;
+                this->printArticleTextFromFilename(result[num - 1].filename);
+                break;
+            case 3:
+                return;
+        }
+    }while(true);
+}
+
+void SearchEngine::printArticleTextFromFilename(std::string filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cout << "Could not open file: " << filename << std::endl;
+    }
+    rapidjson::Document document;
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    try {
+        document.Parse(content.c_str());
+    } catch (std::exception &e) {
+        std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
+    }
+    file.close();
+
+    assert(document.HasMember("text"));
+    // print out text field
+    std::cout << document["text"].GetString() << std::endl;
 }

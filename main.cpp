@@ -9,14 +9,10 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[2]);
-//        engine.InitiateConsoleInterface();
+        engine.InitiateConsoleInterface();
+
+
 //        engine.buildAvlTreeFromCache();
-        engine.generateIndex();
-        try {
-            engine.testQuery("AND global LiveEngage");
-        } catch (std::exception &e) {
-            std::cout << e.what() << std::endl;
-        }
 //        engine.cacheAvlTree();
     }
     return 0;

@@ -32,11 +32,34 @@ public:
 };
 
 class AndNode : public QueryNode {
-
-private:
-
 public:
     AndNode(ArticleTable *table, WordTree *tree) : QueryNode(table, tree) {};
+    std::vector<ScoredId> execute() override;
+};
+
+class OrNode : public QueryNode {
+public:
+    OrNode(ArticleTable *table, WordTree *tree) : QueryNode(table, tree) {};
+    std::vector<ScoredId> execute() override;
+};
+
+class NotNode : public QueryNode {
+private:
+    std::vector<std::string> words;
+public:
+    NotNode(ArticleTable *table, WordTree *tree, std::vector<std::string>words) : QueryNode(table, tree) {
+        this->words = words;
+    };
+    std::vector<ScoredId> execute() override;
+};
+
+class OrgNode : public QueryNode {
+private:
+    std::vector<std::string> orgs;
+public:
+    OrgNode(ArticleTable *table, WordTree *tree, std::vector<std::string>orgs) : QueryNode(table, tree) {
+        this->orgs = orgs;
+    };
     std::vector<ScoredId> execute() override;
 };
 
@@ -44,13 +67,12 @@ class QueryBuilder {
 private:
     ArticleTable *articleTable = nullptr;
     WordTree *wordTree = nullptr;
-    std::mutex *treeMutex;
     QueryNode* root = nullptr;
 
 public:
-    QueryBuilder(ArticleTable *articleTable, WordTree *wordTree, std::mutex *pMutex);
+    QueryBuilder(ArticleTable *articleTable, WordTree *wordTree);
     void buildQuery(std::string query);
-    std::vector<ScoredId> executeQuery();
+    std::vector<Article> executeQuery();
 
     std::vector<std::string> split(std::string basicString, char i);
 };

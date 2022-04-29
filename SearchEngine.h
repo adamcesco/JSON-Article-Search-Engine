@@ -5,7 +5,6 @@
 #ifndef INC_22S_FINAL_PROJ_SEARCHENGINE_H
 #define INC_22S_FINAL_PROJ_SEARCHENGINE_H
 
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -29,6 +28,11 @@ private:
     void AvlCacheConsoleManager();
 
     void ArticleCacheConsoleManager();
+
+    void QueryInterface();
+
+    void printArticleTextFromFilename(std::string filename);
+
 
 public:
     /**

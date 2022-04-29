@@ -66,12 +66,12 @@ void Processor::process() {
 
         std::string uuid = document["uuid"].GetString();
 
-        std::string author = cleanPronoun(document["author"].GetString());
+        std::string author = cleanPropnoun(document["author"].GetString());
 
         const auto arr = document["entities"]["organizations"].GetArray();
         std::vector<std::string> orgs;
         for (const auto &org: arr) {
-            orgs.emplace_back(cleanPronoun(org["name"].GetString()));
+            orgs.emplace_back(cleanPropnoun(org["name"].GetString()));
         }
 
         this->articles->operator[](uuid) = {
@@ -79,6 +79,7 @@ void Processor::process() {
                 .filename = filename,
                 .author = author,
                 .orgList = orgs,
+                .title = document["title"].GetString(),
         };
 
         std::string text = document["text"].GetString();

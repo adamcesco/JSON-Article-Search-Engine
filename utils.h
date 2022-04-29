@@ -43,7 +43,7 @@ void cleanStr(std::string &str) {
     str = clean;
 }
 
-std::string cleanPronoun(const std::string &str) {
+std::string cleanPropnoun(const std::string &str) {
     std::string clean;
     for (const char &it: str) {
         if (std::isalpha(it)) {

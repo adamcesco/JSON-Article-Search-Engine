@@ -108,7 +108,7 @@ void SearchEngine::buildAvlTreeFromCache() {
 
 void SearchEngine::InitiateConsoleInterface() {     //needs query support
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate engine data by parsing JSON documents" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
@@ -118,7 +118,8 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
         std::cout << "6. enter boolean search query" << std::endl;
         std::cout << "7. print search engine statistics" << std::endl;
         std::cout << "8. clear engine data" << std::endl;
-        std::cout << "9. end program" << std::endl << std::endl;
+        std::cout << "9. end program" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;
@@ -160,11 +161,11 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
 
             case 6 :
                 if (this->articles == nullptr || this->articles->empty()) {
-                    std::cout << std::endl;
+                    std::cout << termcolor::red << std::endl;
                     std::cout << "WARNING: article data is empty | do you want to continue?" << std::endl;
                     std::cout << "1. Yes" << std::endl;
                     std::cout << "2. No" << std::endl;
-                    std::cout << std::endl;
+                    std::cout << termcolor::white << std::endl;
                     do {
                         std::cout << termcolor::bright_blue
                                   << "22s-final-project-fair-game / console-interface / " << termcolor::bright_green
@@ -235,13 +236,14 @@ int SearchEngine::ConsolePrintEngineState() {
 
 void SearchEngine::AvlCacheConsoleManager() {   //completed
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate avl-cache with current avl tree data" << std::endl;
         std::cout << "2. populate avl tree from cache" << std::endl;
         std::cout << "3. clear avl-cache" << std::endl;
         std::cout << "4. view avl-cache statistics" << std::endl;
-        std::cout << "5. exit to main menu" << std::endl << std::endl;
+        std::cout << "5. exit to main menu" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;
@@ -308,13 +310,14 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
 void SearchEngine::ArticleCacheConsoleManager() {   //completed
     while (true) {
-        std::cout << std::endl;
+        std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
         std::cout << "1. populate article-cache with current article data" << std::endl;
         std::cout << "2. populate articles from cache" << std::endl;
         std::cout << "3. clear article-cache" << std::endl;
         std::cout << "4. view article-cache statistics" << std::endl;
-        std::cout << "5. exit to main menu" << std::endl << std::endl;
+        std::cout << "5. exit to main menu" << std::endl;
+        std::cout << termcolor::white << std::endl;
 
         bool invalid;
         int intInput;

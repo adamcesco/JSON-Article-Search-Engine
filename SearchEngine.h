@@ -5,7 +5,6 @@
 #ifndef INC_22S_FINAL_PROJ_SEARCHENGINE_H
 #define INC_22S_FINAL_PROJ_SEARCHENGINE_H
 
-
 #include <string>
 #include <unordered_map>
 #include <vector>

@@ -4,11 +4,11 @@
 
 #include <iostream>
 #include <thread>
-#include "SearchEngine.h"
 #include <future>
-#include "./include/termcolor/termcolor.hpp"
-#include <iomanip>
 #include <cassert>
+#include <iomanip>
+#include "SearchEngine.h"
+#include "./include/termcolor/termcolor.hpp"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {

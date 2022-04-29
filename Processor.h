@@ -5,7 +5,6 @@
 #ifndef INC_22S_FINAL_PROJ_PROCESSOR_H
 #define INC_22S_FINAL_PROJ_PROCESSOR_H
 
-#include <unordered_map>
 #include <atomic>
 #include <queue>
 #include "./Article.h"

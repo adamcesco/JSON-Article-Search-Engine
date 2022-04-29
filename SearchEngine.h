@@ -33,8 +33,6 @@ public:
      */
     explicit SearchEngine(std::string data_folder);
 
-    void testFindWord(std::string word);
-
     void testQuery(std::string query);
 
     /**

@@ -3,10 +3,10 @@
 //
 
 #include <iostream>
-#include "Processor.h"
 #include <experimental/filesystem>
-#include "./include/termcolor/termcolor.hpp"
 #include <thread>
+#include "Processor.h"
+#include "./include/termcolor/termcolor.hpp"
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;
@@ -164,7 +164,7 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 }
 
 
-#include <math.h>
+#include <cmath>
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();

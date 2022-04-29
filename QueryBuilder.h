@@ -51,7 +51,16 @@ public:
         this->words = words;
     };
     std::vector<ScoredId> execute() override;
+};
 
+class OrgNode : public QueryNode {
+private:
+    std::vector<std::string> orgs;
+public:
+    OrgNode(ArticleTable *table, WordTree *tree, std::vector<std::string>orgs) : QueryNode(table, tree) {
+        this->orgs = orgs;
+    };
+    std::vector<ScoredId> execute() override;
 };
 
 class QueryBuilder {

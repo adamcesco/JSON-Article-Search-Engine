@@ -4,11 +4,11 @@
 
 #include "QueryBuilder.h"
 #include "include/porter2_stemmer/porter2_stemmer.h"
+#include "Processor.h"
 
-QueryBuilder::QueryBuilder(ArticleTable *articleTable, WordTree *wordTree, std::mutex *pMutex) {
+QueryBuilder::QueryBuilder(ArticleTable *articleTable, WordTree *wordTree) {
     this->articleTable = articleTable;
     this->wordTree = wordTree;
-    this->treeMutex = pMutex;
 }
 
 bool wordIsSpecial(std::string word) {
@@ -20,7 +20,6 @@ bool wordIsSpecial(std::string word) {
 
 void QueryBuilder::buildQuery(std::string query) {
     // Split query into words
-    std::cout << "BUILDING QUERY" << std::endl;
     std::vector<std::string> words = split(query, ' ');
     auto it = words.begin();
     while (it != words.end()) {
@@ -73,6 +72,24 @@ void QueryBuilder::buildQuery(std::string query) {
             this->root = new NotNode(this->articleTable, this->wordTree, wordsToAdd);
             this->root->addChild(oldRoot);
         } else if (word == "ORG"){
+            std::vector<std::string> wordsToAdd;
+            it++;
+            if (it == words.end() ) {
+                return;
+            }
+            while (!wordIsSpecial(*it)) {
+                wordsToAdd.push_back(*it);
+                // check if at end of vector
+                it++;
+                if (it == words.end()) {
+                    break;
+                }
+            }
+
+            QueryNode *oldRoot = this->root;
+            this->root = new OrgNode(this->articleTable, this->wordTree, wordsToAdd);
+            this->root->addChild(oldRoot);
+
         } else if (word == "PERSON") {
         } else {
             this->root = new SingleWordNode(this->articleTable, this->wordTree,  word);
@@ -225,4 +242,23 @@ std::vector<ScoredId> NotNode::execute() {
         }
     }
     return result;
+}
+
+std::vector<ScoredId> OrgNode::execute() {
+    std::string orgToSearch = this->orgs[0];
+    orgToSearch = cleanPropnoun(orgToSearch);
+    std::vector<ScoredId> result = this->children[0]->execute();
+
+    std::vector<ScoredId> passed;
+
+    for (ScoredId & scored : result) {
+        Article article = this->table->operator[](scored.first);
+        // if article.orglist contains an org from  this->org
+        if (std::find(article.orgList.begin(), article.orgList.end(), orgToSearch) != article.orgList.end()) {
+            passed.push_back(scored);
+        }
+    }
+
+    return passed;
+
 }

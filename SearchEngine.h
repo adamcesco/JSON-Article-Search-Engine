@@ -30,6 +30,11 @@ private:
 
     void ArticleCacheConsoleManager();
 
+    void QueryInterface();
+
+    void printArticleTextFromFilename(std::string filename);
+
+
 public:
     /**
      * @param data_folder The folder containing the data files

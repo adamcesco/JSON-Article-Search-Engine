@@ -6,6 +6,7 @@
 #define INC_22S_FINAL_PROJ_UTILS_H
 
 #include <string>
+#include "./include/porter2_stemmer/porter2_stemmer.h"
 
 std::string getCenteredText(const std::string &text, int width) {
     int textLength = text.length();

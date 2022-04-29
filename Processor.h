@@ -5,19 +5,13 @@
 #ifndef INC_22S_FINAL_PROJ_PROCESSOR_H
 #define INC_22S_FINAL_PROJ_PROCESSOR_H
 
-#include <string>
 #include <unordered_map>
-#include <vector>
 #include <atomic>
-#include <mutex>
 #include <queue>
-#include "hash_table/hash_table.h"
 #include "./Article.h"
 #include "StopWords.h"
 #include "./avl_tree/avl_tree.h"
 #include <tbb/concurrent_hash_map.h>
-#include <tbb/concurrent_unordered_map.h>
-#include <tbb/concurrent_vector.h>
 
 class Processor {
 

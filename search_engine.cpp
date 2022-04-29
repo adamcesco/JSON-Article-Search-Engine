@@ -7,10 +7,8 @@
 #include "SearchEngine.h"
 #include <future>
 #include "./include/termcolor/termcolor.hpp"
-#include "./Article.h"
-#include <iomanip>      // std::setprecision
-#include "./include/porter2_stemmer/porter2_stemmer.h"
-#include "./include/termcolor/termcolor.hpp"
+#include <iomanip>
+#include <cassert>
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -73,19 +71,6 @@ void SearchEngine::generateIndex() {
     std::chrono::duration<double> diff = end - start;
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
-
-}
-
-void SearchEngine::testFindWord(std::string word) {
-    Porter2Stemmer::stem(word);
-    std::vector<std::pair<std::string, double>> result = this->wordTree->operator[](word);
-    std::cout << "Found " << result.size() << " articles containing the word " << word << ":" << std::endl;
-    for (auto &article: result) {
-        std::cout << article.first << " | " << article.second << " | ";
-        Article doc = this->articles->operator[](article.first);
-        std::cout << doc.filename << std::endl;
-
-    }
 
 }
 
@@ -210,7 +195,6 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
         }
     }
 }
-
 
 
 int SearchEngine::ConsolePrintEngineState() {
@@ -426,7 +410,7 @@ void SearchEngine::testQuery(std::string query) {
     this->query_builder->buildQuery(query);
     std::vector<Article> result = this->query_builder->executeQuery();
     for (auto &it: result) {
-        std::cout << it.title << " " << it.filename<< std::endl;
+        std::cout << it.title << " " << it.filename << std::endl;
     }
 }
 
@@ -453,7 +437,7 @@ void SearchEngine::QueryInterface() {
     }
     std::cout << termcolor::white;
 
-    do{
+    do {
         std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number" << std::endl;
         std::cout << "1. enter another query" << std::endl;
@@ -503,7 +487,7 @@ void SearchEngine::QueryInterface() {
             case 3:
                 return;
         }
-    }while(true);
+    } while (true);
 }
 
 void SearchEngine::printArticleTextFromFilename(std::string filename) {

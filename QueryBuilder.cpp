@@ -3,8 +3,7 @@
 //
 
 #include "QueryBuilder.h"
-#include "include/porter2_stemmer/porter2_stemmer.h"
-#include "Processor.h"
+#include "./utils.h"
 
 QueryBuilder::QueryBuilder(ArticleTable *articleTable, WordTree *wordTree) {
     this->articleTable = articleTable;
@@ -56,7 +55,7 @@ void QueryBuilder::buildQuery(std::string query) {
             // replace the root with a not node and add the old root as a child
             std::vector<std::string> wordsToAdd;
             it++;
-            if (it == words.end() ) {
+            if (it == words.end()) {
                 return;
             }
             while (!wordIsSpecial(*it)) {
@@ -71,10 +70,10 @@ void QueryBuilder::buildQuery(std::string query) {
             QueryNode *oldRoot = this->root;
             this->root = new NotNode(this->articleTable, this->wordTree, wordsToAdd);
             this->root->addChild(oldRoot);
-        } else if (word == "ORG"){
+        } else if (word == "ORG") {
             std::vector<std::string> wordsToAdd;
             it++;
-            if (it == words.end() ) {
+            if (it == words.end()) {
                 return;
             }
             while (!wordIsSpecial(*it)) {
@@ -92,7 +91,7 @@ void QueryBuilder::buildQuery(std::string query) {
 
         } else if (word == "PERSON") {
         } else {
-            this->root = new SingleWordNode(this->articleTable, this->wordTree,  word);
+            this->root = new SingleWordNode(this->articleTable, this->wordTree, word);
             it++;
         }
     }
@@ -117,12 +116,12 @@ std::vector<Article> QueryBuilder::executeQuery() {
     std::vector<ScoredId> result = this->root->execute();
     // Compress the result by adding the scores
     std::vector<ScoredId> compressedResult;
-    for (ScoredId& scored : result) {
+    for (ScoredId &scored: result) {
         // Search compressedResult for the uuid
         // If found : add the score to the existing score
         // If not found : add the uuid and score to the compressed result
         bool found = false;
-        for (ScoredId& compressed : compressedResult) {
+        for (ScoredId &compressed: compressedResult) {
             if (compressed.first.compare(scored.first) == 0) {
                 compressed.second += scored.second;
                 found = true;
@@ -135,13 +134,13 @@ std::vector<Article> QueryBuilder::executeQuery() {
     }
 
     // Sort the result by score
-    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId& a, ScoredId& b) {
+    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId &a, ScoredId &b) {
         return a.second > b.second;
     });
 
     // convert the result to a vector of articles
     std::vector<Article> articles;
-    for (ScoredId& scored : compressedResult) {
+    for (ScoredId &scored: compressedResult) {
         articles.push_back(this->articleTable->operator[](scored.first));
     }
     return articles;
@@ -153,7 +152,7 @@ QueryNode::QueryNode(ArticleTable *table, WordTree *tree) {
 }
 
 QueryNode::~QueryNode() {
-    for (auto & it : this->children) {
+    for (auto &it: this->children) {
         delete it;
     }
 }
@@ -184,7 +183,7 @@ std::vector<ScoredId> AndNode::execute() {
     std::cout << "Executing AND" << std::endl;
     // execute children and merge results if they are shared
     std::vector<ScoredId> result;
-    for (auto & it : this->children) {
+    for (auto &it: this->children) {
         std::vector<ScoredId> childResult = it->execute();
         result.insert(result.end(), childResult.begin(), childResult.end());
     }
@@ -192,9 +191,9 @@ std::vector<ScoredId> AndNode::execute() {
     int requiredTimes = this->children.size();
     std::vector<ScoredId> finalResult;
 
-    for (ScoredId & scored : result) {
+    for (ScoredId &scored: result) {
         int times = 0;
-        for (ScoredId & scored2 : result) {
+        for (ScoredId &scored2: result) {
             if (scored.first == scored2.first) {
                 times++;
             }
@@ -209,7 +208,7 @@ std::vector<ScoredId> AndNode::execute() {
 std::vector<ScoredId> OrNode::execute() {
     // Execute children and merge results
     std::vector<ScoredId> result;
-    for (auto & it : this->children) {
+    for (auto &it: this->children) {
         std::vector<ScoredId> childResult = it->execute();
         result.insert(result.end(), childResult.begin(), childResult.end());
     }
@@ -233,8 +232,8 @@ std::vector<ScoredId> NotNode::execute() {
         } catch (std::exception &e) {
             std::cout << "Word not found in tree" << std::endl;
         }
-        for (ScoredId & scored : result) {
-            for (ScoredId & scored2 : toRemove) {
+        for (ScoredId &scored: result) {
+            for (ScoredId &scored2: toRemove) {
                 if (scored.first == scored2.first) {
                     result.erase(std::remove(result.begin(), result.end(), scored), result.end());
                 }
@@ -251,7 +250,7 @@ std::vector<ScoredId> OrgNode::execute() {
 
     std::vector<ScoredId> passed;
 
-    for (ScoredId & scored : result) {
+    for (ScoredId &scored: result) {
         Article article = this->table->operator[](scored.first);
         // if article.orglist contains an org from  this->org
         if (std::find(article.orgList.begin(), article.orgList.end(), orgToSearch) != article.orgList.end()) {

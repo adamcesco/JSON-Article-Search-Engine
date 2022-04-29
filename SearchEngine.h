@@ -5,14 +5,7 @@
 #ifndef INC_22S_FINAL_PROJ_SEARCHENGINE_H
 #define INC_22S_FINAL_PROJ_SEARCHENGINE_H
 
-#include <string>
-#include <unordered_map>
-#include <vector>
 #include "Processor.h"
-#include "hash_table/hash_table.h"
-#include "./Article.h"
-#include "avl_tree/avl_tree.h"
-#include "typedefs.h"
 #include "QueryBuilder.h"
 
 class SearchEngine {

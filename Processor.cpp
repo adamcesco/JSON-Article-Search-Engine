@@ -5,10 +5,8 @@
 #include <iostream>
 #include "Processor.h"
 #include <experimental/filesystem>
-#include "./include/cereal/external/rapidjson/document.h"
 #include "./include/termcolor/termcolor.hpp"
 #include <thread>
-#include "./include/porter2_stemmer/porter2_stemmer.h"
 #include "./utils.h"
 
 namespace fs = std::experimental::filesystem;

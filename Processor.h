@@ -16,7 +16,9 @@ class Processor {
 
 private:
     // Passed from SearchEngine
-    int totalFiles = 0;
+    unsigned int totalFiles = 0;
+    unsigned int totalOrgs = 0;
+    unsigned int totalPeople = 0;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
     std::mutex *fileQueueMutex;
@@ -53,6 +55,8 @@ public:
     double getProgress();
 
     double getConversionProgress();
+
+    void printProcessorStats();
 };
 
 

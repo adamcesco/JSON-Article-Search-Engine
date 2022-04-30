@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <queue>
 #include <tbb/concurrent_vector.h>
 
 template<class T, class U>
@@ -46,11 +47,6 @@ struct binary_node {
         }
     }
 
-//    template<class Archive>
-//    void serialize(Archive & archive) {
-//        archive(key, data);
-//    }
-
     ~binary_node() {
         delete left;
         delete right;
@@ -73,7 +69,6 @@ struct binary_node {
 template<class T, class U>
 class avl_tree {
 public:
-
 
     avl_tree() = default;
 
@@ -148,6 +143,8 @@ public:
     void archive_tree(std::string filename);
 
     void load_from_archive(std::string filename);
+
+    static void print_top_25(avl_tree<std::string, std::vector<std::pair < std::string, double>>> &tree);
 
     ~avl_tree();
 
@@ -817,6 +814,35 @@ void avl_tree<T, U>::load_from_archive(std::string filename) {
             ar(inKey, inData);
             insert_overwriting(inKey, inData);
         }
+    }
+}
+
+#include<iostream>
+
+template<class T, class U>
+void avl_tree<T, U>::print_top_25(avl_tree<std::string, std::vector<std::pair < std::string, double>>>& tree){
+    std::vector<std::pair<std::string, int>> words;
+
+    std::function<void(binary_node<std::string, std::vector<std::pair < std::string, double>>> *&)> find;
+    find = [&words, &find](binary_node<T, U> *&node){
+        if (node != nullptr) {
+            find(node->left);
+
+            words.push_back(std::pair<std::string, int>(node->key, node->data.size()));
+
+            find(node->right);
+        }
+    };
+
+    find(tree.root);
+
+    std::sort(words.begin(), words.end(), [](std::pair<std::string, int> p1, std::pair<std::string, int> p2)
+    {
+        return (p1.second > p2.second);
+    });
+
+    for (int i = 0; i < 25; ++i) {
+        std::cout << words[i].first << "\t\t" << words[i].second << std::endl;
     }
 }
 

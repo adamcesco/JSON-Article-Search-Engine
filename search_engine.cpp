@@ -72,7 +72,7 @@ void SearchEngine::generateIndex() {
     std::chrono::duration<double> diff = end - start;
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
-
+    this->totalFiles = this->wordTree->size();
 }
 
 #include "include/cereal/archives/json.hpp"
@@ -93,7 +93,7 @@ int SearchEngine::buildAvlTreeFromCache() {
     return 0;
 }
 
-void SearchEngine::InitiateConsoleInterface() {     //needs query support
+void SearchEngine::InitiateConsoleInterface() {
     while (true) {
         std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
@@ -204,7 +204,7 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
                 break;
 
             case 7 :
-                this->ConsolePrintEngineState();
+                this->ConsolePrintEngineStats();
                 break;
 
             case 8 : {
@@ -228,23 +228,29 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
 }
 
 
-int SearchEngine::ConsolePrintEngineState() {
+int SearchEngine::ConsolePrintEngineStats() {
     int avlSize = 0;
     std::cout << std::endl;
     std::cout << "Search Engine Statistics:" << std::endl;
+
+    if (this->processor != nullptr) {
+        this->processor->printProcessorStats();
+    } else {
+        std::cout << "articles compiled\t0" << std::endl << std::endl;
+        std::cout << "organizations compiled\t0" << std::endl << std::endl;
+        std::cout << "people compiled\t\t0" << std::endl << std::endl;
+    }
+
     if (this->wordTree != nullptr) {
         std::cout << "avl tree size\t\t" << this->wordTree->size() << std::endl;
+        std::cout << std::endl;
         avlSize = this->wordTree->size();
+
+        std::cout << "Top 25 most popular words:" << std::endl;
+        avl_tree<std::string, std::vector<std::pair < std::string, double>>>::print_top_25(*this->wordTree);
     } else {
         std::cout << "avl tree size\t\t0" << std::endl;
     }
-
-    if (this->articles != nullptr) {
-        std::cout << "articles compiled\t" << this->articles->size() << std::endl;
-    } else {
-        std::cout << "articles compiled\t0" << std::endl;
-    }
-    std::cout << std::endl;
 
     return avlSize;
 }
@@ -413,6 +419,10 @@ void SearchEngine::cacheArticles() {
     }
 }
 
+double SearchEngine::avlCacheBuildingProgress() {
+    return ((double) this->wordTree->size() / (double) this->totalFiles);
+}
+
 void SearchEngine::buildArticlesFromCache() {
     if (this->articles == nullptr)
         return;
@@ -444,10 +454,15 @@ void SearchEngine::QueryInterface() {
     std::string query;
     std::cin.ignore();
     std::getline(std::cin, query);
-    std::cout << query << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
     this->query_builder->buildQuery(query);
     std::vector<Article> result = this->query_builder->executeQuery();
-
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << std::endl;
+    std::cout << termcolor::yellow << "Found " << result.size() << " articles in " << diff.count() << " seconds" << std::endl;
+    std::cout << termcolor::white;
 
     std::cout << std::endl;
     std::cout << termcolor::blue << "Results: " << std::endl;
@@ -469,8 +484,23 @@ void SearchEngine::QueryInterface() {
         std::cout << "3. exit" << std::endl;
         std::cout << termcolor::white;
 
+        bool invalid;
         int choice;
-        std::cin >> choice;
+        do {
+            std::cout
+                    << termcolor::bright_blue
+                    << "22s-final-project-fair-game / search-engine / " << termcolor::bright_green
+                    << "query-interface > " << termcolor::white;
+            std::string input;
+            std::cin >> input;
+
+            choice = input[0] & 15;
+            invalid = (input.length() != 1 || !std::isdigit(input[0]) || choice > 3 || choice < 1);
+            if (invalid) {
+                std::cout << "incorrect input" << std::endl;
+            }
+        } while (invalid);
+
         switch (choice) {
             case 1: {
                 std::cout << termcolor::bright_green << std::endl;

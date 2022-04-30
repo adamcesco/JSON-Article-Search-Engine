@@ -45,7 +45,7 @@ std::string cleanPropnoun(const std::string &str) {
     for (const char &it: str) {
         if (std::isalpha(it)) {
             clean += tolower(it);
-        } else if (it == ' ') {
+        } else if (it == '-' || it == ' ' || it == '_') {
             clean += '-';
         }
     }

@@ -72,6 +72,11 @@ void Processor::process() {
             orgs.emplace_back(cleanPropnoun(org["name"].GetString()));
         }
 
+        totalOrgs += orgs.size();
+
+        if(!author.empty())
+            totalPeople++;
+
         this->articles->operator[](uuid) = {
                 .uuid = uuid,
                 .filename = filename,
@@ -197,3 +202,9 @@ double Processor::getConversionProgress() {
     return (double) this->wordsConverted.load() / (double) this->totalWords;
 }
 
+void Processor::printProcessorStats(){
+    std::cout << std::endl;
+    std::cout << "articles compiled\t" << totalFiles << std::endl << std::endl;
+    std::cout << "organizations compiled\t" << totalOrgs << std::endl << std::endl;
+    std::cout << "people compiled\t\t" << totalPeople << std::endl << std::endl;
+}

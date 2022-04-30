@@ -10,6 +10,7 @@
 
 class SearchEngine {
 private:
+    unsigned int totalFiles = 0;
     std::string data_folder;
 
     Processor *processor = nullptr;
@@ -44,11 +45,13 @@ public:
 
     void cacheArticles();
 
+    double avlCacheBuildingProgress();
+
     int buildAvlTreeFromCache();
 
     void buildArticlesFromCache();
 
-    int ConsolePrintEngineState();
+    int ConsolePrintEngineStats();
 
     void InitiateConsoleInterface();
 

@@ -10,7 +10,7 @@
 
 class SearchEngine {
 private:
-    unsigned int totalFiles = 0;
+    unsigned int totalWords = 0;
     std::string data_folder;
 
     Processor *processor = nullptr;
@@ -25,7 +25,7 @@ private:
 
     void QueryInterface();
 
-    void printArticleTextFromFilename(std::string filename);
+    static void printArticleTextFromFilename(std::string filename);
 
 
 public:
@@ -33,8 +33,6 @@ public:
      * @param data_folder The folder containing the data files
      */
     explicit SearchEngine(std::string data_folder);
-
-    void testQuery(std::string query);
 
     /**
      * Populates the articles and the inverse index with the articles

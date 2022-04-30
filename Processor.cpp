@@ -36,6 +36,7 @@ void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::st
 
 
 void Processor::process() {
+    this->filesProcessed = 0;
     while (true) {
         this->fileQueueMutex->lock();
         if (this->fileQueue.empty()) {
@@ -74,7 +75,7 @@ void Processor::process() {
 
         totalOrgs += orgs.size();
 
-        if(!author.empty())
+        if (!author.empty())
             totalPeople++;
 
         this->articles->operator[](uuid) = {
@@ -115,6 +116,7 @@ void Processor::process() {
  * @return A dummy return value so that the function can be called with std::async
  */
 std::string Processor::generateIndex(std::string folderName) {
+    this->filesProcessed = 0;
     std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
     std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
@@ -202,7 +204,7 @@ double Processor::getConversionProgress() {
     return (double) this->wordsConverted.load() / (double) this->totalWords;
 }
 
-void Processor::printProcessorStats(){
+void Processor::printProcessorStats() {
     std::cout << std::endl;
     std::cout << "articles compiled\t" << totalFiles << std::endl << std::endl;
     std::cout << "organizations compiled\t" << totalOrgs << std::endl << std::endl;

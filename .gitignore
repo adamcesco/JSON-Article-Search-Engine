@@ -10,3 +10,5 @@ cmake-build-*
 /author-cache.txt
 /org-cache.txt
 /article-cache.txt
+/build
+build

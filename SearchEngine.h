@@ -44,7 +44,7 @@ public:
 
     void cacheArticles();
 
-    void buildAvlTreeFromCache();
+    int buildAvlTreeFromCache();
 
     void buildArticlesFromCache();
 

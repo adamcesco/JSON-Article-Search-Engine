@@ -49,6 +49,7 @@ void printProgressBar(double progress) {
  */
 void SearchEngine::generateIndex() {
     // Start clock
+    system("clear");
     auto start = std::chrono::high_resolution_clock::now();
     // Call generateIndex on the processor asynchronously so that we can show a progress bar
     std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
@@ -84,11 +85,12 @@ void SearchEngine::cacheAvlTree() {
         this->wordTree->archive_tree("../tree-cache.txt");
 }
 
-void SearchEngine::buildAvlTreeFromCache() {
+int SearchEngine::buildAvlTreeFromCache() {
     if (this->wordTree != nullptr) {
         this->wordTree->clear();
         this->wordTree->load_from_archive("../tree-cache.txt");
     }
+    return 0;
 }
 
 void SearchEngine::InitiateConsoleInterface() {     //needs query support
@@ -119,29 +121,58 @@ void SearchEngine::InitiateConsoleInterface() {     //needs query support
             invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 9 || intInput < 1 ||
                        (intInput == 6 && this->is_empty()));
             if (invalid) {
-                std::cout << "incorrect input" << std::endl;
+               std::cout << "incorrect input" << std::endl;
             }
         } while (invalid);
 
         switch (intInput) {
             case 1 :
+                system("clear");
                 this->generateIndex();
+                system("clear");
                 break;
 
-            case 2 :
-                this->buildAvlTreeFromCache();
+            case 2 : {
+                system("clear");
+
+                std::ifstream treeFile("../tree-cache.txt");
+                if (!treeFile.is_open()) {
+                    throw std::invalid_argument("tree-cache file could not be opened");
+                }
+                treeFile >> totalFiles;
+                treeFile.close();
+                this->wordTree->clear();
+
+                std::future<int> fut = std::async(std::launch::async, &SearchEngine::buildAvlTreeFromCache, this);
+
+                // Poll the progress of the processor's filename stack every 400 milliseconds
+                while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
+                    double progress = this->avlCacheBuildingProgress();
+                    if (progress > 0) {
+                        printProgressBar(progress);
+                    }
+                }
+                printProgressBar(1);
+                std::cout << std::endl;
+                system("clear");
                 break;
+            }
 
             case 3 :
+                system("clear");
                 this->buildArticlesFromCache();
+                system("clear");
                 break;
 
             case 4 :
+                system("clear");
                 this->AvlCacheConsoleManager();
+                system("clear");
                 break;
 
             case 5 :
                 this->ArticleCacheConsoleManager();
+                system("clear");
                 break;
 
             case 6 :
@@ -308,7 +339,7 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
         do {
             std::cout
                     << termcolor::bright_blue
-                    << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
+                    << "22s-final-project-fair-game / search-engine / " << termcolor::bright_green
                     << "article-cache-manager > " << termcolor::white;
             std::string input;
             std::cin >> input;
@@ -406,15 +437,8 @@ void SearchEngine::buildArticlesFromCache() {
     }
 }
 
-void SearchEngine::testQuery(std::string query) {
-    this->query_builder->buildQuery(query);
-    std::vector<Article> result = this->query_builder->executeQuery();
-    for (auto &it: result) {
-        std::cout << it.title << " " << it.filename << std::endl;
-    }
-}
-
 void SearchEngine::QueryInterface() {
+    system("clear");
     std::cout << termcolor::bright_green << std::endl;
     std::cout << "Enter query: " << termcolor::white;
     std::string query;
@@ -426,7 +450,8 @@ void SearchEngine::QueryInterface() {
 
 
     std::cout << std::endl;
-    std::cout << termcolor::bright_blue << "Results: " << std::endl;
+    std::cout << termcolor::blue << "Results: " << std::endl;
+    std::cout << termcolor::white;
     // show first 15 results with a number in front of each
     int i = 1;
     for (auto &it: result) {
@@ -435,7 +460,6 @@ void SearchEngine::QueryInterface() {
         if (i > 15)
             break;
     }
-    std::cout << termcolor::white;
 
     do {
         std::cout << termcolor::bright_green << std::endl;
@@ -444,10 +468,6 @@ void SearchEngine::QueryInterface() {
         std::cout << "2. view an article" << std::endl;
         std::cout << "3. exit" << std::endl;
         std::cout << termcolor::white;
-
-        std::cout << termcolor::bright_blue
-                  << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
-                  << "query-interface > " << termcolor::white;
 
         int choice;
         std::cin >> choice;
@@ -458,9 +478,14 @@ void SearchEngine::QueryInterface() {
                 std::string query;
                 std::cin.ignore();
                 std::getline(std::cin, query);
-                std::cout << query << std::endl;
+                start = std::chrono::high_resolution_clock::now();
                 this->query_builder->buildQuery(query);
-                std::vector<Article> result = this->query_builder->executeQuery();
+                result = this->query_builder->executeQuery();
+                end = std::chrono::high_resolution_clock::now();
+                diff = end - start;
+                std::cout << std::endl;
+                std::cout << termcolor::yellow << "Found " << result.size() << " articles in " << diff.count() << " seconds" << std::endl;
+                std::cout << termcolor::white;
 
 
                 std::cout << std::endl;
@@ -477,15 +502,22 @@ void SearchEngine::QueryInterface() {
 
                 break;
             }
-            case 2:
+            case 2: {
                 // Prompt for a number to view
                 std::cout << "Enter a number to view an article: " << std::endl;
                 int num;
                 std::cin >> num;
+                if (num > result.size() || num < 1) {
+                    std::cout << "Invalid article" << std::endl;
+                    break;
+                }
                 this->printArticleTextFromFilename(result[num - 1].filename);
                 break;
-            case 3:
+            }
+            case 3: {
+                system("clear");
                 return;
+            }
         }
     } while (true);
 }

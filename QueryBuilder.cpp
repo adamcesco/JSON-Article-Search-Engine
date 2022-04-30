@@ -90,6 +90,14 @@ void QueryBuilder::buildQuery(std::string query) {
             this->root->addChild(oldRoot);
 
         } else if (word == "PERSON") {
+            std::string person;
+            it++;
+            person = *it;
+
+            QueryNode *oldRoot = this->root;
+            this->root = new PeopleNode(this->articleTable, this->wordTree, person);
+            this->root->addChild(oldRoot);
+            it++;
         } else {
             this->root = new SingleWordNode(this->articleTable, this->wordTree, word);
             it++;
@@ -167,7 +175,6 @@ SingleWordNode::SingleWordNode(ArticleTable *table, WordTree *tree, std::string 
 
 //TODO: Feels like something is missing
 std::vector<ScoredId> SingleWordNode::execute() {
-    std::cout << "Executing single word node: " << this->word << std::endl;
     Porter2Stemmer::stem(word);
     std::transform(word.begin(), word.end(), word.begin(), ::tolower);
     std::vector<ScoredId> result;
@@ -180,7 +187,6 @@ std::vector<ScoredId> SingleWordNode::execute() {
 }
 
 std::vector<ScoredId> AndNode::execute() {
-    std::cout << "Executing AND" << std::endl;
     // execute children and merge results if they are shared
     std::vector<ScoredId> result;
     for (auto &it: this->children) {
@@ -216,7 +222,6 @@ std::vector<ScoredId> OrNode::execute() {
 }
 
 std::vector<ScoredId> NotNode::execute() {
-    std::cout << "Executing NOT" << std::endl;
     // Gets result of children
     if (this->children.size() != 1) {
         std::cout << "NotNode only supports one child" << std::endl;
@@ -260,4 +265,21 @@ std::vector<ScoredId> OrgNode::execute() {
 
     return passed;
 
+}
+
+std::vector<ScoredId> PeopleNode::execute() {
+    std::string person = this->person;
+    person = cleanPropnoun(person);
+    std::vector<ScoredId> result = this->children[0]->execute();
+
+    std::vector<ScoredId> passed;
+
+    for (ScoredId &scored: result) {
+        Article article = this->table->operator[](scored.first);
+        if (article.author == person) {
+            passed.push_back(scored);
+        }
+    }
+
+    return passed;
 }

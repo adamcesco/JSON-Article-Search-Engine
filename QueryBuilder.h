@@ -63,6 +63,16 @@ public:
     std::vector<ScoredId> execute() override;
 };
 
+class PeopleNode : public QueryNode {
+private:
+    std::string person;
+public:
+    PeopleNode(ArticleTable *table, WordTree *tree, std::string person) : QueryNode(table, tree) {
+        this->person = person;
+    };
+    std::vector<ScoredId> execute() override;
+};
+
 class QueryBuilder {
 private:
     ArticleTable *articleTable = nullptr;

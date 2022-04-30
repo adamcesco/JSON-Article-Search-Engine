@@ -10,10 +10,8 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[2]);
         engine.InitiateConsoleInterface();
-
-
-//        engine.buildAvlTreeFromCache();
-//        engine.cacheAvlTree();
+        system("clear");
+        std::cout << "Shutting down" << std::endl;
     }
     return 0;
 }

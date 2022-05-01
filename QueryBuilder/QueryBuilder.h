@@ -6,7 +6,7 @@
 #define INC_22S_FINAL_PROJ_QUERYBUILDER_H
 
 
-#include "typedefs.h"
+#include "../utilities/typedefs.h"
 
 class QueryNode {
 

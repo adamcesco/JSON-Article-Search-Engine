@@ -40,10 +40,10 @@
 #include <cstdint>
 #include <functional>
 
-#include "../cereal/macros.hpp"
-#include "../cereal/details/traits.hpp"
-#include "../cereal/details/helpers.hpp"
-#include "../cereal/types/base_class.hpp"
+#include "macros.hpp"
+#include "details/traits.hpp"
+#include "details/helpers.hpp"
+#include "types/base_class.hpp"
 
 namespace cereal
 {

@@ -2,9 +2,9 @@
 // Created by misc1 on 4/28/2022.
 //
 
-#include "utils.h"
+#include "Pipelines.h"
 
-std::string getCenteredText(const std::string &text, int width) {
+std::string pipeline::getCenteredText(const std::string &text, int width) {
     int textLength = text.length();
     int spaces = (width - textLength) / 2;
     std::string spacesStr = "";
@@ -14,13 +14,13 @@ std::string getCenteredText(const std::string &text, int width) {
     return spacesStr + text;
 }
 
-void toLower(std::string &str) {
+void pipeline::toLower(std::string &str) {
     for (char &i: str) {
         i = tolower(i);
     }
 }
 
-void removePunctuation(std::string &str) {
+void pipeline::removePunctuation(std::string &str) {
     std::string clean;
     for (auto &it: str) {
         if (std::isalpha(it)) {
@@ -30,7 +30,7 @@ void removePunctuation(std::string &str) {
     str = clean;
 }
 
-void cleanStr(std::string &str) {
+void pipeline::cleanStr(std::string &str) {
     std::string clean;
     for (char &it: str) {
         if (std::isalpha(it)) {
@@ -40,7 +40,7 @@ void cleanStr(std::string &str) {
     str = clean;
 }
 
-std::string cleanPropnoun(const std::string &str) {
+std::string pipeline::cleanPropnoun(const std::string &str) {
     std::string clean;
     for (const char &it: str) {
         if (std::isalpha(it)) {
@@ -52,7 +52,7 @@ std::string cleanPropnoun(const std::string &str) {
     return clean;
 }
 
-unsigned int custom_string_hash(const std::string &str) {
+unsigned int pipeline::custom_string_hash(const std::string &str) {
     unsigned int hashed = 1;
     for (const char &cc: str)
         if (std::isalpha(cc)) {

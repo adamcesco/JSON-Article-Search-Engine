@@ -1,6 +1,6 @@
 #include <iostream>
-#include "catch_setup.h"
-#include "SearchEngine.h"
+#include "CatchTests/catch_setup.h"
+#include "SearchEngine/SearchEngine.h"
 
 
 int main(int argc, char **argv) {

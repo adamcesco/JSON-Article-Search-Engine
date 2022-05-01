@@ -3,7 +3,7 @@
 //
 
 #include "QueryBuilder.h"
-#include "./utils.h"
+#include "../utilities/Pipelines.h"
 
 QueryBuilder::QueryBuilder(ArticleTable *articleTable, WordTree *wordTree) {
     this->articleTable = articleTable;
@@ -254,7 +254,7 @@ std::vector<ScoredId> NotNode::execute() {
 
 std::vector<ScoredId> OrgNode::execute() {
     std::string orgToSearch = this->orgs[0];
-    orgToSearch = cleanPropnoun(orgToSearch);
+    orgToSearch = pipeline::cleanPropnoun(orgToSearch);
     std::vector<ScoredId> result = this->children[0]->execute();
 
     std::vector<ScoredId> passed;
@@ -273,7 +273,7 @@ std::vector<ScoredId> OrgNode::execute() {
 
 std::vector<ScoredId> PeopleNode::execute() {
     std::string person = this->person;
-    person = cleanPropnoun(person);
+    person = pipeline::cleanPropnoun(person);
     std::vector<ScoredId> result = this->children[0]->execute();
 
     std::vector<ScoredId> passed;

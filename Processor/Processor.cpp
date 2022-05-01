@@ -6,9 +6,9 @@
 #include <experimental/filesystem>
 #include <thread>
 #include "Processor.h"
-#include "./include/termcolor/termcolor.hpp"
-#include "./utils.h"
-#include "./ProgressBar/ProgressBar.h"
+#include "../external/termcolor/termcolor.hpp"
+#include "../utilities/Pipelines.h"
+#include "../ProgressBar/ProgressBar.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -63,12 +63,12 @@ void Processor::process() {
 
         std::string uuid = document["uuid"].GetString();
 
-        std::string author = cleanPropnoun(document["author"].GetString());
+        std::string author = pipeline::cleanPropnoun(document["author"].GetString());
 
         const auto arr = document["entities"]["organizations"].GetArray();
         std::vector<std::string> orgs;
         for (const auto &it: arr) {
-            orgs.emplace_back(cleanPropnoun(it["name"].GetString()));
+            orgs.emplace_back(pipeline::cleanPropnoun(it["name"].GetString()));
         }
 
         this->totalOrgs += orgs.size();
@@ -94,7 +94,7 @@ void Processor::process() {
             std::string subs;
             // Get the word from the istringstream
             iss >> subs;
-            cleanStr(subs);
+            pipeline::cleanStr(subs);
             if (this->stopWords.stopWords.find(subs) == this->stopWords.stopWords.end()) {
                 Porter2Stemmer::stem(subs);
                 if (subs.substr(0, 3) != "www") {
@@ -115,11 +115,11 @@ void Processor::process() {
  */
 void Processor::generateIndex(std::string folderName) {
     this->filesProcessed = 0;
-    std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
+    std::cout << termcolor::red << std::endl << pipeline::getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
     std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
 
-    std::cout << termcolor::green << getCenteredText(fileDisplay, 80) << std::endl;
+    std::cout << termcolor::green << pipeline::getCenteredText(fileDisplay, 80) << std::endl;
     std::cout << termcolor::reset << std::endl;
 
     // Actually process the files
@@ -203,11 +203,6 @@ void Processor::printProcessorStats() const {
     std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << totalPeople << std::endl
               << std::endl;
 }
-
-#include "include/cereal/archives/json.hpp"
-#include "include/cereal/types/vector.hpp"
-#include "include/cereal/types/string.hpp"
-#include "include/cereal/types/utility.hpp"
 
 void Processor::cacheAvlTree() {
     if (this->wordTree != nullptr)

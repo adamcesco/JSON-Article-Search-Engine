@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "./avl_tree.h"
-#include "../include/termcolor/termcolor.hpp"
+#include "../external/termcolor/termcolor.hpp"
 
 void print_top_25(avl_tree<std::string, std::vector<std::pair<std::string, double>>> &tree) {
     std::vector<std::pair<std::string, int>> words;

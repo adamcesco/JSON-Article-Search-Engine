@@ -5,8 +5,8 @@
 #include <iostream>
 #include <thread>
 #include "SearchEngine.h"
-#include "./include/termcolor/termcolor.hpp"
-#include "./ProgressBar/ProgressBar.h"
+#include "../external/termcolor/termcolor.hpp"
+#include "../ProgressBar/ProgressBar.h"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -17,8 +17,7 @@ SearchEngine::SearchEngine(std::string data_folder) {
     this->wordTree = new avl_tree<std::string, std::vector<std::pair<std::string, double>>>();
     this->wordTreeMutex = new std::mutex();
 
-    this->processor = new Processor(this->articles, this->wordTree,
-                                    this->wordTreeMutex);
+    this->processor = new Processor(this->articles, this->wordTree, this->wordTreeMutex);
     this->query_builder = new QueryBuilder(this->articles, this->wordTree);
 }
 
@@ -418,7 +417,7 @@ void SearchEngine::QueryInterface() {
 
     do {
         if (!result.empty())
-            std::cout << std::endl << termcolor::bright_green << "Results: " << termcolor::white << std::endl;
+            std::cout << std::endl << termcolor::bright_green << "Top-15 Results: " << termcolor::white << std::endl;
 
         // show first 15 results with a number in front of each
         int i = 1;

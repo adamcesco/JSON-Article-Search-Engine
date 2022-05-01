@@ -401,6 +401,6 @@ namespace cereal {
 } // namespace cereal
 
 // automatically include polymorphic support
-#include "../types/polymorphic.hpp"
+#include "polymorphic.hpp"
 
 #endif // CEREAL_TYPES_SHARED_PTR_HPP_

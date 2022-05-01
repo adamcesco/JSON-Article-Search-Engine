@@ -6,11 +6,11 @@
 
 #include <string>
 #include <vector>
-#include "avl_tree/avl_tree.h"
+#include "../avl_tree/avl_tree.h"
 #include "tbb/concurrent_unordered_map.h"
 #include "Article.h"
 
-typedef avl_tree<std::string, std::vector<std::pair < std::string, double>>> WordTree;
+typedef avl_tree<std::string, std::vector<std::pair<std::string, double>>> WordTree;
 typedef tbb::concurrent_unordered_map<std::string, Article> ArticleTable;
 typedef std::pair<std::string, double> ScoredId;
 

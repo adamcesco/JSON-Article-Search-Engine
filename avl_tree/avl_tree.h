@@ -60,11 +60,11 @@ struct binary_node {
     binary_node<T, U> *right = nullptr;
 };
 
-#include "../include/cereal/archives/json.hpp"
-#include "../include/cereal/archives/binary.hpp"
-#include "../include/cereal/types/vector.hpp"
-#include "../include/cereal/types/string.hpp"
-#include "../include/cereal/types/utility.hpp"
+#include "../external/cereal/archives/json.hpp"
+#include "../external/cereal/archives/binary.hpp"
+#include "../external/cereal/types/vector.hpp"
+#include "../external/cereal/types/string.hpp"
+#include "../external/cereal/types/utility.hpp"
 
 template<class T, class U>
 class avl_tree {

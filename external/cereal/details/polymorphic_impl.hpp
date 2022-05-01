@@ -45,8 +45,8 @@
 #ifndef CEREAL_DETAILS_POLYMORPHIC_IMPL_HPP_
 #define CEREAL_DETAILS_POLYMORPHIC_IMPL_HPP_
 
-#include "../details/polymorphic_impl_fwd.hpp"
-#include "../details/static_object.hpp"
+#include "polymorphic_impl_fwd.hpp"
+#include "static_object.hpp"
 #include "../types/memory.hpp"
 #include "../types/string.hpp"
 #include <functional>

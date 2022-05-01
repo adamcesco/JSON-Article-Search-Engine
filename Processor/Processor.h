@@ -7,10 +7,10 @@
 
 #include <atomic>
 #include <queue>
-#include "./Article.h"
-#include "StopWords.h"
-#include "./avl_tree/avl_tree.h"
-#include <tbb/concurrent_hash_map.h>
+#include "../utilities/Article.h"
+#include "../utilities/StopWords.h"
+#include "../avl_tree/avl_tree.h"
+#include "tbb/concurrent_hash_map.h"
 
 class Processor {
 

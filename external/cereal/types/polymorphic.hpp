@@ -31,7 +31,7 @@
 #define CEREAL_TYPES_POLYMORPHIC_HPP_
 
 #include "../cereal.hpp"
-#include "../types/memory.hpp"
+#include "memory.hpp"
 
 #include "../details/util.hpp"
 #include "../details/helpers.hpp"

@@ -5,8 +5,8 @@
 #ifndef INC_22S_FINAL_PROJ_SEARCHENGINE_H
 #define INC_22S_FINAL_PROJ_SEARCHENGINE_H
 
-#include "Processor.h"
-#include "QueryBuilder.h"
+#include "../Processor/Processor.h"
+#include "../QueryBuilder/QueryBuilder.h"
 
 class SearchEngine {
 private:

@@ -39,6 +39,8 @@ private:
 
     bool safeIsEmpty();
 
+    void avlCacheBuildingBackbone();
+
 public:
     explicit Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
                        avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
@@ -58,8 +60,6 @@ public:
     void printProcessorStats() const;
 
     void cacheAvlTree();
-
-    void buildAvlTreeFromCache();
 
     void cacheArticles();
 

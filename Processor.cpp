@@ -221,7 +221,7 @@ void Processor::cacheAvlTree() {
         this->wordTree->archive_tree("../tree-cache.txt");
 }
 
-void Processor::buildAvlTreeFromCache() {
+void Processor::avlCacheBuildingBackbone() {
     if (this->wordTree != nullptr) {
         this->wordTree->clear();
         this->wordTree->load_from_archive("../tree-cache.txt");
@@ -283,5 +283,5 @@ void Processor::initiateAvlCacheBuilding() {
                 return (double) p->wordTree->size() / (double) p->totalWords;
             },
     };
-    progressBar.initiate<>(&Processor::buildAvlTreeFromCache, this);
+    progressBar.initiate<>(&Processor::avlCacheBuildingBackbone, this);
 }

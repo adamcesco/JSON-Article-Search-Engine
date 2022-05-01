@@ -4,9 +4,7 @@
 
 #include <iostream>
 #include <thread>
-#include <future>
 #include <cassert>
-#include <iomanip>
 #include "SearchEngine.h"
 #include "./include/termcolor/termcolor.hpp"
 #include "./ProgressBar/ProgressBar.h"

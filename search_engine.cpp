@@ -198,7 +198,7 @@ int SearchEngine::ConsolePrintEngineStats() {
 
         if (!this->wordTree->is_empty()) {
             std::cout << "Top 25 most popular words:" << std::endl;
-            avl_tree<std::string, std::vector<std::pair<std::string, double>>>::print_top_25(*this->wordTree);
+            print_top_25(*this->wordTree);
         }
     } else {
         std::cout << "avl tree size\t\t0" << std::endl;
@@ -482,5 +482,29 @@ void SearchEngine::printArticleTextFromFilename(std::string filename) {
 
     assert(document.HasMember("text"));
     // print out text field
-    std::cout << document["text"].GetString() << std::endl;
+
+    std::cout << std::endl << termcolor::bright_blue << "UUID: " << termcolor::white << document["uuid"].GetString()
+              << std::endl << std::endl;
+
+    std::cout << termcolor::bright_blue << "File Path: " << termcolor::white << filename << std::endl << std::endl;
+
+    std::string author = document["author"].GetString();
+    if (!author.empty()) {
+        std::cout << termcolor::bright_blue << "Author: " << termcolor::white << author << std::endl << std::endl;
+    } else {
+        std::cout << termcolor::bright_blue << "No Documented Author" << termcolor::white << std::endl << std::endl;
+    }
+
+    const auto arr = document["entities"]["organizations"].GetArray();
+    if (!arr.Empty()) {
+        std::cout << termcolor::bright_blue << "Organizations: " << termcolor::white << std::endl;
+        std::vector<std::string> orgs;
+        for (const auto &org: arr) {
+            std::cout << '\t' << org["name"].GetString() << std::endl;
+        }
+    }
+    std::cout << std::endl;
+
+    std::cout << termcolor::bright_blue << "Content: " << termcolor::white << std::endl;
+    std::cout << document["text"].GetString() << std::endl << std::endl;
 }

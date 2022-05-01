@@ -24,6 +24,7 @@ void QueryBuilder::buildQuery(std::string query) {
     while (it != words.end()) {
         std::string word = *it;
         if (word == "AND") {
+            delete this->root;
             this->root = new AndNode(this->articleTable, this->wordTree);
             it++;
             if (it == words.end()) {
@@ -37,6 +38,7 @@ void QueryBuilder::buildQuery(std::string query) {
                 }
             }
         } else if (word == "OR") {
+            delete this->root;
             this->root = new OrNode(this->articleTable, this->wordTree);
             it++;
             if (it == words.end()) {
@@ -99,15 +101,14 @@ void QueryBuilder::buildQuery(std::string query) {
             this->root->addChild(oldRoot);
             it++;
         } else {
+            delete this->root;
             this->root = new SingleWordNode(this->articleTable, this->wordTree, word);
             it++;
         }
     }
-
-
 }
 
-std::vector<std::string> QueryBuilder::split(std::string basicString, char i) {
+std::vector<std::string> QueryBuilder::split(const std::string &basicString, char i) {
     std::vector<std::string> result;
     std::stringstream ss(basicString);
     std::string item;
@@ -142,7 +143,7 @@ std::vector<Article> QueryBuilder::executeQuery() {
     }
 
     // Sort the result by score
-    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId &a, ScoredId &b) {
+    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId &a, ScoredId &b) -> bool {
         return a.second > b.second;
     });
 
@@ -152,6 +153,10 @@ std::vector<Article> QueryBuilder::executeQuery() {
         articles.push_back(this->articleTable->operator[](scored.first));
     }
     return articles;
+}
+
+QueryBuilder::~QueryBuilder() {
+    delete this->root;
 }
 
 QueryNode::QueryNode(ArticleTable *table, WordTree *tree) {
@@ -173,7 +178,6 @@ SingleWordNode::SingleWordNode(ArticleTable *table, WordTree *tree, std::string 
     this->word = word;
 }
 
-//TODO: Feels like something is missing
 std::vector<ScoredId> SingleWordNode::execute() {
     Porter2Stemmer::stem(word);
     std::transform(word.begin(), word.end(), word.begin(), ::tolower);

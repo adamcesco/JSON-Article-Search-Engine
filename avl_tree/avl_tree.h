@@ -144,7 +144,7 @@ public:
 
     void load_from_archive(std::string filename);
 
-    static void print_top_25(avl_tree<std::string, std::vector<std::pair < std::string, double>>> &tree);
+    friend void print_top_25(avl_tree<std::string, std::vector<std::pair<std::string, double>>> &wordTree);
 
     ~avl_tree();
 
@@ -191,8 +191,8 @@ protected:
 
     void archive_current_level(cereal::JSONOutputArchive &archive, binary_node<T, U> *&node, int level);
 
-    binary_node<T, U> *root = nullptr;
     unsigned int nodeCount = 0;
+    binary_node<T, U> *root = nullptr;
 };
 
 template<class T, class U>
@@ -814,35 +814,6 @@ void avl_tree<T, U>::load_from_archive(std::string filename) {
             ar(inKey, inData);
             insert_overwriting(inKey, inData);
         }
-    }
-}
-
-#include<iostream>
-
-template<class T, class U>
-void avl_tree<T, U>::print_top_25(avl_tree<std::string, std::vector<std::pair < std::string, double>>>& tree){
-    std::vector<std::pair<std::string, int>> words;
-
-    std::function<void(binary_node<std::string, std::vector<std::pair < std::string, double>>> *&)> find;
-    find = [&words, &find](binary_node<T, U> *&node){
-        if (node != nullptr) {
-            find(node->left);
-
-            words.push_back(std::pair<std::string, int>(node->key, node->data.size()));
-
-            find(node->right);
-        }
-    };
-
-    find(tree.root);
-
-    std::sort(words.begin(), words.end(), [](std::pair<std::string, int> p1, std::pair<std::string, int> p2)
-    {
-        return (p1.second > p2.second);
-    });
-
-    for (int i = 0; i < 25; ++i) {
-        std::cout << words[i].first << "\t\t" << words[i].second << std::endl;
     }
 }
 

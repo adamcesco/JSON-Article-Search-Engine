@@ -16,29 +16,24 @@ class Processor {
 
 private:
     // Passed from SearchEngine
-    unsigned int totalFiles = 0;
-    unsigned int totalOrgs = 0;
-    unsigned int totalPeople = 0;
+    unsigned int totalFiles;
+    unsigned int totalOrgs;
+    unsigned int totalPeople;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::mutex *fileQueueMutex;
+    std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
-
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
-
-    tbb::concurrent_unordered_map<std::string, Article> *articles;
-
+    tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    std::atomic<int> wordsConverted;
     int totalWords = 0;
 
     void fillQueue(std::string folderName);
 
     void process();
 
-
-    bool safeIsEmpty();
+    void avlCacheBuildingBackbone();
 
 public:
     explicit Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
@@ -47,16 +42,23 @@ public:
 
     ~Processor();
 
-
     std::string convertToTree();
 
-    std::string generateIndex(std::string folderName);
+    void generateIndex(std::string folderName);
 
     double getProgress();
 
-    double getConversionProgress();
+    void printProcessorStats() const;
 
-    void printProcessorStats();
+    void cacheAvlTree();
+
+    void cacheArticles();
+
+    void buildArticlesFromCache();
+
+    void initiateAvlFromCache();
+
+    static void printArticleTextFromFilename(const std::string &filename);
 };
 
 

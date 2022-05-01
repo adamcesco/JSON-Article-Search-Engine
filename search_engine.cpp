@@ -9,6 +9,7 @@
 #include <iomanip>
 #include "SearchEngine.h"
 #include "./include/termcolor/termcolor.hpp"
+#include "./ProgressBar/ProgressBar.h"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -31,19 +32,6 @@ SearchEngine::~SearchEngine() {
     delete this->wordTreeMutex;
 }
 
-void printProgressBar(double progress) {
-    int barWidth = 70;
-    std::cout << "[";
-    int pos = barWidth * progress;
-    for (int i = 0; i < barWidth; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
-    }
-    std::cout << "] " << std::setprecision(3) << std::fixed << double(progress * 100.0) << " %\r";
-    std::cout.flush();
-}
-
 /**
  * Loads the data from the data folder into the articles and AVL tree.
  */
@@ -51,19 +39,15 @@ void SearchEngine::generateIndex() {
     // Start clock
     system("clear");
     auto start = std::chrono::high_resolution_clock::now();
-    // Call generateIndex on the processor asynchronously so that we can show a progress bar
-    std::future<std::string> fut = std::async(std::launch::async, &Processor::generateIndex, this->processor,
-                                              this->data_folder);
 
-    // Poll the progress of the processor's filename stack every 400 milliseconds
-    while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
-        double progress = this->processor->getProgress();
-        if (progress > 0) {
-            printProgressBar(progress);
-        }
-    }
-    printProgressBar(1);
-    std::cout << std::endl;
+    ProgressBar<Processor> progressBar = {
+            .invoker = this->processor,
+            .getProgress = [](Processor *p) -> double {
+                return p->getProgress();
+            },
+    };
+    progressBar.initiate<>(&Processor::generateIndex, this->processor,
+                           this->data_folder);
 
 
     this->processor->convertToTree();
@@ -72,25 +56,6 @@ void SearchEngine::generateIndex() {
     std::chrono::duration<double> diff = end - start;
     std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
     std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
-    this->totalWords = this->wordTree->size();
-}
-
-#include "include/cereal/archives/json.hpp"
-#include "include/cereal/types/vector.hpp"
-#include "include/cereal/types/string.hpp"
-#include "include/cereal/types/utility.hpp"
-
-void SearchEngine::cacheAvlTree() {
-    if (this->wordTree != nullptr)
-        this->wordTree->archive_tree("../tree-cache.txt");
-}
-
-int SearchEngine::buildAvlTreeFromCache() {
-    if (this->wordTree != nullptr) {
-        this->wordTree->clear();
-        this->wordTree->load_from_archive("../tree-cache.txt");
-    }
-    return 0;
 }
 
 void SearchEngine::InitiateConsoleInterface() {
@@ -135,33 +100,14 @@ void SearchEngine::InitiateConsoleInterface() {
 
             case 2 : {
                 system("clear");
-
-                std::ifstream treeFile("../tree-cache.txt");
-                if (!treeFile.is_open()) {
-                    throw std::invalid_argument("tree-cache file could not be opened");
-                }
-                treeFile >> totalWords;
-                treeFile.close();
-                this->wordTree->clear();
-
-                std::future<int> fut = std::async(std::launch::async, &SearchEngine::buildAvlTreeFromCache, this);
-
-                // Poll the progress of the processor's filename stack every 400 milliseconds
-                while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
-                    double progress = this->avlCacheBuildingProgress();
-                    if (progress > 0) {
-                        printProgressBar(progress);
-                    }
-                }
-                printProgressBar(1);
-                std::cout << std::endl;
+                this->processor->initiateAvlCacheBuilding();
                 system("clear");
                 break;
             }
 
             case 3 :
                 system("clear");
-                this->buildArticlesFromCache();
+                this->processor->buildArticlesFromCache();
                 system("clear");
                 break;
 
@@ -294,7 +240,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
         switch (intInput) {
             case 1 : {
-                this->cacheAvlTree();
+                this->processor->cacheAvlTree();
                 system("clear");
                 std::cout << std::endl << this->wordTree->size() << " nodes placed into cache" << std::endl
                           << std::endl;
@@ -303,26 +249,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
             case 2 : {
                 system("clear");
-
-                std::ifstream treeFile("../tree-cache.txt");
-                if (!treeFile.is_open()) {
-                    throw std::invalid_argument("tree-cache file could not be opened");
-                }
-                treeFile >> totalWords;
-                treeFile.close();
-                this->wordTree->clear();
-
-                std::future<int> fut = std::async(std::launch::async, &SearchEngine::buildAvlTreeFromCache, this);
-
-                // Poll the progress of the processor's filename stack every 400 milliseconds
-                while (fut.wait_for(std::chrono::milliseconds(40)) != std::future_status::ready) {
-                    double progress = this->avlCacheBuildingProgress();
-                    if (progress > 0) {
-                        printProgressBar(progress);
-                    }
-                }
-                printProgressBar(1);
-                std::cout << std::endl;
+                this->processor->initiateAvlCacheBuilding();
                 system("clear");
                 break;
             }
@@ -397,14 +324,14 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
 
         switch (intInput) {
             case 1 :
-                this->cacheArticles();
+                this->processor->cacheArticles();
                 system("clear");
                 std::cout << std::endl << this->articles->size() << " articles placed into cache" << std::endl
                           << std::endl;
                 break;
 
             case 2 :
-                this->buildArticlesFromCache();
+                this->processor->buildArticlesFromCache();
                 system("clear");
                 break;
 
@@ -443,50 +370,6 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
             case 5:
                 return;
                 break;
-        }
-    }
-}
-
-void SearchEngine::cacheArticles() {
-    if (this->articles == nullptr)
-        return;
-
-    std::ofstream artFile("../article-cache.txt", std::ios::binary);
-    if (!artFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void SearchEngine::cacheArticles()\" | Could not open file ../article-cache.txt");
-
-    cereal::JSONOutputArchive artArchive(artFile);
-    artFile << this->articles->size() << std::endl;
-    for (auto &it: *this->articles) {
-        artArchive(it.first, it.second);
-    }
-}
-
-double SearchEngine::avlCacheBuildingProgress() {
-    return ((double) this->wordTree->size() / (double) this->totalWords);
-}
-
-void SearchEngine::buildArticlesFromCache() {
-    if (this->articles == nullptr)
-        return;
-
-    std::ifstream artFile("../article-cache.txt", std::ios::binary);
-    if (!artFile.is_open())
-        throw std::invalid_argument(
-                "Error in \"void SearchEngine::buildArticlesFromCache()\" | Could not open file ../article-cache.txt");
-
-    this->articles->clear();
-
-    int size;
-    artFile >> size;
-    if (size > 0) {
-        cereal::JSONInputArchive artArchive(artFile);
-        for (int i = 0; i < size; ++i) {
-            std::string str;
-            Article arti;
-            artArchive(str, arti);
-            this->articles->operator[](str) = arti;
         }
     }
 }

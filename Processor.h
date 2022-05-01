@@ -37,7 +37,6 @@ private:
 
     void process();
 
-
     bool safeIsEmpty();
 
 public:
@@ -50,13 +49,23 @@ public:
 
     std::string convertToTree();
 
-    std::string generateIndex(std::string folderName);
+    void generateIndex(std::string folderName);
 
     double getProgress();
 
     double getConversionProgress();
 
-    void printProcessorStats();
+    void printProcessorStats() const;
+
+    void cacheAvlTree();
+
+    void buildAvlTreeFromCache();
+
+    void cacheArticles();
+
+    void buildArticlesFromCache();
+
+    void initiateAvlCacheBuilding();
 };
 
 

@@ -8,6 +8,7 @@
 #include "Processor.h"
 #include "./include/termcolor/termcolor.hpp"
 #include "./utils.h"
+#include "./ProgressBar/ProgressBar.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -115,7 +116,7 @@ void Processor::process() {
  * @param folderName the folder to recursively process through
  * @return A dummy return value so that the function can be called with std::async
  */
-std::string Processor::generateIndex(std::string folderName) {
+void Processor::generateIndex(std::string folderName) {
     this->filesProcessed = 0;
     std::cout << termcolor::red << std::endl << getCenteredText("Generating index...", 80) << std::endl;
     this->fillQueue(folderName);
@@ -136,8 +137,6 @@ std::string Processor::generateIndex(std::string folderName) {
     t4.join();
 
     this->totalWords = this->tbbMap->size();
-
-    return "Indexing complete";
 }
 
 double Processor::getProgress() {
@@ -172,6 +171,7 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 
 
 #include <cmath>
+#include <future>
 
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
@@ -204,9 +204,84 @@ double Processor::getConversionProgress() {
     return (double) this->wordsConverted.load() / (double) this->totalWords;
 }
 
-void Processor::printProcessorStats() {
+void Processor::printProcessorStats() const {
     std::cout << std::endl;
     std::cout << "articles compiled\t" << totalFiles << std::endl << std::endl;
     std::cout << "organizations compiled\t" << totalOrgs << std::endl << std::endl;
     std::cout << "people compiled\t\t" << totalPeople << std::endl << std::endl;
+}
+
+#include "include/cereal/archives/json.hpp"
+#include "include/cereal/types/vector.hpp"
+#include "include/cereal/types/string.hpp"
+#include "include/cereal/types/utility.hpp"
+
+void Processor::cacheAvlTree() {
+    if (this->wordTree != nullptr)
+        this->wordTree->archive_tree("../tree-cache.txt");
+}
+
+void Processor::buildAvlTreeFromCache() {
+    if (this->wordTree != nullptr) {
+        this->wordTree->clear();
+        this->wordTree->load_from_archive("../tree-cache.txt");
+    }
+}
+
+void Processor::cacheArticles() {
+    if (this->articles == nullptr)
+        return;
+
+    std::ofstream artFile("../article-cache.txt", std::ios::binary);
+    if (!artFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void SearchEngine::cacheArticles()\" | Could not open file ../article-cache.txt");
+
+    cereal::JSONOutputArchive artArchive(artFile);
+    artFile << this->articles->size() << std::endl;
+    for (auto &it: *this->articles) {
+        artArchive(it.first, it.second);
+    }
+}
+
+void Processor::buildArticlesFromCache() {
+    if (this->articles == nullptr)
+        return;
+
+    std::ifstream artFile("../article-cache.txt", std::ios::binary);
+    if (!artFile.is_open())
+        throw std::invalid_argument(
+                "Error in \"void SearchEngine::buildArticlesFromCache()\" | Could not open file ../article-cache.txt");
+
+    this->articles->clear();
+
+    int size;
+    artFile >> size;
+    if (size > 0) {
+        cereal::JSONInputArchive artArchive(artFile);
+        for (int i = 0; i < size; ++i) {
+            std::string str;
+            Article arti;
+            artArchive(str, arti);
+            this->articles->operator[](str) = arti;
+        }
+    }
+}
+
+void Processor::initiateAvlCacheBuilding() {
+    std::ifstream treeFile("../tree-cache.txt");
+    if (!treeFile.is_open()) {
+        throw std::invalid_argument("tree-cache file could not be opened");
+    }
+    treeFile >> totalWords;
+    treeFile.close();
+    this->wordTree->clear();
+
+    ProgressBar<Processor> progressBar = {
+            .invoker = this,
+            .getProgress = [](Processor *p) -> double {
+                return (double) p->wordTree->size() / (double) p->totalWords;
+            },
+    };
+    progressBar.initiate<>(&Processor::buildAvlTreeFromCache, this);
 }

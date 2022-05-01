@@ -10,7 +10,6 @@
 
 class SearchEngine {
 private:
-    unsigned int totalWords = 0;
     std::string data_folder;
 
     Processor *processor = nullptr;
@@ -38,16 +37,6 @@ public:
      * Populates the articles and the inverse index with the articles
      */
     void generateIndex();
-
-    void cacheAvlTree();
-
-    void cacheArticles();
-
-    double avlCacheBuildingProgress();
-
-    int buildAvlTreeFromCache();
-
-    void buildArticlesFromCache();
 
     int ConsolePrintEngineStats();
 

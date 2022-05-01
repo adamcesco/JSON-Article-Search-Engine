@@ -38,6 +38,8 @@ void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::st
 
 void Processor::process() {
     this->filesProcessed = 0;
+    this->totalOrgs = 0;
+    this->totalPeople = 0;
     while (true) {
         this->fileQueueMutex->lock();
         if (this->fileQueue.empty()) {
@@ -74,10 +76,10 @@ void Processor::process() {
             orgs.emplace_back(cleanPropnoun(org["name"].GetString()));
         }
 
-        totalOrgs += orgs.size();
+        this->totalOrgs += orgs.size();
 
         if (!author.empty())
-            totalPeople++;
+            this->totalPeople++;
 
         this->articles->operator[](uuid) = {
                 .uuid = uuid,
@@ -98,7 +100,7 @@ void Processor::process() {
             // Get the word from the istringstream
             iss >> subs;
             cleanStr(subs);
-            if (stopWords.stopWords.find(subs) == stopWords.stopWords.end()) {
+            if (this->stopWords.stopWords.find(subs) == this->stopWords.stopWords.end()) {
                 Porter2Stemmer::stem(subs);
                 if (subs.substr(0, 3) != "www") {
                     this->tbbMap->operator[](subs)[uuid]++;
@@ -106,7 +108,7 @@ void Processor::process() {
             }
         } while (iss);
 
-        filesProcessed++;
+        this->filesProcessed++;
     }
 }
 
@@ -161,12 +163,16 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
     this->articles = pArticles;
     this->stopWords = StopWords();
     this->wordTree = tree;
+
     this->wordTreeMutex = treeMut;
-    this->totalFiles = 0;
     this->fileQueueMutex = new std::mutex();
-    this->filesProcessed = 0;
-    this->wordsConverted = 0;
     this->tbbMap = new tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>>();
+
+    this->totalFiles = 0;
+    this->filesProcessed = 0;
+    this->processedWords = 0;
+    this->totalOrgs = 0;
+    this->totalPeople = 0;
 }
 
 
@@ -176,6 +182,7 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     this->wordTree->clear();
+    this->processedWords = 0;
     for (auto &wordData: *this->tbbMap) {
         std::string currentWord = wordData.first;
         std::vector<std::pair<std::string, double>> toPush;
@@ -193,20 +200,19 @@ std::string Processor::convertToTree() {
                   });
 
         this->wordTree->insert_overwriting(wordData.first, toPush);
-
-        this->wordsConverted++;
     }
+    this->processedWords = this->wordTree->size();
     this->wordTreeMutex->unlock();
     return "Conversion complete";
 }
 
 double Processor::getConversionProgress() {
-    return (double) this->wordsConverted.load() / (double) this->totalWords;
+    return (double) this->processedWords.load() / (double) this->totalWords;
 }
 
 void Processor::printProcessorStats() const {
     std::cout << std::endl;
-    std::cout << "articles compiled\t" << totalFiles << std::endl << std::endl;
+    std::cout << "articles compiled\t" << this->articles->size() << std::endl << std::endl;
     std::cout << "organizations compiled\t" << totalOrgs << std::endl << std::endl;
     std::cout << "people compiled\t\t" << totalPeople << std::endl << std::endl;
 }
@@ -224,7 +230,9 @@ void Processor::cacheAvlTree() {
 void Processor::avlCacheBuildingBackbone() {
     if (this->wordTree != nullptr) {
         this->wordTree->clear();
+        this->processedWords = 0;
         this->wordTree->load_from_archive("../tree-cache.txt");
+        this->processedWords = this->wordTree->size();
     }
 }
 
@@ -254,6 +262,8 @@ void Processor::buildArticlesFromCache() {
                 "Error in \"void SearchEngine::buildArticlesFromCache()\" | Could not open file ../article-cache.txt");
 
     this->articles->clear();
+    this->totalOrgs = 0;
+    this->totalPeople = 0;
 
     int size;
     artFile >> size;
@@ -264,16 +274,20 @@ void Processor::buildArticlesFromCache() {
             Article arti;
             artArchive(str, arti);
             this->articles->operator[](str) = arti;
+
+            this->totalOrgs += arti.orgList.size();
+            if (!arti.author.empty())
+                this->totalPeople++;
         }
     }
 }
 
-void Processor::initiateAvlCacheBuilding() {
+void Processor::initiateAvlFromCache() {
     std::ifstream treeFile("../tree-cache.txt");
     if (!treeFile.is_open()) {
         throw std::invalid_argument("tree-cache file could not be opened");
     }
-    treeFile >> totalWords;
+    treeFile >> this->totalWords;
     treeFile.close();
     this->wordTree->clear();
 

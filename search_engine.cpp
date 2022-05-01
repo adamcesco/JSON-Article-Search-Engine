@@ -98,7 +98,7 @@ void SearchEngine::InitiateConsoleInterface() {
 
             case 2 : {
                 system("clear");
-                this->processor->initiateAvlCacheBuilding();
+                this->processor->initiateAvlFromCache();
                 system("clear");
                 break;
             }
@@ -247,7 +247,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
             case 2 : {
                 system("clear");
-                this->processor->initiateAvlCacheBuilding();
+                this->processor->initiateAvlFromCache();
                 system("clear");
                 break;
             }
@@ -447,21 +447,6 @@ void SearchEngine::QueryInterface() {
                 std::cout << std::endl << termcolor::yellow << "Found " << result.size() << " articles in "
                           << diff.count()
                           << " seconds" << std::endl << termcolor::white;
-
-
-                if (!result.empty())
-                    std::cout << std::endl << termcolor::bright_blue << "Results: " << termcolor::white << std::endl;
-
-                // show first 15 results with a number in front of each
-                int i = 1;
-                for (auto &it: result) {
-                    std::cout << i << ": " << it.title << std::endl;
-                    i++;
-                    if (i > 15)
-                        break;
-                }
-                std::cout << termcolor::white;
-
                 break;
             }
             case 2: {
@@ -469,6 +454,7 @@ void SearchEngine::QueryInterface() {
                 std::cout << std::endl << termcolor::bright_green << "Enter a number to view an article: " << std::endl
                           << std::endl;
                 int num = GetInput(result.size());
+                system("clear");
                 SearchEngine::printArticleTextFromFilename(result[num - 1].filename);
                 break;
             }

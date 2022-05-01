@@ -21,7 +21,7 @@ private:
     unsigned int totalPeople;
     std::atomic<int> filesProcessed;
     StopWords stopWords;
-    std::mutex *fileQueueMutex;
+    std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
 
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
@@ -30,14 +30,11 @@ private:
 
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    std::atomic<int> processedWords;
     int totalWords = 0;
 
     void fillQueue(std::string folderName);
 
     void process();
-
-    bool safeIsEmpty();
 
     void avlCacheBuildingBackbone();
 
@@ -54,8 +51,6 @@ public:
 
     double getProgress();
 
-    double getConversionProgress();
-
     void printProcessorStats() const;
 
     void cacheAvlTree();
@@ -65,6 +60,8 @@ public:
     void buildArticlesFromCache();
 
     void initiateAvlFromCache();
+
+    static void printArticleTextFromFilename(const std::string &filename);
 };
 
 

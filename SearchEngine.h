@@ -24,9 +24,6 @@ private:
 
     void QueryInterface();
 
-    static void printArticleTextFromFilename(std::string filename);
-
-
 public:
     /**
      * @param data_folder The folder containing the data files
@@ -42,9 +39,7 @@ public:
 
     void InitiateConsoleInterface();
 
-    bool is_empty() {
-        return (this->wordTree == nullptr || this->wordTree->is_empty());
-    }
+    bool isEmpty();
 
     ~SearchEngine();
 };

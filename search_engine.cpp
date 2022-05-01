@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <thread>
-#include <cassert>
 #include "SearchEngine.h"
 #include "./include/termcolor/termcolor.hpp"
 #include "./ProgressBar/ProgressBar.h"
@@ -28,6 +27,7 @@ SearchEngine::~SearchEngine() {
     delete this->articles;
     delete this->wordTree;
     delete this->wordTreeMutex;
+    delete this->query_builder;
 }
 
 /**
@@ -83,7 +83,7 @@ void SearchEngine::InitiateConsoleInterface() {
 
             intInput = input[0] & 15;
             invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 9 || intInput < 1 ||
-                       (intInput == 6 && this->is_empty()));
+                       (intInput == 6 && this->isEmpty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
@@ -181,27 +181,32 @@ void SearchEngine::InitiateConsoleInterface() {
 int SearchEngine::ConsolePrintEngineStats() {
     int avlSize = 0;
     std::cout << std::endl;
-    std::cout << "Search Engine Statistics:" << std::endl;
+    std::cout << termcolor::bright_blue << "Search Engine Statistics:" << termcolor::white << std::endl;
 
     if (this->processor != nullptr) {
         this->processor->printProcessorStats();
     } else {
-        std::cout << "articles compiled\t0" << std::endl << std::endl;
-        std::cout << "organizations compiled\t0" << std::endl << std::endl;
-        std::cout << "people compiled\t\t0" << std::endl << std::endl;
+        std::cout << termcolor::bright_blue << "articles compiled\t" << termcolor::white << "0" << std::endl
+                  << std::endl;
+
+        std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << "0" << std::endl
+                  << std::endl;
+
+        std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << "0" << std::endl
+                  << std::endl;
     }
 
     if (this->wordTree != nullptr) {
-        std::cout << "avl tree size\t\t" << this->wordTree->size() << std::endl;
+        std::cout << termcolor::bright_blue << "avl tree size\t\t" << termcolor::white << this->wordTree->size()
+                  << std::endl;
         std::cout << std::endl;
         avlSize = this->wordTree->size();
 
         if (!this->wordTree->is_empty()) {
-            std::cout << "Top 25 most popular words:" << std::endl;
             print_top_25(*this->wordTree);
         }
     } else {
-        std::cout << "avl tree size\t\t0" << std::endl;
+        std::cout << termcolor::bright_blue << "avl tree size\t\t" << termcolor::white << "0" << std::endl;
     }
 
     return avlSize;
@@ -413,7 +418,7 @@ void SearchEngine::QueryInterface() {
 
     do {
         if (!result.empty())
-            std::cout << std::endl << termcolor::bright_blue << "Results: " << termcolor::white << std::endl;
+            std::cout << std::endl << termcolor::bright_green << "Results: " << termcolor::white << std::endl;
 
         // show first 15 results with a number in front of each
         int i = 1;
@@ -455,7 +460,7 @@ void SearchEngine::QueryInterface() {
                           << std::endl;
                 int num = GetInput(result.size());
                 system("clear");
-                SearchEngine::printArticleTextFromFilename(result[num - 1].filename);
+                Processor::printArticleTextFromFilename(result[num - 1].filename);
                 break;
             }
             case 3: {
@@ -466,45 +471,7 @@ void SearchEngine::QueryInterface() {
     } while (true);
 }
 
-void SearchEngine::printArticleTextFromFilename(std::string filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cout << "Could not open file: " << filename << std::endl;
-    }
-    rapidjson::Document document;
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    try {
-        document.Parse(content.c_str());
-    } catch (std::exception &e) {
-        std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
-    }
-    file.close();
-
-    assert(document.HasMember("text"));
-    // print out text field
-
-    std::cout << std::endl << termcolor::bright_blue << "UUID: " << termcolor::white << document["uuid"].GetString()
-              << std::endl << std::endl;
-
-    std::cout << termcolor::bright_blue << "File Path: " << termcolor::white << filename << std::endl << std::endl;
-
-    std::string author = document["author"].GetString();
-    if (!author.empty()) {
-        std::cout << termcolor::bright_blue << "Author: " << termcolor::white << author << std::endl << std::endl;
-    } else {
-        std::cout << termcolor::bright_blue << "No Documented Author" << termcolor::white << std::endl << std::endl;
-    }
-
-    const auto arr = document["entities"]["organizations"].GetArray();
-    if (!arr.Empty()) {
-        std::cout << termcolor::bright_blue << "Organizations: " << termcolor::white << std::endl;
-        std::vector<std::string> orgs;
-        for (const auto &org: arr) {
-            std::cout << '\t' << org["name"].GetString() << std::endl;
-        }
-    }
-    std::cout << std::endl;
-
-    std::cout << termcolor::bright_blue << "Content: " << termcolor::white << std::endl;
-    std::cout << document["text"].GetString() << std::endl << std::endl;
+bool SearchEngine::isEmpty() {
+    return (this->wordTree == nullptr || this->wordTree->is_empty() || this->articles == nullptr ||
+            this->articles->empty());
 }

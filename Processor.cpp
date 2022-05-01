@@ -20,6 +20,7 @@ typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accesso
  */
 void Processor::fillQueue(std::string folderName) {
     // Only files not folders
+    this->totalFiles = 0;
     for (const fs::directory_entry &dir_entry:
             fs::recursive_directory_iterator(folderName)) {
         if (fs::is_regular_file(dir_entry) &&
@@ -29,12 +30,6 @@ void Processor::fillQueue(std::string folderName) {
         }
     }
 }
-
-
-void aliasPushBack(std::vector<std::string> &existing, const std::vector<std::string> &newVal) {
-    existing.push_back(newVal[0]);
-}
-
 
 void Processor::process() {
     this->filesProcessed = 0;
@@ -72,8 +67,8 @@ void Processor::process() {
 
         const auto arr = document["entities"]["organizations"].GetArray();
         std::vector<std::string> orgs;
-        for (const auto &org: arr) {
-            orgs.emplace_back(cleanPropnoun(org["name"].GetString()));
+        for (const auto &it: arr) {
+            orgs.emplace_back(cleanPropnoun(it["name"].GetString()));
         }
 
         this->totalOrgs += orgs.size();
@@ -145,13 +140,6 @@ double Processor::getProgress() {
     return (double) this->filesProcessed.load() / (double) this->totalFiles;
 }
 
-bool Processor::safeIsEmpty() {
-    this->fileQueueMutex->lock();
-    bool empty = this->fileQueue.empty();
-    this->fileQueueMutex->unlock();
-    return empty;
-}
-
 Processor::~Processor() {
     delete this->fileQueueMutex;
     delete this->tbbMap;
@@ -170,7 +158,6 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 
     this->totalFiles = 0;
     this->filesProcessed = 0;
-    this->processedWords = 0;
     this->totalOrgs = 0;
     this->totalPeople = 0;
 }
@@ -182,7 +169,6 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 std::string Processor::convertToTree() {
     this->wordTreeMutex->lock();
     this->wordTree->clear();
-    this->processedWords = 0;
     for (auto &wordData: *this->tbbMap) {
         std::string currentWord = wordData.first;
         std::vector<std::pair<std::string, double>> toPush;
@@ -201,20 +187,21 @@ std::string Processor::convertToTree() {
 
         this->wordTree->insert_overwriting(wordData.first, toPush);
     }
-    this->processedWords = this->wordTree->size();
     this->wordTreeMutex->unlock();
     return "Conversion complete";
 }
 
-double Processor::getConversionProgress() {
-    return (double) this->processedWords.load() / (double) this->totalWords;
-}
-
 void Processor::printProcessorStats() const {
     std::cout << std::endl;
-    std::cout << "articles compiled\t" << this->articles->size() << std::endl << std::endl;
-    std::cout << "organizations compiled\t" << totalOrgs << std::endl << std::endl;
-    std::cout << "people compiled\t\t" << totalPeople << std::endl << std::endl;
+
+    std::cout << termcolor::bright_blue << "articles compiled\t" << termcolor::white << this->articles->size()
+              << std::endl << std::endl;
+
+    std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << totalOrgs << std::endl
+              << std::endl;
+
+    std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << totalPeople << std::endl
+              << std::endl;
 }
 
 #include "include/cereal/archives/json.hpp"
@@ -230,9 +217,7 @@ void Processor::cacheAvlTree() {
 void Processor::avlCacheBuildingBackbone() {
     if (this->wordTree != nullptr) {
         this->wordTree->clear();
-        this->processedWords = 0;
         this->wordTree->load_from_archive("../tree-cache.txt");
-        this->processedWords = this->wordTree->size();
     }
 }
 
@@ -298,4 +283,47 @@ void Processor::initiateAvlFromCache() {
             },
     };
     progressBar.initiate<>(&Processor::avlCacheBuildingBackbone, this);
+}
+
+void Processor::printArticleTextFromFilename(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cout << "Could not open file: " << filename << std::endl;
+    }
+    rapidjson::Document document;
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    try {
+        document.Parse(content.c_str());
+    } catch (std::exception &e) {
+        std::cout << termcolor::red << "Could not read file: " << filename << termcolor::reset << std::endl;
+    }
+    file.close();
+
+    assert(document.HasMember("text"));
+    // print out text field
+
+    std::cout << std::endl << termcolor::bright_blue << "UUID: " << termcolor::white << document["uuid"].GetString()
+              << std::endl << std::endl;
+
+    std::cout << termcolor::bright_blue << "File Path: " << termcolor::white << filename << std::endl << std::endl;
+
+    std::string author = document["author"].GetString();
+    if (!author.empty()) {
+        std::cout << termcolor::bright_blue << "Author: " << termcolor::white << author << std::endl << std::endl;
+    } else {
+        std::cout << termcolor::bright_blue << "No Documented Author" << termcolor::white << std::endl << std::endl;
+    }
+
+    const auto arr = document["entities"]["organizations"].GetArray();
+    if (!arr.Empty()) {
+        std::cout << termcolor::bright_blue << "Organizations: " << termcolor::white << std::endl;
+        std::vector<std::string> orgs;
+        for (const auto &org: arr) {
+            std::cout << '\t' << org["name"].GetString() << std::endl;
+        }
+    }
+    std::cout << std::endl;
+
+    std::cout << termcolor::bright_blue << "Content: " << termcolor::white << std::endl;
+    std::cout << document["text"].GetString() << std::endl << std::endl;
 }

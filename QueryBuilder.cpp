@@ -103,8 +103,6 @@ void QueryBuilder::buildQuery(std::string query) {
             it++;
         }
     }
-
-
 }
 
 std::vector<std::string> QueryBuilder::split(std::string basicString, char i) {
@@ -173,7 +171,6 @@ SingleWordNode::SingleWordNode(ArticleTable *table, WordTree *tree, std::string 
     this->word = word;
 }
 
-//TODO: Feels like something is missing
 std::vector<ScoredId> SingleWordNode::execute() {
     Porter2Stemmer::stem(word);
     std::transform(word.begin(), word.end(), word.begin(), ::tolower);

@@ -143,7 +143,7 @@ std::vector<Article> QueryBuilder::executeQuery() {
     }
 
     // Sort the result by score
-    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId &a, ScoredId &b) {
+    std::sort(compressedResult.begin(), compressedResult.end(), [](ScoredId &a, ScoredId &b) -> bool {
         return a.second > b.second;
     });
 

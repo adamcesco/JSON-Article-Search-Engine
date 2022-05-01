@@ -23,11 +23,8 @@ private:
     StopWords stopWords;
     std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
-
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
-
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
-
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
     int totalWords = 0;

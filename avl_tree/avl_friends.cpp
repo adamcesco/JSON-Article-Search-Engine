@@ -23,7 +23,7 @@ void print_top_25(avl_tree<std::string, std::vector<std::pair<std::string, doubl
     find(tree.root);
 
     std::sort(words.begin(), words.end(),
-              [](const std::pair<std::string, int> &p1, const std::pair<std::string, int> &p2) {
+              [](const std::pair<std::string, int> &p1, const std::pair<std::string, int> &p2) -> bool {
                   return (p1.second > p2.second);
               });
 

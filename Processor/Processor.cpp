@@ -74,13 +74,16 @@ void Processor::process() {
         if (!author.empty())
             this->totalPeople++;
 
-        this->articles->operator[](uuid) = {
+
+        articlesMutex.lock();
+        this->articles->operator[](uuid) = Article{
                 .uuid = uuid,
                 .filename = filename,
                 .author = author,
                 .orgList = orgs,
                 .title = document["title"].GetString(),
         };
+        articlesMutex.unlock();
 
         std::string text = document["text"].GetString();
         std::istringstream iss(text);
@@ -140,7 +143,7 @@ Processor::~Processor() {
     delete this->tbbMap;
 }
 
-Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
+Processor::Processor(hash_table<std::string, Article> *pArticles,
                      avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                      std::mutex *treeMut) {
     this->articles = pArticles;
@@ -218,7 +221,7 @@ void Processor::cacheArticles() {
     cereal::JSONOutputArchive artArchive(artFile);
     artFile << this->articles->size() << std::endl;
     for (auto &it: *this->articles) {
-        artArchive(it.first, it.second);
+        artArchive(it.key, it.value);
     }
 }
 

@@ -8,6 +8,7 @@
 #include <functional>
 #include <string>
 #include <iostream>
+#include <memory>
 
 template<class T, class U>
 class hash_table {
@@ -17,8 +18,8 @@ private:
 
         HashPair(unsigned int hashNum, const T &pData, const U &pValue) {
             hash = hashNum;
-            key = new T(pData);
-            value = new U(pValue);
+            key = std::unique_ptr<T>(new T(pData));
+            value = std::unique_ptr<U>(new U(pValue));
         }
 
         HashPair(const HashPair &toCopy) {
@@ -31,25 +32,20 @@ private:
             if (this == &toAssign) { return *this; }
             hash = toAssign.hash;
 
-            delete key;
             key = nullptr;
-            if (toAssign.key != nullptr) { key = new T(*toAssign.key); }
+            if (toAssign.key != nullptr) {
+                key = std::unique_ptr<T>(new T(*toAssign.key));
+               }
 
-            delete value;
             value = nullptr;
-            if (toAssign.value != nullptr) { value = new U(*toAssign.value); }
+            if (toAssign.value != nullptr) { value = std::unique_ptr<U> (new U(*toAssign.value)); }
 
             return *this;
         }
 
-        ~HashPair() {
-            delete key;
-            delete value;
-        }
-
         unsigned int hash = 0;
-        T *key = nullptr;
-        U *value = nullptr;
+        std::unique_ptr<T> key = nullptr;
+        std::unique_ptr<U> value = nullptr;
     };
 
     struct Iterator {
@@ -221,13 +217,14 @@ U &hash_table<T, U>::operator[](const T &pKey) {
     data[index_clean].hash = index;
 
     if (data[index_clean].key == nullptr) {
-        data[index_clean].key = new T();
+        // using smart pointer
+        data[index_clean].key = std::unique_ptr<T>(new T(pKey));
         ++ele_count;
     }
     *data[index_clean].key = pKey;
 
     if (data[index_clean].value == nullptr)
-        data[index_clean].value = new U();
+        data[index_clean].value = std::unique_ptr<U>(new U());
 
     if (int(read_load_factor() * 100) > 70) {
         index_clean = increase_max_cap(index);

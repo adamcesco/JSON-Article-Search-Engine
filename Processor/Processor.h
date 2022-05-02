@@ -24,9 +24,10 @@ private:
     unsigned int totalPeople;
     StopWords stopWords;
     std::mutex *fileQueueMutex = nullptr;
+    std::mutex articlesMutex;
     std::queue<std::string> fileQueue;
     tbb::concurrent_unordered_map<std::string, tbb::concurrent_unordered_map<std::string, int>> *tbbMap = nullptr;
-    tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
+    hash_table<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
 
@@ -35,7 +36,7 @@ private:
     void process();
 
 public:
-    explicit Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
+    explicit Processor(hash_table<std::string, Article> *pArticles,
                        avl_tree<std::string, std::vector<std::pair<std::string, double>>> *tree,
                        std::mutex *treeMut);
 

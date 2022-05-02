@@ -3,14 +3,15 @@
 //
 
 #include <iostream>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <thread>
+#include <sstream>
+#include <fstream>
 #include "Processor.h"
 #include "../external/termcolor/termcolor.hpp"
 #include "../utilities/Pipelines.h"
-#include "../utilities/ProgressBar.h"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 typedef tbb::concurrent_hash_map<std::string, std::vector<std::string>>::accessor tbbAccessor;
 

@@ -11,9 +11,6 @@
 class SearchEngine {
 private:
     std::string data_folder;
-
-    Processor *processor = nullptr;
-    QueryBuilder *query_builder = nullptr;
     ArticleTable *articles = nullptr;
     WordTree *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
@@ -25,6 +22,9 @@ private:
     void QueryInterface();
 
 public:
+    Processor *processor = nullptr;
+    QueryBuilder *query_builder = nullptr;
+
     /**
      * @param data_folder The folder containing the data files
      */
@@ -33,11 +33,17 @@ public:
     /**
      * Populates the articles and the inverse index with the articles
      */
-    void generateIndex();
+    void generateDataFromFiles();
+
+    void generateAVLFromCache();
+
+    void generateArticlesFromCache();
 
     int ConsolePrintEngineStats();
 
     void InitiateConsoleInterface();
+
+    bool isIncomplete();
 
     bool isEmpty();
 

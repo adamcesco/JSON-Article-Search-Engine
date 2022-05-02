@@ -8,7 +8,7 @@
 #include "Processor.h"
 #include "../external/termcolor/termcolor.hpp"
 #include "../utilities/Pipelines.h"
-#include "../ProgressBar/ProgressBar.h"
+#include "../utilities/ProgressBar.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -32,9 +32,6 @@ void Processor::fillQueue(std::string folderName) {
 }
 
 void Processor::process() {
-    this->filesProcessed = 0;
-    this->totalOrgs = 0;
-    this->totalPeople = 0;
     while (true) {
         this->fileQueueMutex->lock();
         if (this->fileQueue.empty()) {
@@ -115,12 +112,9 @@ void Processor::process() {
  */
 void Processor::generateIndex(std::string folderName) {
     this->filesProcessed = 0;
-    std::cout << termcolor::red << std::endl << pipeline::getCenteredText("Generating index...", 80) << std::endl;
+    this->totalOrgs = 0;
+    this->totalPeople = 0;
     this->fillQueue(folderName);
-    std::string fileDisplay = "Total files: " + std::to_string(this->totalFiles);
-
-    std::cout << termcolor::green << pipeline::getCenteredText(fileDisplay, 80) << std::endl;
-    std::cout << termcolor::reset << std::endl;
 
     // Actually process the files
     std::thread t1(&Processor::process, this);
@@ -136,7 +130,7 @@ void Processor::generateIndex(std::string folderName) {
     this->totalWords = this->tbbMap->size();
 }
 
-double Processor::getProgress() {
+double Processor::fileParseProgress() {
     return (double) this->filesProcessed.load() / (double) this->totalFiles;
 }
 
@@ -158,6 +152,8 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 
     this->totalFiles = 0;
     this->filesProcessed = 0;
+    this->totalWords = 0;
+    this->wordsProcessed = 0;
     this->totalOrgs = 0;
     this->totalPeople = 0;
 }
@@ -166,7 +162,8 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
 #include <cmath>
 #include <future>
 
-std::string Processor::convertToTree() {
+void Processor::convertMapToTree() {
+    this->totalWords = this->tbbMap->size();
     this->wordTreeMutex->lock();
     this->wordTree->clear();
     for (auto &wordData: *this->tbbMap) {
@@ -188,7 +185,6 @@ std::string Processor::convertToTree() {
         this->wordTree->insert_overwriting(wordData.first, toPush);
     }
     this->wordTreeMutex->unlock();
-    return "Conversion complete";
 }
 
 void Processor::printProcessorStats() const {
@@ -209,13 +205,6 @@ void Processor::cacheAvlTree() {
         this->wordTree->archive_tree("../tree-cache.txt");
 }
 
-void Processor::avlCacheBuildingBackbone() {
-    if (this->wordTree != nullptr) {
-        this->wordTree->clear();
-        this->wordTree->load_from_archive("../tree-cache.txt");
-    }
-}
-
 void Processor::cacheArticles() {
     if (this->articles == nullptr)
         return;
@@ -234,7 +223,8 @@ void Processor::cacheArticles() {
 
 void Processor::buildArticlesFromCache() {
     if (this->articles == nullptr)
-        return;
+        throw std::invalid_argument(
+                "Error in \"void SearchEngine::buildArticlesFromCache()\" | this->articles is equal to nullptr");
 
     std::ifstream artFile("../article-cache.txt", std::ios::binary);
     if (!artFile.is_open())
@@ -245,11 +235,10 @@ void Processor::buildArticlesFromCache() {
     this->totalOrgs = 0;
     this->totalPeople = 0;
 
-    int size;
-    artFile >> size;
-    if (size > 0) {
+    artFile >> this->totalFiles;
+    if (this->totalFiles > 0) {
         cereal::JSONInputArchive artArchive(artFile);
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < this->totalFiles; ++i) {
             std::string str;
             Article arti;
             artArchive(str, arti);
@@ -262,7 +251,7 @@ void Processor::buildArticlesFromCache() {
     }
 }
 
-void Processor::initiateAvlFromCache() {
+void Processor::buildAvlFromCache() {
     std::ifstream treeFile("../tree-cache.txt");
     if (!treeFile.is_open()) {
         throw std::invalid_argument("tree-cache file could not be opened");
@@ -270,17 +259,10 @@ void Processor::initiateAvlFromCache() {
     treeFile >> this->totalWords;
     treeFile.close();
     this->wordTree->clear();
-
-    ProgressBar<Processor> progressBar = {
-            .invoker = this,
-            .getProgress = [](Processor *p) -> double {
-                return (double) p->wordTree->size() / (double) p->totalWords;
-            },
-    };
-    progressBar.initiate<>(&Processor::avlCacheBuildingBackbone, this);
+    this->wordTree->load_from_archive("../tree-cache.txt");
 }
 
-void Processor::printArticleTextFromFilename(const std::string &filename) {
+void Processor::printArticleTextFromFilePath(const std::string &filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cout << "Could not open file: " << filename << std::endl;
@@ -321,4 +303,12 @@ void Processor::printArticleTextFromFilename(const std::string &filename) {
 
     std::cout << termcolor::bright_blue << "Content: " << termcolor::white << std::endl;
     std::cout << document["text"].GetString() << std::endl << std::endl;
+}
+
+double Processor::buildingTreeProgress() {
+    return (double) this->wordTree->size() / (double) this->totalWords;
+}
+
+double Processor::buildingArticlesProgress() {
+    return (double) this->articles->size() / (double) this->totalFiles;
 }

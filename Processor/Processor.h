@@ -16,10 +16,12 @@ class Processor {
 
 private:
     // Passed from SearchEngine
+    std::atomic<int> wordsProcessed;
+    unsigned int totalWords;
+    std::atomic<int> filesProcessed;
     unsigned int totalFiles;
     unsigned int totalOrgs;
     unsigned int totalPeople;
-    std::atomic<int> filesProcessed;
     StopWords stopWords;
     std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
@@ -27,13 +29,10 @@ private:
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    int totalWords = 0;
 
     void fillQueue(std::string folderName);
 
     void process();
-
-    void avlCacheBuildingBackbone();
 
 public:
     explicit Processor(tbb::concurrent_unordered_map<std::string, Article> *pArticles,
@@ -42,11 +41,11 @@ public:
 
     ~Processor();
 
-    std::string convertToTree();
+    void convertMapToTree();
 
     void generateIndex(std::string folderName);
 
-    double getProgress();
+    double fileParseProgress();
 
     void printProcessorStats() const;
 
@@ -56,9 +55,13 @@ public:
 
     void buildArticlesFromCache();
 
-    void initiateAvlFromCache();
+    void buildAvlFromCache();
 
-    static void printArticleTextFromFilename(const std::string &filename);
+    static void printArticleTextFromFilePath(const std::string &filename);
+
+    double buildingTreeProgress();
+
+    double buildingArticlesProgress();
 };
 
 

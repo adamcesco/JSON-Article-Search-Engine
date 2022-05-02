@@ -6,7 +6,8 @@
 #include <thread>
 #include "SearchEngine.h"
 #include "../external/termcolor/termcolor.hpp"
-#include "../ProgressBar/ProgressBar.h"
+#include "../utilities/ProgressBar.h"
+#include "../utilities/Pipelines.h"
 
 
 SearchEngine::SearchEngine(std::string data_folder) {
@@ -32,45 +33,41 @@ SearchEngine::~SearchEngine() {
 /**
  * Loads the data from the data folder into the articles and AVL tree.
  */
-void SearchEngine::generateIndex() {
+void SearchEngine::generateDataFromFiles() {
     // Start clock
     system("clear");
+    std::cout << std::endl << termcolor::red << pipeline::getCenteredText("Generating Index and Articles...", 80)
+              << termcolor::white << std::endl << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
 
     ProgressBar<Processor> progressBar = {
             .invoker = this->processor,
             .getProgress = [](Processor *p) -> double {
-                return p->getProgress();
+                return p->fileParseProgress();
             },
     };
     progressBar.initiate<>(&Processor::generateIndex, this->processor,
                            this->data_folder);
 
+    std::cout << std::endl << termcolor::red << pipeline::getCenteredText("Converting to AVL Tree...", 80)
+              << termcolor::white << std::endl << std::endl;
 
-    this->processor->convertToTree();
+    progressBar.getProgress = [](Processor *p) -> double {
+        return p->buildingTreeProgress();
+    };
+    progressBar.initiate<>(&Processor::convertMapToTree, this->processor);
+
     // End clock
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
-    std::cout << termcolor::green << "Index generated successfully!" << termcolor::reset << std::endl;
-    std::cout << "Time Taken: " << diff.count() << " Seconds." << std::endl;
+    system("clear");
+    std::cout << std::endl << termcolor::bright_blue << "Index generated successfully!" << termcolor::yellow
+              << std::endl << std::endl;
+    std::cout << "Time Taken: " << diff.count() << " Seconds." << termcolor::white << std::endl;
 }
 
 void SearchEngine::InitiateConsoleInterface() {
-    system("clear");
-    while (true) {
-        std::cout << termcolor::bright_green << std::endl;
-        std::cout << "enter a number: " << std::endl;
-        std::cout << "1. populate engine data by parsing JSON documents" << std::endl;
-        std::cout << "2. populate avl tree from cache" << std::endl;
-        std::cout << "3. populate articles from cache" << std::endl;
-        std::cout << "4. manage avl tree cache" << std::endl;
-        std::cout << "5. manage article cache" << std::endl;
-        std::cout << "6. enter boolean search query" << std::endl;
-        std::cout << "7. print search engine statistics" << std::endl;
-        std::cout << "8. clear engine data" << std::endl;
-        std::cout << "9. end program" << std::endl;
-        std::cout << termcolor::white << std::endl;
-
+    auto GetInput = [this](int maxChoice) -> int {
         bool invalid;
         int intInput;
         do {
@@ -80,80 +77,98 @@ void SearchEngine::InitiateConsoleInterface() {
             std::string input;
             std::cin >> input;
 
-            intInput = input[0] & 15;
-            invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 9 || intInput < 1 ||
-                       (intInput == 6 && this->isEmpty()));
+            char *p;
+            intInput = std::strtol(input.c_str(), &p, 10);
+            invalid = (*p != '\0' || intInput > maxChoice || intInput < 1 ||
+                       (intInput == 6 && this->isIncomplete()) || (intInput == 4 && this->wordTree->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
         } while (invalid);
+        return intInput;
+    };
+
+    system("clear");
+    while (true) {
+        std::cout << termcolor::bright_green << std::endl;
+        std::cout << "enter a number: " << std::endl;
+        std::cout << "1. populate engine data by parsing JSON documents" << std::endl;
+        std::cout << "2. populate avl tree from cache" << std::endl;
+        std::cout << "3. populate articles from cache" << std::endl;
+        std::cout << "4. delete a word from the avl tree" << std::endl;
+        std::cout << "5. manage avl tree cache" << std::endl;
+        std::cout << "6. manage article cache" << std::endl;
+        std::cout << "7. enter boolean search query" << std::endl;
+        std::cout << "8. print search engine statistics" << std::endl;
+        std::cout << "9. clear engine data" << std::endl;
+        std::cout << "10. end program" << std::endl;
+        std::cout << termcolor::white << std::endl;
+
+        int intInput = GetInput(10);
 
         switch (intInput) {
             case 1 :
                 system("clear");
-                this->generateIndex();
-                system("clear");
+                this->generateDataFromFiles();
                 break;
 
-            case 2 : {
+            case 2 :
                 system("clear");
-                this->processor->initiateAvlFromCache();
-                system("clear");
+                this->generateAVLFromCache();
                 break;
-            }
 
             case 3 :
                 system("clear");
-                this->processor->buildArticlesFromCache();
-                system("clear");
+                this->generateArticlesFromCache();
                 break;
 
-            case 4 :
+            case 4 : {
+                system("clear");
+                std::cout << std::endl << termcolor::bright_green << "Enter a word: " << termcolor::white;
+                std::string word;
+                std::cin >> word;
+                std::string oriWord = word;
+                system("clear");
+                pipeline::cleanStr(word);
+                Porter2Stemmer::stem(word);
+                try { this->wordTree->delete_node(word); }
+                catch (const std::invalid_argument &e) {
+                    std::cout << std::endl << termcolor::bright_blue << oriWord << " (" << word
+                              << ") was not found in avl tree" << termcolor::white << std::endl << std::endl;
+                    break;
+                }
+                std::cout << std::endl << termcolor::bright_blue << oriWord << " (" << word
+                          << ") has been successfully deleted!" << termcolor::white << std::endl << std::endl;
+                break;
+            }
+
+            case 5 :
                 system("clear");
                 this->AvlCacheConsoleManager();
                 system("clear");
                 break;
 
-            case 5 :
+            case 6 :
                 system("clear");
                 this->ArticleCacheConsoleManager();
                 system("clear");
                 break;
 
-            case 6 :
-                if (this->articles == nullptr || this->articles->empty()) {
-                    std::cout << termcolor::red << std::endl;
-                    std::cout << "WARNING: article data is empty | do you want to continue?" << std::endl;
-                    std::cout << "1. Yes" << std::endl;
-                    std::cout << "2. No" << std::endl;
-                    std::cout << termcolor::white << std::endl;
-                    do {
-                        std::cout << termcolor::bright_blue
-                                  << "22s-final-project-fair-game / console-interface / " << termcolor::bright_green
-                                  << "search-engine > " << termcolor::white;
-                        std::string input;
-                        std::cin >> input;
-
-                        intInput = input[0] & 15;
-                        invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 2 || intInput < 1);
-                        if (invalid) {
-                            std::cout << "incorrect input" << std::endl;
-                        }
-                    } while (invalid);
-                    if (intInput == 2)
-                        break;
-                }
-
-                //query here
+            case 7 :
                 QueryInterface();
                 break;
 
-            case 7 :
+            case 8 :
                 system("clear");
                 this->ConsolePrintEngineStats();
                 break;
 
-            case 8 : {
+            case 9 : {
+                system("clear");
+                std::cout << std::endl << termcolor::red << pipeline::getCenteredText("clearing all engine data...", 80)
+                          << termcolor::white
+                          << std::endl;
+
                 if (this->wordTree != nullptr)
                     this->wordTree->clear();
 
@@ -161,15 +176,15 @@ void SearchEngine::InitiateConsoleInterface() {
                     this->articles->clear();
 
                 delete this->processor;
-                this->processor = new Processor(this->articles, this->wordTree,
-                                                this->wordTreeMutex);
+                this->processor = new Processor(this->articles, this->wordTree, this->wordTreeMutex);
 
                 system("clear");
-                std::cout << std::endl << "all engine data is cleared" << std::endl << std::endl;
+                std::cout << std::endl << termcolor::bright_blue << "all engine data is cleared" << termcolor::white
+                          << std::endl << std::endl;
                 break;
             }
 
-            case 9 :
+            case 10 :
                 return;
                 break;
         }
@@ -191,7 +206,7 @@ int SearchEngine::ConsolePrintEngineStats() {
         std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << "0" << std::endl
                   << std::endl;
 
-        std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << "0" << std::endl
+        std::cout << termcolor::bright_blue << "authors compiled\t\t" << termcolor::white << "0" << std::endl
                   << std::endl;
     }
 
@@ -251,8 +266,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
 
             case 2 : {
                 system("clear");
-                this->processor->initiateAvlFromCache();
-                system("clear");
+                this->generateAVLFromCache();
                 break;
             }
 
@@ -333,8 +347,8 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
                 break;
 
             case 2 :
-                this->processor->buildArticlesFromCache();
                 system("clear");
+                this->generateArticlesFromCache();
                 break;
 
             case 3 : {
@@ -459,7 +473,7 @@ void SearchEngine::QueryInterface() {
                           << std::endl;
                 int num = GetInput(result.size());
                 system("clear");
-                Processor::printArticleTextFromFilename(result[num - 1].filename);
+                Processor::printArticleTextFromFilePath(result[num - 1].filename);
                 break;
             }
             case 3: {
@@ -470,7 +484,60 @@ void SearchEngine::QueryInterface() {
     } while (true);
 }
 
+bool SearchEngine::isIncomplete() {
+    return ((this->wordTree == nullptr || this->wordTree->is_empty()) ||
+            (this->articles == nullptr || this->articles->empty()));
+}
+
 bool SearchEngine::isEmpty() {
-    return (this->wordTree == nullptr || this->wordTree->is_empty() || this->articles == nullptr ||
-            this->articles->empty());
+    return ((this->wordTree == nullptr || this->wordTree->is_empty()) &&
+            (this->articles == nullptr || this->articles->empty()));
+}
+
+void SearchEngine::generateAVLFromCache() {
+    std::cout << std::endl << termcolor::red << pipeline::getCenteredText("Building AVL Tree...", 80)
+              << termcolor::white << std::endl << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    this->wordTree->clear();
+
+    ProgressBar<Processor> progressBar = {
+            .invoker = this->processor,
+            .getProgress = [](Processor *p) -> double {
+                return p->buildingTreeProgress();
+            },
+    };
+    progressBar.initiate<>(&Processor::buildAvlFromCache, this->processor);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    system("clear");
+    std::cout << std::endl << termcolor::bright_blue << "AVL Tree Built successfully!" << termcolor::yellow
+              << std::endl << std::endl;
+    std::cout << "Time Taken: " << diff.count() << " Seconds." << termcolor::white << std::endl;
+}
+
+void SearchEngine::generateArticlesFromCache() {
+    std::cout << std::endl << termcolor::red << pipeline::getCenteredText("Building Articles...", 80)
+              << termcolor::white << std::endl << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    this->articles->clear();
+
+    ProgressBar<Processor> progressBar = {
+            .invoker = this->processor,
+            .getProgress = [](Processor *p) -> double {
+                return p->buildingArticlesProgress();
+            },
+    };
+    progressBar.initiate<>(&Processor::buildArticlesFromCache, this->processor);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    system("clear");
+    std::cout << std::endl << termcolor::bright_blue << "Articles Built successfully!" << termcolor::yellow
+              << std::endl << std::endl;
+    std::cout << "Time Taken: " << diff.count() << " Seconds." << termcolor::white << std::endl;
 }

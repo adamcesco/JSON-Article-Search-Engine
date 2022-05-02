@@ -80,7 +80,7 @@ void SearchEngine::InitiateConsoleInterface() {
             char *p;
             intInput = std::strtol(input.c_str(), &p, 10);
             invalid = (*p != '\0' || intInput > maxChoice || intInput < 1 ||
-                       (intInput == 6 && this->isIncomplete()) || (intInput == 4 && this->wordTree->is_empty()));
+                       (intInput == 7 && this->isIncomplete()) || (intInput == 4 && this->wordTree->is_empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }

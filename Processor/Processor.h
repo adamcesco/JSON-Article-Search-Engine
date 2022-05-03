@@ -10,6 +10,7 @@
 #include "../utilities/Article.h"
 #include "../utilities/StopWords.h"
 #include "../avl_tree/avl_tree.h"
+#include "../hash_table/hash_table.h"
 #include "tbb/concurrent_hash_map.h"
 
 class Processor {
@@ -20,8 +21,8 @@ private:
     unsigned int totalWords;
     std::atomic<int> filesProcessed;
     unsigned int totalFiles;
-    unsigned int totalOrgs;
-    unsigned int totalPeople;
+    unsigned int totalOrgs;     //ADAM-> delete later | todo
+    unsigned int totalPeople;   //ADAM-> delete later | todo
     StopWords stopWords;
     std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
@@ -29,6 +30,8 @@ private:
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
+    hash_table<std::string, int> organizations;
+    hash_table<std::string, int> people;
 
     void fillQueue(std::string folderName);
 

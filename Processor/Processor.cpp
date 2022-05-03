@@ -63,22 +63,32 @@ void Processor::process() {
 
         std::string author = pipeline::cleanPropnoun(document["author"].GetString());
 
-        const auto arr = document["entities"]["organizations"].GetArray();
-        std::vector<std::string> orgs;
-        for (const auto &it: arr) {
-            orgs.emplace_back(pipeline::cleanPropnoun(it["name"].GetString()));
+        std::vector<std::string> orgsVect;
+        {
+            const auto orgsArr = document["entities"]["organizations"].GetArray();
+            for (const auto &it: orgsArr) {
+                orgsVect.emplace_back(pipeline::cleanPropnoun(it["name"].GetString()));
+            }
         }
 
-        this->totalOrgs += orgs.size();
+        std::vector<std::string> peopleVect;
+        {
+            const auto peopleArr = document["entities"]["persons"].GetArray();
+            for (const auto &it: peopleArr) {
+                peopleVect.emplace_back(pipeline::cleanPropnoun(it["name"].GetString()));
+            }
+        }
 
-        if (!author.empty())
-            this->totalPeople++;
+        this->totalOrgs += orgsVect.size();
+
+        this->totalPeople += peopleVect.size();
 
         this->articles->operator[](uuid) = {
                 .uuid = uuid,
                 .filename = filename,
                 .author = author,
-                .orgList = orgs,
+                .peopleList = orgsVect,
+                .orgList = peopleVect,
                 .title = document["title"].GetString(),
         };
 
@@ -292,15 +302,27 @@ void Processor::printArticleTextFromFilePath(const std::string &filename) {
         std::cout << termcolor::bright_blue << "No Documented Author" << termcolor::white << std::endl << std::endl;
     }
 
-    const auto arr = document["entities"]["organizations"].GetArray();
-    if (!arr.Empty()) {
-        std::cout << termcolor::bright_blue << "Organizations: " << termcolor::white << std::endl;
-        std::vector<std::string> orgs;
-        for (const auto &org: arr) {
-            std::cout << '\t' << org["name"].GetString() << std::endl;
+    {
+        const auto arr = document["entities"]["organizations"].GetArray();
+        if (!arr.Empty()) {
+            std::cout << termcolor::bright_blue << "Organizations: " << termcolor::white << std::endl;
+            for (const auto &org: arr) {
+                std::cout << '\t' << org["name"].GetString() << std::endl;
+            }
         }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
+
+    {
+        const auto arr = document["entities"]["persons"].GetArray();
+        if (!arr.Empty()) {
+            std::cout << termcolor::bright_blue << "People: " << termcolor::white << std::endl;
+            for (const auto &person: arr) {
+                std::cout << '\t' << person["name"].GetString() << std::endl;
+            }
+        }
+        std::cout << std::endl;
+    }
 
     std::cout << termcolor::bright_blue << "Content: " << termcolor::white << std::endl;
     std::cout << document["text"].GetString() << std::endl << std::endl;

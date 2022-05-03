@@ -20,6 +20,7 @@ struct Article {
     std::string uuid;
     std::string filename;
     std::string author;
+    std::vector<std::string> peopleList;
     std::vector<std::string> orgList;
     std::string title;
 

@@ -35,7 +35,7 @@ struct Article {
 
     template<class Archive>
     void serialize(Archive &ar) {
-        ar(uuid, filename, author, orgList, title);
+        ar(uuid, filename, author, peopleList, orgList, title);
     }
 };
 

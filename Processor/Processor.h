@@ -30,8 +30,8 @@ private:
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    hash_table<std::string, int> organizations;
-    hash_table<std::string, int> people;
+    hash_table<std::string, int> organizations;     //ADAM-> fill and utilize later | todo
+    hash_table<std::string, int> people;            //ADAM-> fill and utilize later | todo
 
     void fillQueue(std::string folderName);
 

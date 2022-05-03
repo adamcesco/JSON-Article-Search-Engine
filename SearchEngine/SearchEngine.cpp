@@ -185,6 +185,8 @@ void SearchEngine::InitiateConsoleInterface() {
             }
 
             case 10 :
+                system("clear");
+                std::cout << "Shutting down" << std::endl;
                 return;
                 break;
         }

@@ -28,8 +28,8 @@ private:
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    hash_table<std::string, std::set<std::string>> organizations;     //ADAM-> fill and utilize later | todo
-    hash_table<std::string, std::set<std::string>> people;            //ADAM-> fill and utilize later | todo
+    hash_table<std::string, std::set<std::string>> organizations;   //org name mapped to UUID vector
+    hash_table<std::string, std::set<std::string>> people;          //person name mapped to UUID vector
 
     void fillQueue(std::string folderName);
 

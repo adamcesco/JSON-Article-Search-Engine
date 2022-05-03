@@ -141,12 +141,14 @@ void Processor::generateIndex(std::string folderName) {
 }
 
 void Processor::buildOrgsAndPeople() {
+    this->organizations.clear();
+    this->people.clear();
     for (const auto &articlePair: *this->articles) {
         for (const auto &org: articlePair.second.orgList) {
-            organizations[articlePair.first].emplace(org);
+            this->organizations[articlePair.first].emplace(org);
         }
         for (const auto &person: articlePair.second.peopleList) {
-            people[articlePair.first].emplace(person);
+            this->people[articlePair.first].emplace(person);
         }
     }
 }
@@ -197,7 +199,7 @@ void Processor::convertMapToTree() {
         }
 
         std::sort(toPush.begin(), toPush.end(),
-                  [](const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) {
+                  [](const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) -> bool {
                       return a.second > b.second;
                   });
 

@@ -10,8 +10,6 @@ int main(int argc, char **argv) {
     } else {
         SearchEngine engine(argv[2]);
         engine.InitiateConsoleInterface();
-        system("clear");
-        std::cout << "Shutting down" << std::endl;
     }
     return 0;
 }

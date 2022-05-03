@@ -280,7 +280,7 @@ std::vector<ScoredId> PeopleNode::execute() {
 
     for (ScoredId &scored: result) {
         Article article = this->table->operator[](scored.first);
-        if (article.author == person) {
+        if (std::find(article.peopleList.begin(), article.peopleList.end(), person) != article.peopleList.end()) {
             passed.push_back(scored);
         }
     }

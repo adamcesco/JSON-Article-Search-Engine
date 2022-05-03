@@ -122,21 +122,26 @@ void Processor::process() {
  * @return A dummy return value so that the function can be called with std::async
  */
 void Processor::generateIndex(std::string folderName) {
+    int threadCount = std::thread::hardware_concurrency();
+    std::cout << "Using " << threadCount << " threads" << std::endl;
+    if (threadCount == 0) {
+        threadCount = 4;
+    }
+
     this->filesProcessed = 0;
     this->totalOrgs = 0;
     this->totalPeople = 0;
     this->fillQueue(folderName);
 
     // Actually process the files
-    std::thread t1(&Processor::process, this);
-    std::thread t2(&Processor::process, this);
-    std::thread t3(&Processor::process, this);
-    std::thread t4(&Processor::process, this);
+    std::vector<std::thread> threads;
+    for (int i = 0; i < threadCount; i++) {
+        threads.emplace_back(std::thread(&Processor::process, this));
+    }
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
+    for (auto &thread: threads) {
+        thread.join();
+    }
 
     this->totalWords = this->tbbMap->size();
 }

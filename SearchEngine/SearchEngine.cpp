@@ -1,5 +1,5 @@
 //
-// Created by drewharris on 4/7/2022.
+// Created by Drew Harris on 4/7/2022.
 //
 
 #include <iostream>
@@ -198,6 +198,7 @@ int SearchEngine::ConsolePrintEngineStats() {
     std::cout << termcolor::bright_blue << "Search Engine Statistics:" << termcolor::white << std::endl;
 
     if (this->processor != nullptr) {
+        this->processor->buildOrgsAndPeople();
         this->processor->printProcessorStats();
     } else {
         std::cout << termcolor::bright_blue << "articles compiled\t" << termcolor::white << "0" << std::endl

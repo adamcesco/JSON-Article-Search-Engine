@@ -1,5 +1,5 @@
 //
-// Created by misc1 on 4/30/2022.
+// Created by Adam Escobedo on 4/30/2022.
 //
 
 #ifndef INC_22S_FINAL_PROJ_PROGRESSBAR_H

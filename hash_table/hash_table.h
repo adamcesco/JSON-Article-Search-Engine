@@ -191,16 +191,16 @@ hash_table<T, U> &hash_table<T, U>::emplace_pair(const T &pKey, const U &pValue)
     HashPair toInsert(index, pKey, pValue);
 
     while (data[index_clean].key != nullptr) {
-        index_clean %= max_cap;
         if (data[index_clean].hash == index) {
             --ele_count;
             break;
         }
         ++index_clean;
+        index_clean %= max_cap;
     }
     ++ele_count;
 
-    if (int(read_load_factor() * 100) > 70) {
+    if (int(read_load_factor() * 100) > 75) {
         index_clean = increase_max_cap(index);
     }
 
@@ -214,8 +214,8 @@ U &hash_table<T, U>::operator[](const T &pKey) {
     const unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
     while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-        index_clean %= max_cap;
         ++index_clean;
+        index_clean %= max_cap;
     }
 
     data[index_clean].hash = index;
@@ -229,7 +229,7 @@ U &hash_table<T, U>::operator[](const T &pKey) {
     if (data[index_clean].value == nullptr)
         data[index_clean].value = new U();
 
-    if (int(read_load_factor() * 100) > 70) {
+    if (int(read_load_factor() * 100) > 75) {
         index_clean = increase_max_cap(index);
     }
 
@@ -241,8 +241,8 @@ U hash_table<T, U>::read_at(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
     while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-        index_clean %= max_cap;
         ++index_clean;
+        index_clean %= max_cap;
     }
 
     if (data[index_clean].key == nullptr) {
@@ -267,11 +267,11 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
         HashPair toInsert(index, *data[i].key, *data[i].value);
 
         while (dataCopy[index_clean].key != nullptr) {
-            index_clean %= max_cap;
             if (dataCopy[index_clean].hash == index) {
                 break;
             }
             ++index_clean;
+            index_clean %= max_cap;
         }
         dataCopy[index_clean] = toInsert;
     }
@@ -281,11 +281,11 @@ int hash_table<T, U>::increase_max_cap(unsigned int hashIndex) {
     //now that "key" has been resized, we can compute the "clean_index" value based off of the "passedIndex" and the new "max_cap" value
     int index_clean = hashIndex % max_cap;
     while (data[index_clean].key != nullptr) {
-        index_clean %= max_cap;
         if (data[index_clean].hash == hashIndex) {
             break;
         }
         ++index_clean;
+        index_clean %= max_cap;
     }
     return index_clean;
 }
@@ -296,8 +296,8 @@ hash_table<T, U> &hash_table<T, U>::clear_value_at(const T &pKey) {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
     while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-        index_clean %= max_cap;
         ++index_clean;
+        index_clean %= max_cap;
     }
 
     if (data[index_clean].key == nullptr) {
@@ -353,8 +353,8 @@ bool hash_table<T, U>::contains(const T &pKey) const {
     unsigned int index = hash_func(pKey);
     int index_clean = index % max_cap;
     while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-        index_clean %= max_cap;
         ++index_clean;
+        index_clean %= max_cap;
     }
 
     if (data[index_clean].key == nullptr) {
@@ -373,8 +373,8 @@ hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) 
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
         while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-            index_clean %= max_cap;
             ++index_clean;
+            index_clean %= max_cap;
         }
 
         data[index_clean].hash = index;
@@ -393,7 +393,7 @@ hash_table<T, U> &hash_table<T, U>::emplace_merge(const hash_table<T, U> &pMap) 
             *data[index_clean].value += *pMap.data[i].value;   //adds the two "value"s together
         }
 
-        if (int(read_load_factor() * 100) > 70) {
+        if (int(read_load_factor() * 100) > 75) {
             increase_max_cap(index);
         }
     }
@@ -410,8 +410,8 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
         const unsigned int index = pMap.data[i].hash;
         int index_clean = index % max_cap;
         while (data[index_clean].key != nullptr && data[index_clean].hash != index) {
-            index_clean %= max_cap;
             ++index_clean;
+            index_clean %= max_cap;
         }
 
         data[index_clean].hash = index;
@@ -428,7 +428,7 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
         *data[index_clean].key = *pMap.data[i].key;    //overwrites *this' version of "value" with the "pMap" version of "value"
         *data[index_clean].value = *pMap.data[i].value;
 
-        if (int(read_load_factor() * 100) > 70) {
+        if (int(read_load_factor() * 100) > 75) {
             increase_max_cap(index);
         }
     }

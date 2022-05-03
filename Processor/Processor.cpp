@@ -1,5 +1,5 @@
 //
-// Created by dshar on 4/7/2022.
+// Created by Drew Harris on 4/7/2022.
 //
 
 #include <iostream>
@@ -79,16 +79,12 @@ void Processor::process() {
             }
         }
 
-        this->totalOrgs += orgsVect.size();
-
-        this->totalPeople += peopleVect.size();
-
         this->articles->operator[](uuid) = {
                 .uuid = uuid,
                 .filename = filename,
                 .author = author,
-                .peopleList = orgsVect,
-                .orgList = peopleVect,
+                .peopleList = peopleVect,
+                .orgList = orgsVect,
                 .title = document["title"].GetString(),
         };
 
@@ -129,8 +125,6 @@ void Processor::generateIndex(std::string folderName) {
     }
 
     this->filesProcessed = 0;
-    this->totalOrgs = 0;
-    this->totalPeople = 0;
     this->fillQueue(folderName);
 
     // Actually process the files
@@ -144,6 +138,17 @@ void Processor::generateIndex(std::string folderName) {
     }
 
     this->totalWords = this->tbbMap->size();
+}
+
+void Processor::buildOrgsAndPeople() {
+    for (const auto &articlePair: *this->articles) {
+        for (const auto &org: articlePair.second.orgList) {
+            organizations[articlePair.first].emplace(org);
+        }
+        for (const auto &person: articlePair.second.peopleList) {
+            people[articlePair.first].emplace(person);
+        }
+    }
 }
 
 double Processor::fileParseProgress() {
@@ -170,8 +175,6 @@ Processor::Processor(tbb::concurrent_unordered_map<std::string, Article> *pArtic
     this->filesProcessed = 0;
     this->totalWords = 0;
     this->wordsProcessed = 0;
-    this->totalOrgs = 0;
-    this->totalPeople = 0;
 }
 
 
@@ -205,14 +208,14 @@ void Processor::convertMapToTree() {
 
 void Processor::printProcessorStats() const {
     std::cout << std::endl;
-
     std::cout << termcolor::bright_blue << "articles compiled\t" << termcolor::white << this->articles->size()
               << std::endl << std::endl;
 
-    std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << totalOrgs << std::endl
+    std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << organizations.size()
+              << std::endl
               << std::endl;
 
-    std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << totalPeople << std::endl
+    std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << people.size() << std::endl
               << std::endl;
 }
 
@@ -248,8 +251,6 @@ void Processor::buildArticlesFromCache() {
                 "Error in \"void SearchEngine::buildArticlesFromCache()\" | Could not open file ../article-cache.txt");
 
     this->articles->clear();
-    this->totalOrgs = 0;
-    this->totalPeople = 0;
 
     artFile >> this->totalFiles;
     if (this->totalFiles > 0) {
@@ -259,10 +260,6 @@ void Processor::buildArticlesFromCache() {
             Article arti;
             artArchive(str, arti);
             this->articles->operator[](str) = arti;
-
-            this->totalOrgs += arti.orgList.size();
-            if (!arti.author.empty())
-                this->totalPeople++;
         }
     }
 }

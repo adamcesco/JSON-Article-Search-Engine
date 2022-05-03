@@ -1,5 +1,5 @@
 //
-// Created by drewharris on 4/7/2022.
+// Created by Drew Harris on 4/7/2022.
 //
 
 #ifndef INC_22S_FINAL_PROJ_SEARCHENGINE_H

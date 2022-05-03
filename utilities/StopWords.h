@@ -1,5 +1,5 @@
 //
-// Created by dshar on 4/9/2022.
+// Created by Drew Harris on 4/9/2022.
 //
 
 #ifndef INC_22S_FINAL_PROJ_STOPWORDS_H

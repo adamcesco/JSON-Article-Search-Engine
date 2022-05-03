@@ -1,5 +1,5 @@
 //
-// Created by dshar on 4/7/2022.
+// Created by Drew Harris on 4/7/2022.
 //
 
 #ifndef INC_22S_FINAL_PROJ_PROCESSOR_H
@@ -21,8 +21,6 @@ private:
     unsigned int totalWords;
     std::atomic<int> filesProcessed;
     unsigned int totalFiles;
-    unsigned int totalOrgs;     //ADAM-> delete later | todo
-    unsigned int totalPeople;   //ADAM-> delete later | todo
     StopWords stopWords;
     std::mutex *fileQueueMutex = nullptr;
     std::queue<std::string> fileQueue;
@@ -30,8 +28,8 @@ private:
     tbb::concurrent_unordered_map<std::string, Article> *articles = nullptr;
     avl_tree<std::string, std::vector<std::pair<std::string, double>>> *wordTree = nullptr;
     std::mutex *wordTreeMutex;
-    hash_table<std::string, int> organizations;     //ADAM-> fill and utilize later | todo
-    hash_table<std::string, int> people;            //ADAM-> fill and utilize later | todo
+    hash_table<std::string, std::set<std::string>> organizations;     //ADAM-> fill and utilize later | todo
+    hash_table<std::string, std::set<std::string>> people;            //ADAM-> fill and utilize later | todo
 
     void fillQueue(std::string folderName);
 
@@ -59,6 +57,8 @@ public:
     void buildArticlesFromCache();
 
     void buildAvlFromCache();
+
+    void buildOrgsAndPeople();
 
     static void printArticleTextFromFilePath(const std::string &filename);
 

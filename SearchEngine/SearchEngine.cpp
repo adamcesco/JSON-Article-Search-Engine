@@ -13,7 +13,7 @@
 SearchEngine::SearchEngine(std::string data_folder) {
     this->data_folder = data_folder;
 
-    this->articles = new hash_table<std::string, Article>();
+    this->articles = new tbb::concurrent_unordered_map<std::string, Article>();
 
     this->wordTree = new avl_tree<std::string, std::vector<std::pair<std::string, double>>>();
     this->wordTreeMutex = new std::mutex();
@@ -332,7 +332,7 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
 
             intInput = input[0] & 15;
             invalid = (input.length() != 1 || !std::isdigit(input[0]) || intInput > 5 || intInput < 1 ||
-                       (intInput == 1 && this->articles->is_empty()));
+                       (intInput == 1 && this->articles->empty()));
             if (invalid) {
                 std::cout << "incorrect input" << std::endl;
             }
@@ -486,12 +486,12 @@ void SearchEngine::QueryInterface() {
 
 bool SearchEngine::isIncomplete() {
     return ((this->wordTree == nullptr || this->wordTree->is_empty()) ||
-            (this->articles == nullptr || this->articles->is_empty()));
+            (this->articles == nullptr || this->articles->empty()));
 }
 
 bool SearchEngine::isEmpty() {
     return ((this->wordTree == nullptr || this->wordTree->is_empty()) &&
-            (this->articles == nullptr || this->articles->is_empty()));
+            (this->articles == nullptr || this->articles->empty()));
 }
 
 void SearchEngine::generateAVLFromCache() {

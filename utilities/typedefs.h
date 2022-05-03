@@ -11,7 +11,7 @@
 #include "Article.h"
 
 typedef avl_tree<std::string, std::vector<std::pair<std::string, double>>> WordTree;
-typedef hash_table<std::string, Article> ArticleTable;
+typedef tbb::concurrent_unordered_map<std::string, Article> ArticleTable;
 typedef std::pair<std::string, double> ScoredId;
 
 #endif //INC_22S_FINAL_PROJ_TYPEDEFS_H

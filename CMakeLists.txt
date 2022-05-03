@@ -13,7 +13,7 @@ include_directories(${EXTERNAL_INSTALL_DIR}/include)
 #TBB
 link_libraries(tbb)
 
-add_executable(22s_final_proj main.cpp CatchTests/catch_setup.cpp hash_table/hash_table.h SearchEngine/SearchEngine.cpp SearchEngine/SearchEngine.h Processor/Processor.cpp utilities/StopWords.h utilities/Article.h utilities/Pipelines.h avl_tree/avl_tests.cpp external/porter2_stemmer/porter2_stemmer.cpp external/porter2_stemmer/porter2_stemmer.h external/porter2_stemmer/util/hash.h external/porter2_stemmer/util/string_view.h utilities/typedefs.h QueryBuilder/QueryBuilder.cpp QueryBuilder/QueryBuilder.h utilities/Pipelines.cpp utilities/ProgressBar.h avl_tree/avl_friends.cpp)
+add_executable(22s_final_proj main.cpp CatchTests/catch_setup.cpp hash_table/hash_table.h hash_table/hash_ordered_map_tests.cpp SearchEngine/SearchEngine.cpp SearchEngine/SearchEngine.h Processor/Processor.cpp utilities/StopWords.h utilities/Article.h utilities/Pipelines.h avl_tree/avl_tests.cpp external/porter2_stemmer/porter2_stemmer.cpp external/porter2_stemmer/porter2_stemmer.h external/porter2_stemmer/util/hash.h external/porter2_stemmer/util/string_view.h utilities/typedefs.h QueryBuilder/QueryBuilder.cpp QueryBuilder/QueryBuilder.h utilities/Pipelines.cpp utilities/ProgressBar.h avl_tree/avl_friends.cpp)
 
 ######################################################################
 # Build rules for tbb

@@ -23,8 +23,6 @@ struct Article {
     std::vector<std::string> orgList;
     std::string title;
 
-
-
     // Overloaded stream insertion operator
     friend std::ostream &operator<<(std::ostream &os, const Article &article) {
         os << "Article: " << article.uuid << " " << article.filename << " " << article.author << " ";
@@ -39,6 +37,5 @@ struct Article {
         ar(uuid, filename, author, orgList, title);
     }
 };
-
 
 #endif //INC_22S_FINAL_PROJ_ARTICLE_H

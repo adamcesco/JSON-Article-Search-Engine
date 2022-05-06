@@ -129,12 +129,7 @@ public:
 
     avl_tree &delete_node(const T &pKey);
 
-    avl_tree &clear() {
-        delete root;
-        root = nullptr;
-        nodeCount = 0;
-        return *this;
-    }
+    avl_tree &clear();
 
     void print_keys_in_order() { in_order_backbone(avl_tree<T, U>::root); }
 
@@ -815,6 +810,14 @@ void avl_tree<T, U>::load_from_archive(std::string filename) {
             insert_overwriting(inKey, inData);
         }
     }
+}
+
+template<class T, class U>
+avl_tree<T, U> &avl_tree<T, U>::clear() {
+    delete root;
+    root = nullptr;
+    nodeCount = 0;
+    return *this;
 }
 
 #endif //INC_22S_FINAL_PROJ_AVL_TREE_H

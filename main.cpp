@@ -1,5 +1,5 @@
 #include <iostream>
-#include "CatchTests/catch_setup.h"
+#include "CatchTestUtils/catch_setup.h"
 #include "SearchEngine/SearchEngine.h"
 
 

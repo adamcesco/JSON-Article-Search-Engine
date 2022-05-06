@@ -2,7 +2,7 @@
 // Created by Adam Escobedo on 4/8/2022.
 //
 
-#include "../CatchTests/catch.hpp"
+#include "../CatchTestUtils/catch.hpp"
 #include "avl_tree.h"
 #include <iostream>
 #include <vector>

@@ -2,7 +2,7 @@
 // Created by Adam Escobedo on 4/7/2022.
 //
 
-#include "../CatchTests/catch.hpp"
+#include "../CatchTestUtils/catch.hpp"
 #include "hash_table.h"
 #include <iostream>
 #include <fstream>

@@ -328,7 +328,7 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
         do {
             std::cout
                     << termcolor::bright_blue
-                    << "22s-final-project-fair-game / search-engine / " << termcolor::bright_green
+                    << "22s-final-project-fair-game / console-interface / search-engine / " << termcolor::bright_green
                     << "article-cache-manager > " << termcolor::white;
             std::string input;
             std::cin >> input;

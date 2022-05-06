@@ -100,14 +100,9 @@ private:
     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
     int increase_max_cap(unsigned int hashIndex);
 
-    float read_load_factor() {
-        return float(ele_count) / max_cap;
-    }
+    float read_load_factor() { return float(ele_count) / max_cap; }
 
-    inline static unsigned int hasher(const T &pKey) {
-        std::hash<T> hashObj;
-        return hashObj(pKey);
-    }
+    inline static unsigned int hasher(const T &pKey);
 
     HashPair *data = nullptr;   //holds key for *this
     int ele_count = 0;          //element counter, used for size metric
@@ -138,13 +133,7 @@ public:
     hash_table<T, U> &operator=(const hash_table<T, U> &);   //assignment operator overload
 
     //resets all *this contents/key
-    hash_table<T, U> &clear() {
-        delete[] data;
-        data = new HashPair[500];
-        max_cap = 500;
-        ele_count = 0;
-        return *this;
-    }
+    hash_table<T, U> &clear();
 
     hash_table<T, U> &clear_value_at(const T &pKey);               //sets the value at "pKey" to nullptr
 
@@ -434,6 +423,21 @@ hash_table<T, U> &hash_table<T, U>::emplace_mask(const hash_table<T, U> &pMap) {
     }
 
     return *this;
+}
+
+template<class T, class U>
+hash_table<T, U> &hash_table<T, U>::clear() {
+    delete[] data;
+    data = new HashPair[500];
+    max_cap = 500;
+    ele_count = 0;
+    return *this;
+}
+
+template<class T, class U>
+unsigned int hash_table<T, U>::hasher(const T &pKey) {
+    std::hash<T> hashObj;
+    return hashObj(pKey);
 }
 
 #endif //INC_22S_FINAL_PROJ_HASH_TABLE_H

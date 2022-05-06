@@ -213,11 +213,11 @@ void Processor::printProcessorStats() const {
     std::cout << termcolor::bright_blue << "articles compiled\t" << termcolor::white << this->articles->size()
               << std::endl << std::endl;
 
-    std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << organizations.size()
+    std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << this->organizations.size()
               << std::endl
               << std::endl;
 
-    std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << people.size() << std::endl
+    std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << this->people.size() << std::endl
               << std::endl;
 }
 

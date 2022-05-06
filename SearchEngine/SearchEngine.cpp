@@ -209,7 +209,7 @@ int SearchEngine::ConsolePrintEngineStats() {
         std::cout << termcolor::bright_blue << "organizations compiled\t" << termcolor::white << "0" << std::endl
                   << std::endl;
 
-        std::cout << termcolor::bright_blue << "authors compiled\t\t" << termcolor::white << "0" << std::endl
+        std::cout << termcolor::bright_blue << "people compiled\t\t" << termcolor::white << "0" << std::endl
                   << std::endl;
     }
 

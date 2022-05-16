@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
         runCatchTests();
         return 0;
     } else {
-        SearchEngine engine(argv[2]);
+        SearchEngine engine(argv[1]);
         engine.InitiateConsoleInterface();
     }
     return 0;

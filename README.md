@@ -7,14 +7,10 @@
 
 #### Query Formatting
 
-- The Boolean expression will be **prefixed** with a Boolean operator of either AND or OR *if there is more than one word of interest*.
-
+- The Boolean query will be **prefixed** with a Boolean operator of either AND or OR *if there is more than one word of interest*.
 - No query will contain both AND and OR.
-
 - Single word queries (not counting NOT or additional operators below) do not need a boolean operator.
-
 - Trailing search terms may be preceded with the NOT operator, which indicates articles containing that term should be removed from the resultset.
-
 - Additional Operators: A query can contain zero or more of the following:
   - ORG <some organization name> - the org operator will search a special index you maintain related to organizations mentioned in the entity metadata
   - PERSON <some person name> - the person operator will search a special index you maintain related to persons mentioned in the article’s entity metadata.

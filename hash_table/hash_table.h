@@ -100,7 +100,7 @@ private:
     //used to increase the maximum amount of elements *this can contain, and creates the next "clean_index" to edit based on the passed "hashIndex"
     int increase_max_cap(unsigned int hashIndex);
 
-    float read_load_factor() { return float(ele_count) / max_cap; }
+    float read_load_factor() { return float(ele_count) / float(max_cap); }
 
     inline static unsigned int hasher(const T &pKey);
 

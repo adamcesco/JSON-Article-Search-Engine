@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
         return 0;
     } else {
         SearchEngine engine(argv[1]);
-        engine.InitiateConsoleInterface();
+        engine.initiateConsoleInterface();
     }
     return 0;
 }

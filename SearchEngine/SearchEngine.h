@@ -15,11 +15,11 @@ private:
     WordTree *wordTree = nullptr;
     std::mutex *wordTreeMutex = nullptr;
 
-    void AvlCacheConsoleManager();
+    void avlCacheConsoleManager();
 
-    void ArticleCacheConsoleManager();
+    void articleCacheConsoleManager();
 
-    void QueryInterface();
+    void queryInterface();
 
 public:
     Processor *processor = nullptr;
@@ -39,9 +39,9 @@ public:
 
     void generateArticlesFromCache();
 
-    int ConsolePrintEngineStats();
+    int consolePrintEngineStats();
 
-    void InitiateConsoleInterface();
+    void initiateConsoleInterface();
 
     bool isIncomplete();
 

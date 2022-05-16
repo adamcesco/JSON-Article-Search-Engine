@@ -66,7 +66,7 @@ void SearchEngine::generateDataFromFiles() {
     std::cout << "Time Taken: " << diff.count() << " Seconds." << termcolor::white << std::endl;
 }
 
-void SearchEngine::InitiateConsoleInterface() {
+void SearchEngine::initiateConsoleInterface() {
     auto GetInput = [this](int maxChoice) -> int {
         bool invalid;
         int intInput;
@@ -144,23 +144,23 @@ void SearchEngine::InitiateConsoleInterface() {
 
             case 5 :
                 system("clear");
-                this->AvlCacheConsoleManager();
+                this->avlCacheConsoleManager();
                 system("clear");
                 break;
 
             case 6 :
                 system("clear");
-                this->ArticleCacheConsoleManager();
+                this->articleCacheConsoleManager();
                 system("clear");
                 break;
 
             case 7 :
-                QueryInterface();
+                queryInterface();
                 break;
 
             case 8 :
                 system("clear");
-                this->ConsolePrintEngineStats();
+                this->consolePrintEngineStats();
                 break;
 
             case 9 : {
@@ -194,7 +194,7 @@ void SearchEngine::InitiateConsoleInterface() {
 }
 
 
-int SearchEngine::ConsolePrintEngineStats() {
+int SearchEngine::consolePrintEngineStats() {
     int avlSize = 0;
     std::cout << std::endl;
     std::cout << termcolor::bright_blue << "Search Engine Statistics:" << termcolor::white << std::endl;
@@ -229,7 +229,7 @@ int SearchEngine::ConsolePrintEngineStats() {
     return avlSize;
 }
 
-void SearchEngine::AvlCacheConsoleManager() {   //completed
+void SearchEngine::avlCacheConsoleManager() {   //completed
     while (true) {
         std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
@@ -312,7 +312,7 @@ void SearchEngine::AvlCacheConsoleManager() {   //completed
     }
 }
 
-void SearchEngine::ArticleCacheConsoleManager() {   //completed
+void SearchEngine::articleCacheConsoleManager() {   //completed
     while (true) {
         std::cout << termcolor::bright_green << std::endl;
         std::cout << "enter a number: " << std::endl;
@@ -393,7 +393,7 @@ void SearchEngine::ArticleCacheConsoleManager() {   //completed
     }
 }
 
-void SearchEngine::QueryInterface() {
+void SearchEngine::queryInterface() {
     std::vector<Article> result;
     auto GetInput = [&result](int maxChoice) -> int {
         bool invalid;

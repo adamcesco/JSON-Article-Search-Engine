@@ -7,33 +7,33 @@
 
 #### Query Formatting
 
-- The Boolean query will be **prefixed** with a Boolean operator of either AND or OR *if there is more than one word of interest*.
+- The Boolean query will be **prefixed** with a Boolean operator of either AND or OR (*if there is more than one word of interest*).
 - No query will contain both AND and OR.
-- Single word queries (not counting NOT or additional operators below) do not need a boolean operator.
-- Trailing search terms may be preceded with the NOT operator, which indicates articles containing that term should be removed from the resultset.
+- Single word queries do not need a boolean operator.
+- Trailing search terms may be preceded with the NOT operator, which indicates articles containing that term should be removed from the results.
 - Additional Operators: A query can contain zero or more of the following:
-  - ORG <some organization name> - the org operator will search a special index you maintain related to organizations mentioned in the entity metadata
-  - PERSON <some person name> - the person operator will search a special index you maintain related to persons mentioned in the article’s entity metadata.
+  - ORG <some organization name> - the org operator narrows the results of a query to only include articles that contain the mentioned organization. Replace spaces within an organization name with dashes (-).
+  - PERSON <some person name> - the PERSON operator narrows the results of a query to only include articles that contain the mentioned person. People are searched for on a first-name/last-name basis, place a dash (-) between the two.
   - Additional Operator Notes:
-    - the order of ORG or PERSON doesn’t matter (meaning, you should accept queries that have them in either order)
-    - the operators will always be entered in all caps.
+    - the order of ORG or PERSON doesn’t matter
+    - the operators should always be entered in all caps.
 - Example Queries:
   - **markets**
     - This query should return all articles that contain the word *markets*.
   - **AND social network**
-    - This query should return all articles that contain the words “social” and “network” (doesn’t have to be as a 2-word phrase)
-  - **AND social network PERSON cramer**
-    - This query should return all articles that contain the words social and network and that mention cramer as a person entity.
-  - **AND social network ORG facebook PERSON cramer**
-    - This query should return all articles that contain the words social and network, that have an entity organization of facebook and that mention cramer as a person entity.
-  - **OR snap facebook**
-    - This query should return all articles that contain either snap OR facebook.
+    - This query should return all articles that contain the words “social” and “network”.
+  - **AND social network PERSON mark-zuckerberg**
+    - This query should return all articles that mention Mark Zuckerberg as a person entity and also contain the words social and network.
+  - **AND social network PERSON mark-zuckerberg ORG facebook**
+    - This query should return all articles that contain the words social and network, that have an entity organization of facebook, and that mention Mark Zuckerberg as a person entity.
+  - **OR snapchat facebook**
+    - This query should return all articles that contain either snapchat OR facebook.
   - **OR facebook meta NOT profits**
-    - This query should return all articles that contain facebook or meta but that do not contain the word profits.
-  - **bankruptcy NOT facebook**
-    - This query should return all articles that contain bankruptcy, but not facebook.
-  - **OR facebook instagram NOT bankruptcy ORG snap PERSON cramer**
-    - This query should return any article that contains the word facebook OR instagram but that does NOT contain the word bankruptcy, and the article should have an organization entity with Snap and a person entity of cramer
+    - This query should return all articles that contain facebook or meta but do not contain the word profits.
+  - **phone NOT AT&T**
+    - This query should return all articles that contain the word phone, but not AT&T.
+  - **OR facebook instagram NOT bankruptcy ORG snapchat PERSON mark-zuckerberg**
+    - This query should return any article that contains the word facebook OR instagram but does NOT contain the word bankruptcy, and each article within the results should contain the organization Snapchat and the person Mark Zuckerberg.
 
 ## Solution Overview
 

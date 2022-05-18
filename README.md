@@ -61,13 +61,13 @@
 - This Search Engine solution indexes all provided articles into a custom AVL-Tree designed by this team.
 - Insertion into this AVL-Tree is iterative and O(lg n) time. Balance is maintained for all insertions.
 - Deletion of nodes from this AVL-Tree is O(lg n) time. Balance is maintained for all deletions.
-- You can serialize this AVL-Tree into an archive file of choice, this archiving algorithm uses JSON formatting that is driven by the [Cereal Serialization Library](https://uscilab.github.io/cereal/). This Library also supports deserialization from an archive file  of choice, so that feature is supported and present for the AVL-Tree as well.
+- You can serialize this AVL-Tree into an archive file of choice, this archiving algorithm uses JSON formatting that is driven by the [Cereal Serialization Library](https://uscilab.github.io/cereal/). This Library also supports deserialization from an archive file of choice, so that feature is supported and present for the AVL-Tree as well.
 - Other features implemented for this AVL-Tree solution:
   - In-order key printing
   - Level-order key printing
   - Level-order node serialization
   - Node deserialization
-  - Different insertion methods that act different for the case where the passed key is already present within the tree: The past value is overwritten, the new value is appended to the past value, or a custom appending method is provided by the user.
+  - Different insertion methods that act different for the case where the passed key is already present within the tree: Where either the past value is overwritten, the new value is appended to the past value, or a custom appending method is provided by the user.
 
 #### Hash-Table
 

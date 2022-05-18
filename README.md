@@ -18,8 +18,8 @@
     - the order of ORG or PERSON doesn’t matter
     - the operators should always be entered in all caps.
 - Example Queries:
-  - **markets**
-    - This query should return all articles that contain the word *markets*.
+  - **market**
+    - This query should return all articles that contain the word "market".
   - **AND social network**
     - This query should return all articles that contain the words “social” and “network”.
   - **AND social network PERSON mark-zuckerberg**

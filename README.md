@@ -2,7 +2,7 @@
 
 ## Instructions for Use
 
-- Only one command line argument is required, which is the path of the folder containing the dataset. 
+- Only one command line argument is required, and it needs to be the path to the folder containing the dataset. 
 - The console user-interface will begin automatically, and options for engine management and use will be displayed.
 
 #### Query Formatting

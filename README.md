@@ -27,13 +27,13 @@
   - **AND social network PERSON mark-zuckerberg ORG facebook**
     - This query should return all articles that contain the words social and network, that have facebook as an organization entity, and that mention Mark Zuckerberg as a person entity.
   - **OR snapchat facebook**
-    - This query should return all articles that contain either snapchat OR facebook.
+    - This query should return all articles that contain the word snapchat OR the word facebook.
   - **OR facebook meta NOT profits**
-    - This query should return all articles that contain facebook or meta but do not contain the word profits.
+    - This query should return all articles that contain the word facebook OR the word meta but do NOT contain the word profits.
   - **phone NOT AT&T**
-    - This query should return all articles that contain the word phone, but not AT&T.
+    - This query should return all articles that contain the word phone but NOT AT&T.
   - **OR facebook instagram NOT bankruptcy ORG snapchat PERSON mark-zuckerberg**
-    - This query should return any article that contains the word facebook OR instagram but does NOT contain the word bankruptcy, and each article within the results should contain the organization Snapchat and the person Mark Zuckerberg.
+    - This query should return all articles that contains the word facebook OR the word instagram but do NOT contain the word bankruptcy, and each article within the results should contain the organization Snapchat and the person Mark Zuckerberg.
 - Additional Query Information: Stop-words are not indexed within the Search Engine, so all stop-words present within a query will not be considered nor affect the results.
 
 ## Solution Overview

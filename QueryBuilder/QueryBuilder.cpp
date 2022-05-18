@@ -179,6 +179,7 @@ SingleWordNode::SingleWordNode(ArticleTable *table, WordTree *tree, std::string 
 }
 
 std::vector<ScoredId> SingleWordNode::execute() {
+    pipeline::cleanStr(word);
     Porter2Stemmer::stem(word);
     std::transform(word.begin(), word.end(), word.begin(), ::tolower);
     std::vector<ScoredId> result;
@@ -233,6 +234,7 @@ std::vector<ScoredId> NotNode::execute() {
     }
     std::vector<ScoredId> result = this->children[0]->execute();
     for (auto &word: this->words) {
+        pipeline::cleanStr(word);
         Porter2Stemmer::stem(word);
         std::transform(word.begin(), word.end(), word.begin(), ::tolower);
         std::vector<ScoredId> toRemove;

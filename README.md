@@ -78,7 +78,7 @@
   - Iterators
   - Support for Custom hash functions
   - Merging Hash-Tables
-  - Masking Hash-Tables (Overwriting the elements of a Hash-Table that overlap with another the elements of another Hash-Table)
+  - Masking Hash-Tables
 
 ## Helpful Links
 

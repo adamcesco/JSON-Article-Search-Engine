@@ -34,6 +34,7 @@
     - This query should return all articles that contain the word phone, but not AT&T.
   - **OR facebook instagram NOT bankruptcy ORG snapchat PERSON mark-zuckerberg**
     - This query should return any article that contains the word facebook OR instagram but does NOT contain the word bankruptcy, and each article within the results should contain the organization Snapchat and the person Mark Zuckerberg.
+- Additional Query Information: Stop-words are not indexed within the Search Engine, so all stop-words present within a query will not be considered nor affect the results.
 
 ## Solution Overview
 

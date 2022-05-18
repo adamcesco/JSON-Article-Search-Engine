@@ -44,17 +44,17 @@
 - The QueryBuilder class utilizes a Divide & Conquer algorithm to handle all query logic. The QueryBuilder class was designed with a tree based structure, which is used to handle all sub-queries that were created by breaking up the original query. Each major portion of the original-query is placed into a different leaf node and processed as their own query. Once all sub-queries are processed, all separate leaf nodes get bubbled up and combined back into one fully processed query.
 - This Search Engine solution uses a console driven user-interface that was made to be as ergonomic and visually intuitive as possible, all by using colors and different console-based visual manipulations.
 - All features provided by the Search Engine User-Interface:
-  - Populating engine data by parsing JSON documents
-  - Populating engine data from caches
-  - Deleting a word from the search engine
-  - Managing the AVL tree cache
-  - Managing the article cache
-  - Entering a query
-  - Viewing the results of a query
-  - Viewing an article from the list of query results
-  - viewing the search engine statistics
-  - Clearing the engine data
-  - Ending the program
+  - Populate engine data by parsing the provided data-set
+  - Populate engine data from the present caches
+  - Delete a word from the search engine
+  - Manage the AVL tree cache
+  - Manage the article cache
+  - Enter a query
+  - View the top-15 results of a query
+  - View an article from the list of query results
+  - View the search engine statistics
+  - Clear all engine data
+  - End the program
 
 #### AVL-Tree
 

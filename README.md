@@ -67,7 +67,7 @@
   - Level-order key printing
   - Level-order node serialization
   - Node deserialization
-  - Different insertion methods that act differently in the scenario where the given key is already associated with a value within the tree: Where either the previous value associated with the key is overwritten, the new value is appended to the previous value, or a custom appending method is provided by the user.
+  - Different insertion methods that act differently in the scenario where the given key is already associated with a value within the tree: Where either the previous value associated with the key is overwritten, the new value is appended to the previous value, or a custom overwriting/appending method is provided by the user.
 
 #### Hash-Table
 

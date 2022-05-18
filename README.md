@@ -25,7 +25,7 @@
   - **AND social network PERSON mark-zuckerberg**
     - This query should return all articles that mention Mark Zuckerberg as a person entity and also contain the words social and network.
   - **AND social network PERSON mark-zuckerberg ORG facebook**
-    - This query should return all articles that contain the words social and network, that have an entity organization of facebook, and that mention Mark Zuckerberg as a person entity.
+    - This query should return all articles that contain the words social and network, that have facebook as an organization entity, and that mention Mark Zuckerberg as a person entity.
   - **OR snapchat facebook**
     - This query should return all articles that contain either snapchat OR facebook.
   - **OR facebook meta NOT profits**

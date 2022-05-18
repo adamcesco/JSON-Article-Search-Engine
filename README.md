@@ -19,9 +19,9 @@
     - the operators should always be entered in all caps.
 - Example Queries:
   - **market**
-    - This query should return all articles that contain the word "market".
+    - This query should return all articles that contain the word market.
   - **AND social network**
-    - This query should return all articles that contain the words “social” and “network”.
+    - This query should return all articles that contain the words social and network.
   - **AND social network PERSON mark-zuckerberg**
     - This query should return all articles that mention Mark Zuckerberg as a person entity and also contain the words social and network.
   - **AND social network PERSON mark-zuckerberg ORG facebook**
